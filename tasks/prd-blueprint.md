@@ -211,6 +211,28 @@ pnpm exec electron .vite/build/main.js
 
 ---
 
+#### US-007a: Set Up Legend State for Signals-Based State Management
+**As a** developer, **I want** Legend State configured **so that** streaming UI updates efficiently without full re-renders.
+
+**Acceptance Criteria:**
+- [ ] @legendapp/state installed and configured
+  - **Must verify:** `pnpm add @legendapp/state`
+  - **Expected:** Package in dependencies
+- [ ] Global state store created with observable pattern
+  - **Must verify:** Check `src/renderer/state/store.ts`
+  - **Expected:** Observable state for documents, session, streaming, UI
+- [ ] Components use `observer()` wrapper for fine-grained reactivity
+  - **Must verify:** Wrap a component, verify re-render count
+  - **Expected:** Only affected DOM nodes update during streaming
+- [ ] State persists to localStorage for UI preferences
+  - **Must verify:** Set preference, reload app
+  - **Expected:** Preference retained
+- [ ] Typecheck passes
+  - **Must verify:** `pnpm exec tsc --noEmit`
+  - **Expected:** No errors
+
+---
+
 ### Phase 2: Agent SDK Integration (Week 3-4)
 
 #### US-008: Install Claude Agent SDK V2
@@ -255,12 +277,18 @@ pnpm exec electron .vite/build/main.js
 **As a** user, **I want** streaming responses **so that** I see progress in real-time.
 
 **Acceptance Criteria:**
-- [ ] Text streams with typewriter effect
+- [ ] StreamingMarkdown component renders chunks incrementally (O(n) not O(n²))
   - **Must verify:** Send message, observe gradual text appearance
-  - **Expected:** Characters/words appear incrementally
+  - **Expected:** Uses insertAdjacentHTML, not full re-parse on each chunk
+- [ ] DOMPurify sanitizes streamed HTML to prevent XSS
+  - **Must verify:** Check sanitization in streaming handler
+  - **Expected:** All HTML sanitized before DOM insertion
 - [ ] Streaming indicator shows while generating
   - **Must verify:** Observe UI during streaming
-  - **Expected:** Pulsing dot or "typing..." indicator
+  - **Expected:** Pulsing dot or "typing..." indicator with aria-busy
+- [ ] Legend State observable updates without component re-renders
+  - **Must verify:** Check React DevTools re-render count
+  - **Expected:** Only StreamingText component updates, not parent
 - [ ] Latency under 100ms between tokens
   - **Must verify:** Time gap between token appearances
   - **Expected:** Smooth, responsive streaming
@@ -292,7 +320,7 @@ pnpm exec electron .vite/build/main.js
 
 ---
 
-#### US-012: Set Up SQLite Session Persistence
+#### US-012: Set Up SQLite Session Persistence with Vector Extensions
 **As a** user, **I want** sessions saved to database **so that** I can resume conversations.
 
 **Acceptance Criteria:**
@@ -302,6 +330,9 @@ pnpm exec electron .vite/build/main.js
 - [ ] Sessions table stores session_id, project_path, conversation_history
   - **Must verify:** Inspect database schema
   - **Expected:** Table with required columns
+- [ ] Documents table with embeddings column for semantic search
+  - **Must verify:** Check schema includes `embedding BLOB`
+  - **Expected:** 1536-dim float array stored as blob
 - [ ] Session resumes with full history on project reopen
   - **Must verify:** Close app, reopen, check history
   - **Expected:** All previous messages display
@@ -311,7 +342,7 @@ pnpm exec electron .vite/build/main.js
 
 ---
 
-#### US-013: Build Context Panel / Token Visualizer
+#### US-013: Build Context Panel / Token Visualizer with Semantic Search
 **As a** user, **I want** to see what context the agent uses **so that** I understand token usage.
 
 **Acceptance Criteria:**
@@ -324,6 +355,12 @@ pnpm exec electron .vite/build/main.js
 - [ ] List of included context files with toggle to exclude
   - **Must verify:** View file list, toggle one off
   - **Expected:** File removed from context, counter updates
+- [ ] Semantic search retrieves relevant context based on user query
+  - **Must verify:** Send message, check retrieved context
+  - **Expected:** Most relevant documents/sections included automatically
+- [ ] Context relevance score displayed per item
+  - **Must verify:** View context list items
+  - **Expected:** Each item shows similarity score (e.g., 0.85)
 - [ ] Typecheck passes
   - **Must verify:** `pnpm exec tsc --noEmit`
   - **Expected:** No errors
@@ -349,7 +386,82 @@ pnpm exec electron .vite/build/main.js
 
 ---
 
+#### US-014a: Implement Multi-Model Routing
+**As a** user, **I want** the app to automatically select the right model **so that** I get optimal speed and quality.
+
+**Acceptance Criteria:**
+- [ ] Task complexity classifier categorizes requests
+  - **Must verify:** Send different task types, log classification
+  - **Expected:** Autocomplete → simple, inline edit → medium, planning → complex
+- [ ] Haiku routes for simple tasks (autocomplete, quick suggestions)
+  - **Must verify:** Trigger autocomplete, check model used
+  - **Expected:** claude-3-haiku called
+- [ ] Sonnet routes for medium tasks (inline editing, code generation)
+  - **Must verify:** Trigger Cmd+K edit, check model used
+  - **Expected:** claude-sonnet called
+- [ ] Opus routes for complex tasks (planning, architecture, research)
+  - **Must verify:** Start planning phase, check model used
+  - **Expected:** claude-opus called
+- [ ] Model override available in UI for user control
+  - **Must verify:** Select different model in dropdown
+  - **Expected:** Overrides automatic selection
+- [ ] Typecheck passes
+  - **Must verify:** `pnpm exec tsc --noEmit`
+  - **Expected:** No errors
+
+---
+
+#### US-014b: Build Context Compaction Manager
+**As a** user, **I want** long sessions to remain performant **so that** I don't hit token limits.
+
+**Acceptance Criteria:**
+- [ ] ContextManager class tracks session events
+  - **Must verify:** Check `src/main/ContextManager.ts` exists
+  - **Expected:** Class with addEvent, compact methods
+- [ ] Automatic compaction triggers after threshold (e.g., 20 events)
+  - **Must verify:** Add 25 events, check compaction
+  - **Expected:** Older events summarized automatically
+- [ ] Haiku generates concise summaries of older context
+  - **Must verify:** Check summary quality
+  - **Expected:** Key decisions and context preserved in summary
+- [ ] Recent events (last 10) always kept in full
+  - **Must verify:** Check context after compaction
+  - **Expected:** Recent events unmodified
+- [ ] Token usage reduced by 50%+ after compaction
+  - **Must verify:** Compare token count before/after
+  - **Expected:** Significant reduction while preserving meaning
+- [ ] Typecheck passes
+  - **Must verify:** `pnpm exec tsc --noEmit`
+  - **Expected:** No errors
+
+---
+
 ### Phase 3: Markdown Rendering & Navigation (Week 5-6)
+
+#### US-014c: Set Up Tiptap Editor
+**As a** developer, **I want** Tiptap configured **so that** I can provide rich text editing with AI integration.
+
+**Acceptance Criteria:**
+- [ ] @tiptap/react and extensions installed
+  - **Must verify:** `pnpm add @tiptap/react @tiptap/starter-kit @tiptap/extension-collaboration`
+  - **Expected:** Packages in dependencies
+- [ ] Basic editor renders with StarterKit extensions
+  - **Must verify:** Mount TiptapEditor component
+  - **Expected:** Rich text editing works
+- [ ] Custom AIInlineEdit extension created
+  - **Must verify:** Check `src/renderer/components/editor/extensions/AIInlineEdit.ts`
+  - **Expected:** Extension hooks into selection for Cmd+K
+- [ ] Mermaid code block extension for diagram editing
+  - **Must verify:** Insert mermaid code block
+  - **Expected:** Syntax highlighting and preview
+- [ ] Collaboration extension configured (Yjs ready for v2.0)
+  - **Must verify:** Check Yjs document binding
+  - **Expected:** Extension loads without errors
+- [ ] Typecheck passes
+  - **Must verify:** `pnpm exec tsc --noEmit`
+  - **Expected:** No errors
+
+---
 
 #### US-015: Configure react-markdown with Plugins
 **As a** user, **I want** rendered markdown **so that** I can read formatted content.
@@ -562,12 +674,15 @@ pnpm exec electron .vite/build/main.js
 - [ ] Overlay appears near selection with input field
   - **Must verify:** Trigger edit, check overlay position
   - **Expected:** Overlay anchored to selection
-- [ ] Model selector dropdown (Sonnet, Haiku, Opus)
+- [ ] Model auto-selected based on task (defaults to Sonnet for inline edits)
+  - **Must verify:** Trigger edit, check model indicator
+  - **Expected:** Sonnet pre-selected, shows "Auto" badge
+- [ ] Model selector dropdown allows override (Sonnet, Haiku, Opus)
   - **Must verify:** Click model dropdown
-  - **Expected:** Model options available
-- [ ] Generate button sends request
+  - **Expected:** Model options available with descriptions
+- [ ] Generate button sends request with selected model
   - **Must verify:** Type instruction, click Generate
-  - **Expected:** Request sent to agent
+  - **Expected:** Request sent to correct model
 - [ ] Typecheck passes
   - **Must verify:** `pnpm exec tsc --noEmit`
   - **Expected:** No errors
@@ -644,12 +759,12 @@ pnpm exec electron .vite/build/main.js
 - [ ] Edit Diagram button appears on diagram hover
   - **Must verify:** Hover over Mermaid diagram
   - **Expected:** Edit button visible
-- [ ] Modal shows Monaco editor with Mermaid syntax
+- [ ] Modal shows Tiptap editor with Mermaid code block extension
   - **Must verify:** Click Edit Diagram
   - **Expected:** Code editor with syntax highlighting
 - [ ] Live preview updates as code changes
   - **Must verify:** Edit Mermaid code
-  - **Expected:** Preview updates in real-time
+  - **Expected:** Preview updates in real-time (debounced 300ms)
 - [ ] Typecheck passes
   - **Must verify:** `pnpm exec tsc --noEmit`
   - **Expected:** No errors
@@ -1035,6 +1150,34 @@ pnpm exec electron .vite/build/main.js
 
 ---
 
+#### US-048a: WCAG 2.2 Accessibility Compliance
+**As a** user with disabilities, **I want** the app to be accessible **so that** I can use it effectively.
+
+**Acceptance Criteria:**
+- [ ] All interactive elements keyboard accessible
+  - **Must verify:** Navigate entire app with Tab/Enter/Arrow keys
+  - **Expected:** Focus visible, all actions triggerable
+- [ ] ARIA labels on all buttons and interactive elements
+  - **Must verify:** Run accessibility audit (axe-core)
+  - **Expected:** No missing labels or roles
+- [ ] Streaming content announces with aria-live="polite"
+  - **Must verify:** Test with screen reader during streaming
+  - **Expected:** New content announced without interrupting
+- [ ] Color contrast meets AA standard (4.5:1 normal, 3:1 large text)
+  - **Must verify:** Run contrast checker on all themes
+  - **Expected:** All text passes contrast requirements
+- [ ] Diff visualization accessible to screen readers
+  - **Must verify:** Test diff view with screen reader
+  - **Expected:** Changes described as "Added/Removed/Modified at line X"
+- [ ] Focus management on modal open/close
+  - **Must verify:** Open modal, check focus, close modal
+  - **Expected:** Focus moves to modal, returns to trigger on close
+- [ ] Typecheck passes
+  - **Must verify:** `pnpm exec tsc --noEmit`
+  - **Expected:** No errors
+
+---
+
 #### US-049: Write Unit Tests
 **As a** developer, **I want** unit tests **so that** code changes don't break functionality.
 
@@ -1207,23 +1350,33 @@ pnpm exec electron .vite/build/main.js
 
 ## Summary
 
-**Total Stories:** 55
+**Total Stories:** 60
 **Completed:** 5 (US-001, US-002, US-003, US-004, US-005)
-**Remaining:** 50
+**Remaining:** 55
 
 **Phase Distribution:**
-- Foundation: 7 stories (2 complete)
-- Agent SDK: 7 stories
-- Markdown & Nav: 8 stories
+- Foundation: 8 stories (5 complete) - added US-007a (Legend State)
+- Agent SDK: 9 stories - added US-014a (Multi-model routing), US-014b (Context compaction)
+- Markdown & Nav: 9 stories - added US-014c (Tiptap editor)
 - Inline Editing: 8 stories
 - Research & Export: 9 stories
 - Workflow: 6 stories
-- Polish & Testing: 5 stories
+- Polish & Testing: 6 stories - added US-048a (WCAG 2.2)
 - Packaging: 5 stories
 
-**New Features Added:**
+**Core Features:**
 1. Activity Bar (US-004, US-005)
 2. Command Palette (US-019)
 3. Welcome Screen / Recent Projects (US-040, US-041)
 4. Context Panel / Token Visualizer (US-013)
 5. Prompt Library (US-028)
+
+**SOTA Technology Features (from docs/SOTA-TECHNOLOGY-RESEARCH.md):**
+1. Legend State signals for streaming UI (US-007a)
+2. Tiptap editor with AI extensions (US-014c)
+3. SQLite with vector embeddings for semantic search (US-012)
+4. Multi-model routing: Haiku → Sonnet → Opus (US-014a)
+5. Context compaction for long sessions (US-014b)
+6. StreamingMarkdown with O(n) rendering (US-010)
+7. WCAG 2.2 accessibility compliance (US-048a)
+8. Semantic context retrieval (US-013)
