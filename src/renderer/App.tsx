@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import PermissionsCheck from './components/PermissionsCheck';
 import FileBrowser from './components/explorer/FileBrowser';
+import ThemeToggle from './components/settings/ThemeToggle';
+import { useThemeEffect } from './hooks/useTheme';
 
 const DEFAULT_LEFT_WIDTH_PERCENT = 40;
 const MIN_PANE_WIDTH = 300;
@@ -76,6 +78,9 @@ interface OpenFile {
 }
 
 function MainApp() {
+  // Apply theme class to document element
+  useThemeEffect();
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [leftWidthPercent, setLeftWidthPercent] = useState(DEFAULT_LEFT_WIDTH_PERCENT);
   const [isDragging, setIsDragging] = useState(false);
@@ -378,15 +383,12 @@ function LeftPaneContent({ section, onFileSelect }: { section: Section; onFileSe
     case 'settings':
       return (
         <div className="flex-1 overflow-y-auto p-4">
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div>
               <p className="text-sm font-medium mb-2">API Keys</p>
               <p className="text-xs text-gray-500 dark:text-gray-400">Configure your API keys for Claude, OpenRouter, and Gemini</p>
             </div>
-            <div>
-              <p className="text-sm font-medium mb-2">Theme</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Light / Dark / System</p>
-            </div>
+            <ThemeToggle />
           </div>
         </div>
       );
