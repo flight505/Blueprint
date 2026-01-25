@@ -280,6 +280,39 @@ export interface OpenRouterStreamChunk {
   citation?: Citation;
 }
 
+// Gemini/Deep Research types
+export interface DeepResearchResponse {
+  id: string;
+  content: string;
+  model: string;
+  usage: {
+    promptTokens: number;
+    candidatesTokens: number;
+    totalTokens: number;
+  };
+  finishReason: string | null;
+}
+
+export interface DeepResearchOptions {
+  maxOutputTokens?: number;
+  temperature?: number;
+  systemInstruction?: string;
+  timeout?: number;
+}
+
+export interface ProgressCheckpoint {
+  percentage: number;
+  timestamp: Date;
+  message: string;
+  partialContent?: string;
+}
+
+export interface GeminiStreamChunk {
+  type: 'text' | 'progress' | 'error' | 'done';
+  content: string;
+  progress?: ProgressCheckpoint;
+}
+
 // Expose protected methods to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
   // Permissions
@@ -465,6 +498,36 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('openRouter:streamChunk', handler);
     return () => ipcRenderer.removeListener('openRouter:streamChunk', handler);
   },
+
+  // Gemini/Deep Research
+  geminiInitialize: (apiKey: string): Promise<boolean> =>
+    ipcRenderer.invoke('gemini:initialize', apiKey),
+  geminiIsInitialized: (): Promise<boolean> =>
+    ipcRenderer.invoke('gemini:isInitialized'),
+  geminiValidateApiKey: (apiKey: string): Promise<boolean> =>
+    ipcRenderer.invoke('gemini:validateApiKey', apiKey),
+  geminiDeepResearch: (query: string, options?: DeepResearchOptions): Promise<DeepResearchResponse> =>
+    ipcRenderer.invoke('gemini:deepResearch', query, options),
+  geminiDeepResearchStream: (query: string, options?: DeepResearchOptions): Promise<void> =>
+    ipcRenderer.invoke('gemini:deepResearchStream', query, options),
+  geminiGetModel: (): Promise<string> =>
+    ipcRenderer.invoke('gemini:getModel'),
+  geminiGetProgressCheckpoints: (): Promise<number[]> =>
+    ipcRenderer.invoke('gemini:getProgressCheckpoints'),
+  onGeminiProgressCheckpoint: (callback: (progress: ProgressCheckpoint) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, progress: ProgressCheckpoint) => {
+      callback(progress);
+    };
+    ipcRenderer.on('gemini:progressCheckpoint', handler);
+    return () => ipcRenderer.removeListener('gemini:progressCheckpoint', handler);
+  },
+  onGeminiStreamChunk: (callback: (chunk: GeminiStreamChunk) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, chunk: GeminiStreamChunk) => {
+      callback(chunk);
+    };
+    ipcRenderer.on('gemini:streamChunk', handler);
+    return () => ipcRenderer.removeListener('gemini:streamChunk', handler);
+  },
 });
 
 // Type declaration for the renderer
@@ -565,6 +628,17 @@ declare global {
       openRouterResearchStream: (query: string, options?: ResearchOptions) => Promise<void>;
       openRouterGetModel: () => Promise<string>;
       onOpenRouterStreamChunk: (callback: (chunk: OpenRouterStreamChunk) => void) => () => void;
+
+      // Gemini/Deep Research
+      geminiInitialize: (apiKey: string) => Promise<boolean>;
+      geminiIsInitialized: () => Promise<boolean>;
+      geminiValidateApiKey: (apiKey: string) => Promise<boolean>;
+      geminiDeepResearch: (query: string, options?: DeepResearchOptions) => Promise<DeepResearchResponse>;
+      geminiDeepResearchStream: (query: string, options?: DeepResearchOptions) => Promise<void>;
+      geminiGetModel: () => Promise<string>;
+      geminiGetProgressCheckpoints: () => Promise<number[]>;
+      onGeminiProgressCheckpoint: (callback: (progress: ProgressCheckpoint) => void) => () => void;
+      onGeminiStreamChunk: (callback: (chunk: GeminiStreamChunk) => void) => () => void;
     };
   }
 }

@@ -10,6 +10,7 @@ import { secureStorageService, type ApiKeyType } from './main/services/SecureSto
 import { modelRouter, type TaskClassification, type TaskType, type ModelId, CLAUDE_MODELS } from './main/services/ModelRouter';
 import { contextManager, type ContextEvent, type CompactionResult, type ContextStats, type CompactionSummary } from './main/services/ContextManager';
 import { openRouterService, type ResearchResponse, type ResearchOptions, type StreamChunk as OpenRouterStreamChunk } from './main/services/OpenRouterService';
+import { geminiService, type DeepResearchResponse, type DeepResearchOptions, type GeminiStreamChunk, type ProgressCheckpoint } from './main/services/GeminiService';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -350,6 +351,53 @@ function registerIpcHandlers() {
   ipcMain.handle('openRouter:getModel', (): string => {
     return openRouterService.getModel();
   });
+
+  // Gemini service handlers (Deep Research)
+  ipcMain.handle('gemini:initialize', async (_, apiKey: string): Promise<boolean> => {
+    return await geminiService.initialize(apiKey);
+  });
+
+  ipcMain.handle('gemini:isInitialized', (): boolean => {
+    return geminiService.isInitialized();
+  });
+
+  ipcMain.handle('gemini:validateApiKey', async (_, apiKey: string): Promise<boolean> => {
+    return await geminiService.validateApiKey(apiKey);
+  });
+
+  ipcMain.handle('gemini:deepResearch', async (event, query: string, options?: DeepResearchOptions): Promise<DeepResearchResponse> => {
+    const webContents = event.sender;
+
+    // Wrap the options to forward progress events via IPC
+    const optionsWithProgress: DeepResearchOptions = {
+      ...options,
+      onProgress: (progress: ProgressCheckpoint) => {
+        webContents.send('gemini:progressCheckpoint', progress);
+      },
+    };
+
+    return await geminiService.deepResearch(query, optionsWithProgress);
+  });
+
+  ipcMain.handle('gemini:deepResearchStream', async (event, query: string, options?: DeepResearchOptions): Promise<void> => {
+    const webContents = event.sender;
+
+    await geminiService.deepResearchStream(
+      query,
+      (chunk: GeminiStreamChunk) => {
+        webContents.send('gemini:streamChunk', chunk);
+      },
+      options
+    );
+  });
+
+  ipcMain.handle('gemini:getModel', (): string => {
+    return geminiService.getModel();
+  });
+
+  ipcMain.handle('gemini:getProgressCheckpoints', (): number[] => {
+    return geminiService.getProgressCheckpoints();
+  });
 }
 
 const createWindow = async () => {
@@ -414,6 +462,12 @@ app.on('ready', async () => {
   const openRouterKey = await secureStorageService.getApiKey('openrouter');
   if (openRouterKey) {
     openRouterService.initialize(openRouterKey);
+  }
+
+  // Initialize Gemini service with API key if available
+  const geminiKey = await secureStorageService.getApiKey('gemini');
+  if (geminiKey) {
+    geminiService.initialize(geminiKey);
   }
 
   registerIpcHandlers();
