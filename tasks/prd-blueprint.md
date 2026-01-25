@@ -36,9 +36,20 @@ Blueprint is a standalone Electron desktop application for AI-powered project pl
 | Tailwind CSS | 4.x | Styling |
 | Vite | 5.x | Build tool |
 | Claude Agent SDK | v2 | AI integration |
-| better-sqlite3 | latest | Session persistence |
+| better-sqlite3 | latest | Session persistence + vector extensions |
+| Legend State | latest | Signals-based state (fine-grained reactivity) |
+| Tiptap | latest | Rich text editor (replaces Monaco) |
 | react-markdown | latest | Markdown rendering |
-| Monaco Editor | latest | Code/diff editing |
+
+### SOTA Technology Decisions (See docs/SOTA-TECHNOLOGY-RESEARCH.md)
+
+| Decision | Rationale |
+|----------|-----------|
+| **Legend State over Redux** | Fine-grained reactivity for streaming UI (10x fewer re-renders) |
+| **Tiptap over Monaco** | Native markdown WYSIWYG, Yjs collaboration, AI extension API |
+| **SQLite + vectors** | Semantic search over documents without external infrastructure |
+| **Multi-model routing** | Haiku (autocomplete) → Sonnet (inline edit) → Opus (planning) |
+| **Context compaction** | Summarize older events to optimize token usage |
 
 ## Development Environment Setup
 
@@ -102,61 +113,61 @@ pnpm exec electron .vite/build/main.js
 
 ---
 
-#### US-003: Create Two-Pane Resizable Layout
+#### US-003: Create Two-Pane Resizable Layout ✅ COMPLETE
 **As a** user, **I want** a resizable split-pane layout **so that** I can view chat and content side by side.
 
 **Acceptance Criteria:**
-- [ ] Left pane (40% default) and right pane (60% default) display
+- [x] Left pane (40% default) and right pane (60% default) display
   - **Must verify:** Run dev server, inspect layout
   - **Expected:** Two panes visible with correct proportions
-- [ ] Divider is draggable between 300px minimum widths
+- [x] Divider is draggable between 300px minimum widths
   - **Must verify:** Drag divider left and right
   - **Expected:** Panes resize smoothly, stop at minimums
-- [ ] Double-click divider resets to default split
+- [x] Double-click divider resets to default split
   - **Must verify:** Drag divider, then double-click it
   - **Expected:** Returns to 40/60 split
-- [ ] Typecheck passes
+- [x] Typecheck passes
   - **Must verify:** `pnpm exec tsc --noEmit`
   - **Expected:** No errors
 
 ---
 
-#### US-004: Implement Activity Bar
+#### US-004: Implement Activity Bar ✅ COMPLETE
 **As a** user, **I want** a vertical Activity Bar **so that** I can quickly navigate between sections.
 
 **Acceptance Criteria:**
-- [ ] 48px vertical bar renders on far left with icon buttons
+- [x] 48px vertical bar renders on far left with icon buttons
   - **Must verify:** Run dev server, measure Activity Bar width
   - **Expected:** Fixed 48px bar with vertical icons
-- [ ] Top icons: Chat, Explorer, Search, Planning, Export, History
+- [x] Top icons: Chat, Explorer, Search, Planning, Export, History
   - **Must verify:** Count icons and verify tooltips
   - **Expected:** 6 icons with correct labels
-- [ ] Bottom icons: Settings, Help
+- [x] Bottom icons: Settings, Help
   - **Must verify:** Scroll/check bottom of Activity Bar
   - **Expected:** 2 icons pinned to bottom
-- [ ] Clicking icon switches active section
+- [x] Clicking icon switches active section
   - **Must verify:** Click each icon, observe left pane change
   - **Expected:** Left pane content updates per section
-- [ ] Typecheck passes
+- [x] Typecheck passes
   - **Must verify:** `pnpm exec tsc --noEmit`
   - **Expected:** No errors
 
 ---
 
-#### US-005: Add Activity Bar Keyboard Shortcuts
+#### US-005: Add Activity Bar Keyboard Shortcuts ✅ COMPLETE
 **As a** user, **I want** keyboard shortcuts for Activity Bar **so that** I can navigate without mouse.
 
 **Acceptance Criteria:**
-- [ ] Cmd+1 through Cmd+6 switch sections
+- [x] Cmd+1 through Cmd+6 switch sections
   - **Must verify:** Press Cmd+1, Cmd+2, etc.
   - **Expected:** Corresponding section activates
-- [ ] Cmd+, opens Settings section
+- [x] Cmd+, opens Settings section
   - **Must verify:** Press Cmd+,
   - **Expected:** Settings panel displays
-- [ ] Cmd+? opens Help section
+- [x] Cmd+? opens Help section
   - **Must verify:** Press Cmd+Shift+/
   - **Expected:** Help panel displays
-- [ ] Typecheck passes
+- [x] Typecheck passes
   - **Must verify:** `pnpm exec tsc --noEmit`
   - **Expected:** No errors
 
@@ -1197,8 +1208,8 @@ pnpm exec electron .vite/build/main.js
 ## Summary
 
 **Total Stories:** 55
-**Completed:** 2 (US-001, US-002)
-**Remaining:** 53
+**Completed:** 5 (US-001, US-002, US-003, US-004, US-005)
+**Remaining:** 50
 
 **Phase Distribution:**
 - Foundation: 7 stories (2 complete)
