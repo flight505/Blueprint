@@ -11,6 +11,7 @@ import { useThemeEffect } from './hooks/useTheme';
 import { useStreaming } from './hooks/useStreaming';
 import { useMermaidRenderer } from './hooks/useMermaid';
 import { ChatContainer, ChatMessageData, AskUserQuestionData } from './components/chat';
+import { SearchPanel } from './components/search';
 
 const DEFAULT_LEFT_WIDTH_PERCENT = 40;
 const MIN_PANE_WIDTH = 300;
@@ -365,6 +366,14 @@ function MainApp() {
       category: 'File',
       action: () => toggleQuickOpen(),
     },
+    // Search command
+    {
+      id: 'search:in-project',
+      label: 'Search in Project',
+      shortcut: 'Cmd+Shift+F',
+      category: 'Search',
+      action: () => setActiveSection('search'),
+    },
   ], [activeFileId, toggleQuickOpen]);
 
   const handleFileSelect = useCallback(async (filePath: string) => {
@@ -474,6 +483,13 @@ function MainApp() {
       if (e.shiftKey && (e.key === 'p' || e.key === 'P')) {
         e.preventDefault();
         toggleCommandPalette();
+        return;
+      }
+
+      // Cmd+Shift+F for Search
+      if (e.shiftKey && (e.key === 'f' || e.key === 'F')) {
+        e.preventDefault();
+        setActiveSection('search');
         return;
       }
 
@@ -714,14 +730,10 @@ function LeftPaneContent({
       );
     case 'search':
       return (
-        <div className="flex-1 overflow-y-auto p-4">
-          <input
-            type="text"
-            placeholder="Search in project..."
-            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
-          />
-          <p className="text-sm text-gray-500 dark:text-gray-400">Enter a search term to find content across all files</p>
-        </div>
+        <SearchPanel
+          projectPath={projectPath ?? null}
+          onFileSelect={onFileSelect}
+        />
       );
     case 'context':
       return (
@@ -776,6 +788,7 @@ function LeftPaneContent({
               <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
                 <p>Cmd+1-7 - Switch sections</p>
                 <p>Cmd+Shift+P - Command palette</p>
+                <p>Cmd+Shift+F - Search in project</p>
                 <p>Cmd+P - Quick open file</p>
                 <p>Cmd+K - Inline edit</p>
               </div>

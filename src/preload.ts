@@ -29,6 +29,25 @@ export interface QuickOpenFile {
   relativePath: string;
 }
 
+export interface SearchMatch {
+  line: number;
+  column: number;
+  content: string;
+  match: string;
+}
+
+export interface SearchResult {
+  filePath: string;
+  relativePath: string;
+  matches: SearchMatch[];
+}
+
+export interface SearchOptions {
+  useRegex?: boolean;
+  caseSensitive?: boolean;
+  maxResults?: number;
+}
+
 // Agent types (matching main process)
 export interface AgentSession {
   id: string;
@@ -230,6 +249,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('fs:readFile', filePath),
   listAllFiles: (basePath: string): Promise<QuickOpenFile[]> =>
     ipcRenderer.invoke('fs:listAllFiles', basePath),
+  searchInFiles: (basePath: string, query: string, options?: SearchOptions): Promise<SearchResult[]> =>
+    ipcRenderer.invoke('fs:searchInFiles', basePath, query, options),
 
   // Agent service
   agentInitialize: (apiKey: string): Promise<boolean> =>
@@ -374,6 +395,7 @@ declare global {
       readDirectory: (dirPath: string) => Promise<FileNode[]>;
       readFile: (filePath: string) => Promise<FileContent>;
       listAllFiles: (basePath: string) => Promise<QuickOpenFile[]>;
+      searchInFiles: (basePath: string, query: string, options?: SearchOptions) => Promise<SearchResult[]>;
 
       // Agent service
       agentInitialize: (apiKey: string) => Promise<boolean>;
