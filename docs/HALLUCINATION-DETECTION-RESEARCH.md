@@ -98,8 +98,20 @@ Modern RAG separates "Search" and "Retrieve" stages:
 | API | Coverage | Rate Limit | Best For |
 |-----|----------|------------|----------|
 | **OpenAlex** | 240M+ works | 100K credits/day | Title/author searches (broadest coverage) |
-| **Crossref** | 180M DOIs | 5-10 RPS (polite pool) | DOI lookups (canonical registry) |
+| **Crossref** | 180M DOIs | 10 RPS (polite) | DOI lookups (canonical registry) |
 | **Semantic Scholar** | 214M papers | 1 RPS | Enrichment only (TLDRs, citation counts) |
+
+**Crossref Rate Limits (Official, January 2026):**
+| Pool | Rate Limit | Concurrency | Cost | Authentication |
+|------|------------|-------------|------|----------------|
+| **Public** | 5 RPS | 1 | Free | None |
+| **Polite** | 10 RPS | 3 | Free | `mailto` parameter |
+| **Metadata Plus** | 150 RPS | Unlimited | Paid | API key |
+
+**Recommendation:** Use **Polite pool** as default (2x rate, 3x concurrency for free).
+- Add `mailto=user@email.com` to all requests
+- Crossref can contact you if issues arise
+- Sufficient for most use cases (100 citations @ 10 RPS = 10 seconds)
 
 **Hybrid Query Strategy:**
 | Query Type | Primary | Fallback | Rationale |
@@ -120,6 +132,38 @@ Modern RAG separates "Search" and "Retrieve" stages:
 - Inactive keys (60+ days) automatically pruned
 - Rate limit: 1 RPS even with API key
 - **Recommendation:** Use for enrichment only (TLDRs, citation counts), not primary verification
+
+### 2.4 API Costs for Commercialization
+
+**Current Free Tier (Sufficient for MVP + Early Users):**
+
+| API | Free Tier | Estimated Capacity |
+|-----|-----------|-------------------|
+| OpenAlex | 100K credits/day | ~10K title searches or ~100K DOI lookups/day |
+| Crossref Polite | 10 RPS | ~864K requests/day (theoretical max) |
+| Semantic Scholar | 1 RPS | ~86K requests/day |
+
+**Enterprise/Production Tiers (TBD - Research Needed):**
+
+| API | Enterprise Option | Pricing | Notes |
+|-----|------------------|---------|-------|
+| OpenAlex | Premium tier | Unknown | Contact OpenAlex |
+| Crossref | Metadata Plus | Unknown | Contact Crossref sales |
+| Semantic Scholar | Enterprise | Unknown | Limited availability |
+
+**Cost Research TODO:**
+- [ ] Contact Crossref for Metadata Plus pricing (150 RPS, SLA)
+- [ ] Contact OpenAlex for premium tier pricing
+- [ ] Evaluate if S2 enterprise is worth pursuing given restrictions
+- [ ] Calculate break-even: at what user volume do we need enterprise tiers?
+
+**Usage Projections (for cost modeling):**
+| Scenario | Documents/day | Citations/doc | API calls/day | Tier Needed |
+|----------|---------------|---------------|---------------|-------------|
+| Early MVP | 10 | 50 | ~500 | Free |
+| Beta (100 users) | 100 | 50 | ~5,000 | Free |
+| Growth (1K users) | 1,000 | 50 | ~50,000 | Free (borderline) |
+| Scale (10K users) | 10,000 | 50 | ~500,000 | Enterprise |
 
 **Confidence Scoring:**
 | Score | Status | Action |
