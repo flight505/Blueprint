@@ -4,6 +4,8 @@ import started from 'electron-squirrel-startup';
 import { checkAllPermissions, openSystemPreferences } from './main/permissions';
 import { readDirectory, readFileContent, FileNode, FileContent } from './main/services/FileSystemService';
 import { agentService, type AgentSession, type StreamChunk, type CreateSessionOptions, type SendMessageOptions, type MessageParam } from './main/services/AgentService';
+import { databaseService } from './main/services/DatabaseService';
+import type { SessionInput, DocumentInput, StoredSession, StoredDocument } from './main/services/DatabaseService';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -111,6 +113,55 @@ function registerIpcHandlers() {
   ipcMain.handle('agent:clearConversationHistory', (_, sessionId: string): boolean => {
     return agentService.clearConversationHistory(sessionId);
   });
+
+  // Database service handlers
+  ipcMain.handle('db:isInitialized', (): boolean => {
+    return databaseService.isInitialized();
+  });
+
+  ipcMain.handle('db:saveSession', (_, session: SessionInput): void => {
+    databaseService.saveSession(session);
+  });
+
+  ipcMain.handle('db:getSession', (_, sessionId: string): StoredSession | null => {
+    return databaseService.getSession(sessionId);
+  });
+
+  ipcMain.handle('db:getSessionByProjectPath', (_, projectPath: string): StoredSession | null => {
+    return databaseService.getSessionByProjectPath(projectPath);
+  });
+
+  ipcMain.handle('db:listSessions', (): StoredSession[] => {
+    return databaseService.listSessions();
+  });
+
+  ipcMain.handle('db:deleteSession', (_, sessionId: string): boolean => {
+    return databaseService.deleteSession(sessionId);
+  });
+
+  ipcMain.handle('db:saveDocument', (_, doc: DocumentInput): void => {
+    databaseService.saveDocument(doc);
+  });
+
+  ipcMain.handle('db:getDocument', (_, docId: string): StoredDocument | null => {
+    return databaseService.getDocument(docId);
+  });
+
+  ipcMain.handle('db:getDocumentsBySession', (_, sessionId: string): StoredDocument[] => {
+    return databaseService.getDocumentsBySession(sessionId);
+  });
+
+  ipcMain.handle('db:deleteDocument', (_, docId: string): boolean => {
+    return databaseService.deleteDocument(docId);
+  });
+
+  ipcMain.handle('db:searchDocumentsByEmbedding', (_, sessionId: string, queryEmbedding: number[], limit?: number): Array<StoredDocument & { similarity: number }> => {
+    return databaseService.searchDocumentsByEmbedding(sessionId, queryEmbedding, limit);
+  });
+
+  ipcMain.handle('db:getStats', (): { sessionCount: number; documentCount: number; dbSize: number } => {
+    return databaseService.getStats();
+  });
 }
 
 const createWindow = async () => {
@@ -161,6 +212,9 @@ const createWindow = async () => {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 app.on('ready', () => {
+  // Initialize database
+  databaseService.initialize();
+
   registerIpcHandlers();
   createWindow();
 });
@@ -170,6 +224,11 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
+});
+
+// Clean up database on quit
+app.on('will-quit', () => {
+  databaseService.close();
 });
 
 app.on('activate', () => {

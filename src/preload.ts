@@ -72,6 +72,47 @@ export interface MessageResponse {
   };
 }
 
+// Database types
+export interface StoredSession {
+  id: string;
+  projectPath: string;
+  conversationHistory: string;
+  model: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StoredDocument {
+  id: string;
+  sessionId: string;
+  filePath: string;
+  content: string;
+  embedding: ArrayBuffer | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SessionInput {
+  id: string;
+  projectPath: string;
+  conversationHistory: string;
+  model: string;
+}
+
+export interface DocumentInput {
+  id: string;
+  sessionId: string;
+  filePath: string;
+  content: string;
+  embedding?: number[];
+}
+
+export interface DbStats {
+  sessionCount: number;
+  documentCount: number;
+  dbSize: number;
+}
+
 // Expose protected methods to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
   // Permissions
@@ -128,6 +169,32 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // Return a cleanup function
     return () => ipcRenderer.removeListener('agent:streamChunk', handler);
   },
+
+  // Database service
+  dbIsInitialized: (): Promise<boolean> =>
+    ipcRenderer.invoke('db:isInitialized'),
+  dbSaveSession: (session: SessionInput): Promise<void> =>
+    ipcRenderer.invoke('db:saveSession', session),
+  dbGetSession: (sessionId: string): Promise<StoredSession | null> =>
+    ipcRenderer.invoke('db:getSession', sessionId),
+  dbGetSessionByProjectPath: (projectPath: string): Promise<StoredSession | null> =>
+    ipcRenderer.invoke('db:getSessionByProjectPath', projectPath),
+  dbListSessions: (): Promise<StoredSession[]> =>
+    ipcRenderer.invoke('db:listSessions'),
+  dbDeleteSession: (sessionId: string): Promise<boolean> =>
+    ipcRenderer.invoke('db:deleteSession', sessionId),
+  dbSaveDocument: (doc: DocumentInput): Promise<void> =>
+    ipcRenderer.invoke('db:saveDocument', doc),
+  dbGetDocument: (docId: string): Promise<StoredDocument | null> =>
+    ipcRenderer.invoke('db:getDocument', docId),
+  dbGetDocumentsBySession: (sessionId: string): Promise<StoredDocument[]> =>
+    ipcRenderer.invoke('db:getDocumentsBySession', sessionId),
+  dbDeleteDocument: (docId: string): Promise<boolean> =>
+    ipcRenderer.invoke('db:deleteDocument', docId),
+  dbSearchDocumentsByEmbedding: (sessionId: string, queryEmbedding: number[], limit?: number): Promise<Array<StoredDocument & { similarity: number }>> =>
+    ipcRenderer.invoke('db:searchDocumentsByEmbedding', sessionId, queryEmbedding, limit),
+  dbGetStats: (): Promise<DbStats> =>
+    ipcRenderer.invoke('db:getStats'),
 });
 
 // Type declaration for the renderer
@@ -156,6 +223,20 @@ declare global {
       agentGetConversationHistory: (sessionId: string) => Promise<MessageParam[]>;
       agentClearConversationHistory: (sessionId: string) => Promise<boolean>;
       onAgentStreamChunk: (callback: (sessionId: string, chunk: StreamChunk) => void) => () => void;
+
+      // Database service
+      dbIsInitialized: () => Promise<boolean>;
+      dbSaveSession: (session: SessionInput) => Promise<void>;
+      dbGetSession: (sessionId: string) => Promise<StoredSession | null>;
+      dbGetSessionByProjectPath: (projectPath: string) => Promise<StoredSession | null>;
+      dbListSessions: () => Promise<StoredSession[]>;
+      dbDeleteSession: (sessionId: string) => Promise<boolean>;
+      dbSaveDocument: (doc: DocumentInput) => Promise<void>;
+      dbGetDocument: (docId: string) => Promise<StoredDocument | null>;
+      dbGetDocumentsBySession: (sessionId: string) => Promise<StoredDocument[]>;
+      dbDeleteDocument: (docId: string) => Promise<boolean>;
+      dbSearchDocumentsByEmbedding: (sessionId: string, queryEmbedding: number[], limit?: number) => Promise<Array<StoredDocument & { similarity: number }>>;
+      dbGetStats: () => Promise<DbStats>;
     };
   }
 }
