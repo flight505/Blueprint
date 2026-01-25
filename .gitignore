@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+out/
+.vite/
+*.tsbuildinfo
+
+# Electron
+.electron/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Test coverage
+coverage/
+
+# SQLite databases (local dev)
+*.db
+*.sqlite
+*.sqlite3
+
+# Planning outputs (user data)
+planning_outputs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
