@@ -116,6 +116,42 @@ export interface DbStats {
 // Secure storage types
 export type ApiKeyType = 'anthropic' | 'openrouter' | 'gemini';
 
+// Model router types
+export type TaskComplexity = 'simple' | 'medium' | 'complex';
+export type ModelId = string;
+export type TaskType =
+  | 'autocomplete'
+  | 'quick_suggestion'
+  | 'formatting'
+  | 'inline_edit'
+  | 'code_generation'
+  | 'refactoring'
+  | 'planning'
+  | 'architecture'
+  | 'research'
+  | 'analysis'
+  | 'unknown';
+
+export interface TaskClassification {
+  complexity: TaskComplexity;
+  model: ModelId;
+  confidence: number;
+  reasoning: string;
+}
+
+export interface ModelInfo {
+  id: ModelId;
+  name: string;
+  complexity: TaskComplexity;
+  description: string;
+}
+
+export interface ClaudeModels {
+  HAIKU: string;
+  SONNET: string;
+  OPUS: string;
+}
+
 // Expose protected methods to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
   // Permissions
@@ -212,6 +248,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('secureStorage:listStoredKeys'),
   secureStorageIsEncryptionAvailable: (): Promise<boolean> =>
     ipcRenderer.invoke('secureStorage:isEncryptionAvailable'),
+
+  // Model router
+  modelRouterClassifyTask: (prompt: string, context?: { selectedText?: string; taskType?: TaskType }): Promise<TaskClassification> =>
+    ipcRenderer.invoke('modelRouter:classifyTask', prompt, context),
+  modelRouterGetModelForComplexity: (complexity: TaskComplexity): Promise<ModelId> =>
+    ipcRenderer.invoke('modelRouter:getModelForComplexity', complexity),
+  modelRouterGetModelByName: (name: 'haiku' | 'sonnet' | 'opus'): Promise<ModelId> =>
+    ipcRenderer.invoke('modelRouter:getModelByName', name),
+  modelRouterGetAvailableModels: (): Promise<ModelInfo[]> =>
+    ipcRenderer.invoke('modelRouter:getAvailableModels'),
+  modelRouterSetDefaultModel: (model: ModelId): Promise<void> =>
+    ipcRenderer.invoke('modelRouter:setDefaultModel', model),
+  modelRouterGetDefaultModel: (): Promise<ModelId> =>
+    ipcRenderer.invoke('modelRouter:getDefaultModel'),
+  modelRouterGetModelConstants: (): Promise<ClaudeModels> =>
+    ipcRenderer.invoke('modelRouter:getModelConstants'),
 });
 
 // Type declaration for the renderer
@@ -262,6 +314,15 @@ declare global {
       secureStorageHasApiKey: (type: ApiKeyType) => Promise<boolean>;
       secureStorageListStoredKeys: () => Promise<ApiKeyType[]>;
       secureStorageIsEncryptionAvailable: () => Promise<boolean>;
+
+      // Model router
+      modelRouterClassifyTask: (prompt: string, context?: { selectedText?: string; taskType?: TaskType }) => Promise<TaskClassification>;
+      modelRouterGetModelForComplexity: (complexity: TaskComplexity) => Promise<ModelId>;
+      modelRouterGetModelByName: (name: 'haiku' | 'sonnet' | 'opus') => Promise<ModelId>;
+      modelRouterGetAvailableModels: () => Promise<ModelInfo[]>;
+      modelRouterSetDefaultModel: (model: ModelId) => Promise<void>;
+      modelRouterGetDefaultModel: () => Promise<ModelId>;
+      modelRouterGetModelConstants: () => Promise<ClaudeModels>;
     };
   }
 }

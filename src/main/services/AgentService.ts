@@ -13,6 +13,7 @@ import type {
   TextBlock,
   RawMessageStreamEvent,
 } from '@anthropic-ai/sdk/resources/messages/messages';
+import { modelRouter, type TaskType } from './ModelRouter';
 
 // Re-export types needed by consumers
 export type { MessageParam, Message, ContentBlock };
@@ -35,11 +36,19 @@ export interface StreamChunk {
 export interface CreateSessionOptions {
   model?: string;
   systemPrompt?: string;
+  /** If provided, model will be auto-selected based on task type */
+  taskType?: TaskType;
+  /** If true, use ModelRouter to select optimal model */
+  autoSelectModel?: boolean;
 }
 
 export interface SendMessageOptions {
   maxTokens?: number;
   stream?: boolean;
+  /** Override the session's model for this message */
+  model?: string;
+  /** If provided, auto-select model based on the message content */
+  autoSelectModel?: boolean;
 }
 
 export type StreamCallback = (chunk: StreamChunk) => void;
@@ -92,11 +101,27 @@ export class AgentService {
    * Create a new agent session
    */
   createSession(options: CreateSessionOptions = {}): AgentSession {
+    // Determine the model to use
+    let model = options.model;
+
+    // If no explicit model provided and auto-select is requested or taskType is provided
+    if (!model && (options.autoSelectModel || options.taskType)) {
+      const classification = modelRouter.classifyTask('', {
+        taskType: options.taskType,
+      });
+      model = classification.model;
+    }
+
+    // Default to Sonnet if no model determined
+    if (!model) {
+      model = modelRouter.getDefaultModel();
+    }
+
     const session: AgentSession = {
       id: crypto.randomUUID(),
       createdAt: new Date(),
       messages: [],
-      model: options.model || 'claude-sonnet-4-20250514',
+      model,
     };
 
     // Add system prompt if provided
@@ -149,6 +174,15 @@ export class AgentService {
       throw new Error(`Session not found: ${sessionId}`);
     }
 
+    // Determine the model to use for this message
+    let messageModel = options.model || session.model;
+
+    // Auto-select model based on message content if requested
+    if (options.autoSelectModel && !options.model) {
+      const classification = modelRouter.classifyTask(userMessage);
+      messageModel = classification.model;
+    }
+
     // Add user message to history
     session.messages.push({
       role: 'user',
@@ -161,7 +195,7 @@ export class AgentService {
 
     // Create the message
     const response = await this.client.messages.create({
-      model: session.model,
+      model: messageModel,
       max_tokens: options.maxTokens || 4096,
       system: sessionWithSystem.systemPrompt,
       messages: session.messages,
@@ -195,6 +229,15 @@ export class AgentService {
       throw new Error(`Session not found: ${sessionId}`);
     }
 
+    // Determine the model to use for this message
+    let messageModel = options.model || session.model;
+
+    // Auto-select model based on message content if requested
+    if (options.autoSelectModel && !options.model) {
+      const classification = modelRouter.classifyTask(userMessage);
+      messageModel = classification.model;
+    }
+
     // Add user message to history
     session.messages.push({
       role: 'user',
@@ -206,7 +249,7 @@ export class AgentService {
     };
 
     const streamParams: MessageCreateParamsStreaming = {
-      model: session.model,
+      model: messageModel,
       max_tokens: options.maxTokens || 4096,
       system: sessionWithSystem.systemPrompt,
       messages: session.messages,
@@ -270,7 +313,7 @@ export class AgentService {
       id: sessionId,
       createdAt: new Date(),
       messages: messages,
-      model: model || 'claude-sonnet-4-20250514',
+      model: model || modelRouter.getDefaultModel(),
     };
 
     this.sessions.set(session.id, session);

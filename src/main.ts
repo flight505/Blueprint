@@ -7,6 +7,7 @@ import { agentService, type AgentSession, type StreamChunk, type CreateSessionOp
 import { databaseService } from './main/services/DatabaseService';
 import type { SessionInput, DocumentInput, StoredSession, StoredDocument } from './main/services/DatabaseService';
 import { secureStorageService, type ApiKeyType } from './main/services/SecureStorageService';
+import { modelRouter, type TaskClassification, type TaskType, type ModelId, CLAUDE_MODELS } from './main/services/ModelRouter';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -187,6 +188,35 @@ function registerIpcHandlers() {
 
   ipcMain.handle('secureStorage:isEncryptionAvailable', (): boolean => {
     return secureStorageService.isEncryptionAvailable();
+  });
+
+  // Model router handlers
+  ipcMain.handle('modelRouter:classifyTask', (_, prompt: string, context?: { selectedText?: string; taskType?: TaskType }): TaskClassification => {
+    return modelRouter.classifyTask(prompt, context);
+  });
+
+  ipcMain.handle('modelRouter:getModelForComplexity', (_, complexity: 'simple' | 'medium' | 'complex'): ModelId => {
+    return modelRouter.getModelForComplexity(complexity);
+  });
+
+  ipcMain.handle('modelRouter:getModelByName', (_, name: 'haiku' | 'sonnet' | 'opus'): ModelId => {
+    return modelRouter.getModelByName(name);
+  });
+
+  ipcMain.handle('modelRouter:getAvailableModels', () => {
+    return modelRouter.getAvailableModels();
+  });
+
+  ipcMain.handle('modelRouter:setDefaultModel', (_, model: ModelId): void => {
+    modelRouter.setDefaultModel(model);
+  });
+
+  ipcMain.handle('modelRouter:getDefaultModel', (): ModelId => {
+    return modelRouter.getDefaultModel();
+  });
+
+  ipcMain.handle('modelRouter:getModelConstants', () => {
+    return CLAUDE_MODELS;
   });
 }
 
