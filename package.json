@@ -60,6 +60,7 @@
     "vite": "^5.4.21"
   },
   "dependencies": {
+    "@legendapp/state": "^2.1.15",
     "electron-squirrel-startup": "^1.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
