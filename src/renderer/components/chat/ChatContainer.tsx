@@ -1,6 +1,12 @@
 import { useState, useRef, useEffect, useCallback, KeyboardEvent } from 'react';
 import { ChatMessage, ChatMessageData } from './ChatMessage';
 import { StreamingChatMessage } from './StreamingChatMessage';
+import { AskUserQuestion, AskUserQuestionData } from './AskUserQuestion';
+
+/** Union type for all chat items */
+export type ChatItem =
+  | { type: 'message'; data: ChatMessageData }
+  | { type: 'question'; data: AskUserQuestionData };
 
 interface ChatContainerProps {
   messages: ChatMessageData[];
@@ -11,6 +17,10 @@ interface ChatContainerProps {
   streamingContent?: string;
   /** Whether currently streaming a response */
   isStreaming?: boolean;
+  /** Active question from the agent (if any) */
+  activeQuestion?: AskUserQuestionData | null;
+  /** Handler for question answers */
+  onAnswerQuestion?: (questionId: string, answer: string | string[]) => void;
 }
 
 export function ChatContainer({
@@ -20,15 +30,27 @@ export function ChatContainer({
   placeholder = 'Type a message...',
   streamingContent = '',
   isStreaming = false,
+  activeQuestion = null,
+  onAnswerQuestion,
 }: ChatContainerProps) {
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive or streaming content updates
+  // Auto-scroll to bottom when new messages arrive, streaming content updates, or questions appear
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, streamingContent]);
+  }, [messages, streamingContent, activeQuestion]);
+
+  // Handler for question submission
+  const handleQuestionAnswer = useCallback(
+    (answer: string | string[]) => {
+      if (activeQuestion && onAnswerQuestion) {
+        onAnswerQuestion(activeQuestion.id, answer);
+      }
+    },
+    [activeQuestion, onAnswerQuestion]
+  );
 
   // Auto-resize textarea
   useEffect(() => {
@@ -87,8 +109,16 @@ export function ChatContainer({
                 isStreaming={isStreaming}
               />
             )}
+            {/* Active question from agent */}
+            {activeQuestion && (
+              <AskUserQuestion
+                data={activeQuestion}
+                onSubmit={handleQuestionAnswer}
+                disabled={isLoading}
+              />
+            )}
             {/* Loading indicator (shown when waiting for stream to start) */}
-            {isLoading && !isStreaming && (
+            {isLoading && !isStreaming && !activeQuestion && (
               <div className="flex justify-start mb-4">
                 <div className="bg-gray-100 dark:bg-gray-800 rounded-lg px-4 py-3 rounded-bl-sm">
                   <div className="flex items-center gap-1">

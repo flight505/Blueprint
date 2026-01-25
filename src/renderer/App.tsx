@@ -4,7 +4,7 @@ import FileBrowser from './components/explorer/FileBrowser';
 import ThemeToggle from './components/settings/ThemeToggle';
 import { useThemeEffect } from './hooks/useTheme';
 import { useStreaming } from './hooks/useStreaming';
-import { ChatContainer, ChatMessageData } from './components/chat';
+import { ChatContainer, ChatMessageData, AskUserQuestionData } from './components/chat';
 
 const DEFAULT_LEFT_WIDTH_PERCENT = 40;
 const MIN_PANE_WIDTH = 300;
@@ -94,6 +94,7 @@ function MainApp() {
   const [chatMessages, setChatMessages] = useState<ChatMessageData[]>([]);
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [agentSessionId, setAgentSessionId] = useState<string | null>(null);
+  const [activeQuestion, setActiveQuestion] = useState<AskUserQuestionData | null>(null);
 
   // Streaming hook for real-time AI responses
   const {
@@ -161,6 +162,35 @@ function MainApp() {
       setIsChatLoading(false);
     }, 1000);
   }, []);
+
+  // Handler for answering agent questions
+  const handleAnswerQuestion = useCallback((_questionId: string, answer: string | string[]) => {
+    // Clear the active question
+    setActiveQuestion(null);
+
+    // Add the answer as a user message
+    const answerText = Array.isArray(answer) ? answer.join(', ') : answer;
+    const userMessage: ChatMessageData = {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      content: answerText,
+      timestamp: new Date(),
+    };
+    setChatMessages(prev => [...prev, userMessage]);
+    setIsChatLoading(true);
+
+    // In a real implementation, this would send the answer to the agent
+    // For now, simulate a response
+    if (agentSessionId) {
+      sendStreamingMessage(agentSessionId, answerText).catch((error) => {
+        console.error('Failed to send answer:', error);
+        setIsChatLoading(false);
+        fallbackDemoResponse(answerText);
+      });
+    } else {
+      fallbackDemoResponse(answerText);
+    }
+  }, [agentSessionId, sendStreamingMessage, fallbackDemoResponse]);
 
   const handleFileSelect = useCallback(async (filePath: string) => {
     // Check if file is already open
@@ -320,6 +350,8 @@ function MainApp() {
           onSendMessage={handleSendMessage}
           streamingContent={streamingContent}
           isStreaming={isStreaming}
+          activeQuestion={activeQuestion}
+          onAnswerQuestion={handleAnswerQuestion}
         />
       </div>
 
@@ -410,6 +442,8 @@ interface LeftPaneContentProps {
   onSendMessage: (content: string) => void;
   streamingContent?: string;
   isStreaming?: boolean;
+  activeQuestion?: AskUserQuestionData | null;
+  onAnswerQuestion?: (questionId: string, answer: string | string[]) => void;
 }
 
 function LeftPaneContent({
@@ -420,6 +454,8 @@ function LeftPaneContent({
   onSendMessage,
   streamingContent,
   isStreaming,
+  activeQuestion,
+  onAnswerQuestion,
 }: LeftPaneContentProps) {
   switch (section) {
     case 'chat':
@@ -431,6 +467,8 @@ function LeftPaneContent({
           placeholder="Type a message to start planning..."
           streamingContent={streamingContent}
           isStreaming={isStreaming}
+          activeQuestion={activeQuestion}
+          onAnswerQuestion={onAnswerQuestion}
         />
       );
     case 'explorer':

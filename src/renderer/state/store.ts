@@ -46,6 +46,22 @@ export interface StreamingMessage {
   startedAt: Date;
 }
 
+// Question option for AskUserQuestion
+export interface QuestionOption {
+  id: string;
+  label: string;
+  description?: string;
+}
+
+// Active question from agent
+export interface ActiveQuestion {
+  id: string;
+  question: string;
+  options: QuestionOption[];
+  multiSelect: boolean;
+  timestamp: Date;
+}
+
 // Session state interface (not persisted)
 interface SessionState {
   openFiles: OpenFile[];
@@ -56,6 +72,8 @@ interface SessionState {
   streamingMessage: StreamingMessage | null;
   // Active agent session ID
   agentSessionId: string | null;
+  // Active question from agent awaiting user response
+  activeQuestion: ActiveQuestion | null;
 }
 
 // Complete store interface
@@ -78,6 +96,7 @@ const DEFAULT_SESSION_STATE: SessionState = {
   isOnboarded: false,
   streamingMessage: null,
   agentSessionId: null,
+  activeQuestion: null,
 };
 
 // Create the global observable store
@@ -217,4 +236,14 @@ export function completeStreamingMessage(): StreamingMessage | null {
 // Action: Clear streaming message
 export function clearStreamingMessage(): void {
   store$.session.streamingMessage.set(null);
+}
+
+// Action: Set active question from agent
+export function setActiveQuestion(question: ActiveQuestion | null): void {
+  store$.session.activeQuestion.set(question);
+}
+
+// Action: Clear active question (after user responds)
+export function clearActiveQuestion(): void {
+  store$.session.activeQuestion.set(null);
 }
