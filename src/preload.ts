@@ -583,6 +583,41 @@ export interface PPTXSection {
   order: number;
 }
 
+// Phase orchestrator types
+export type PhaseStatus = 'pending' | 'in_progress' | 'completed' | 'failed' | 'paused' | 'skipped';
+export type OrchestrationStatus = 'idle' | 'running' | 'paused' | 'completed' | 'failed';
+
+export interface PhaseState {
+  phase: ProjectPhase;
+  status: PhaseStatus;
+  startedAt?: Date;
+  completedAt?: Date;
+  error?: string;
+  output?: string;
+  progress: number;
+}
+
+export interface ProjectExecutionState {
+  projectId: string;
+  projectName: string;
+  projectPath: string;
+  researchMode: ResearchMode;
+  phases: PhaseState[];
+  currentPhaseIndex: number;
+  status: OrchestrationStatus;
+  startedAt?: Date;
+  pausedAt?: Date;
+  completedAt?: Date;
+}
+
+export interface PhaseOrchestratorConfig {
+  projectId: string;
+  projectName: string;
+  projectPath: string;
+  researchMode: ResearchMode;
+  phases: ProjectPhase[];
+}
+
 // Expose protected methods to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
   // Permissions
@@ -924,6 +959,105 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('pptx:getAvailableThemes'),
   pptxGetTheme: (themeName: string): Promise<PPTXTheme | null> =>
     ipcRenderer.invoke('pptx:getTheme', themeName),
+
+  // Phase orchestrator
+  orchestratorStart: (config: PhaseOrchestratorConfig): Promise<void> =>
+    ipcRenderer.invoke('orchestrator:start', config),
+  orchestratorPause: (): Promise<boolean> =>
+    ipcRenderer.invoke('orchestrator:pause'),
+  orchestratorResume: (): Promise<void> =>
+    ipcRenderer.invoke('orchestrator:resume'),
+  orchestratorStop: (): Promise<boolean> =>
+    ipcRenderer.invoke('orchestrator:stop'),
+  orchestratorSkipCurrentPhase: (): Promise<boolean> =>
+    ipcRenderer.invoke('orchestrator:skipCurrentPhase'),
+  orchestratorGetExecutionState: (): Promise<ProjectExecutionState | null> =>
+    ipcRenderer.invoke('orchestrator:getExecutionState'),
+  orchestratorIsRunning: (): Promise<boolean> =>
+    ipcRenderer.invoke('orchestrator:isRunning'),
+  orchestratorIsPaused: (): Promise<boolean> =>
+    ipcRenderer.invoke('orchestrator:isPaused'),
+  orchestratorGetCurrentPhase: (): Promise<PhaseState | null> =>
+    ipcRenderer.invoke('orchestrator:getCurrentPhase'),
+  orchestratorGetPhaseDisplayName: (phase: ProjectPhase): Promise<string> =>
+    ipcRenderer.invoke('orchestrator:getPhaseDisplayName', phase),
+  orchestratorGetOverallProgress: (): Promise<number> =>
+    ipcRenderer.invoke('orchestrator:getOverallProgress'),
+  orchestratorGetPhaseStates: (): Promise<PhaseState[]> =>
+    ipcRenderer.invoke('orchestrator:getPhaseStates'),
+  orchestratorCleanup: (): Promise<void> =>
+    ipcRenderer.invoke('orchestrator:cleanup'),
+  // Orchestrator event listeners
+  onOrchestratorPhaseStart: (callback: (phase: ProjectPhase, phaseIndex: number) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, phase: ProjectPhase, phaseIndex: number) => {
+      callback(phase, phaseIndex);
+    };
+    ipcRenderer.on('orchestrator:phase:start', handler);
+    return () => ipcRenderer.removeListener('orchestrator:phase:start', handler);
+  },
+  onOrchestratorPhaseProgress: (callback: (phase: ProjectPhase, progress: number, content: string) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, phase: ProjectPhase, progress: number, content: string) => {
+      callback(phase, progress, content);
+    };
+    ipcRenderer.on('orchestrator:phase:progress', handler);
+    return () => ipcRenderer.removeListener('orchestrator:phase:progress', handler);
+  },
+  onOrchestratorPhaseComplete: (callback: (phase: ProjectPhase, output: string) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, phase: ProjectPhase, output: string) => {
+      callback(phase, output);
+    };
+    ipcRenderer.on('orchestrator:phase:complete', handler);
+    return () => ipcRenderer.removeListener('orchestrator:phase:complete', handler);
+  },
+  onOrchestratorPhaseError: (callback: (phase: ProjectPhase, error: string) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, phase: ProjectPhase, error: string) => {
+      callback(phase, error);
+    };
+    ipcRenderer.on('orchestrator:phase:error', handler);
+    return () => ipcRenderer.removeListener('orchestrator:phase:error', handler);
+  },
+  onOrchestratorStart: (callback: (state: ProjectExecutionState) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, state: ProjectExecutionState) => {
+      callback(state);
+    };
+    ipcRenderer.on('orchestrator:orchestration:start', handler);
+    return () => ipcRenderer.removeListener('orchestrator:orchestration:start', handler);
+  },
+  onOrchestratorPause: (callback: (state: ProjectExecutionState) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, state: ProjectExecutionState) => {
+      callback(state);
+    };
+    ipcRenderer.on('orchestrator:orchestration:pause', handler);
+    return () => ipcRenderer.removeListener('orchestrator:orchestration:pause', handler);
+  },
+  onOrchestratorResume: (callback: (state: ProjectExecutionState) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, state: ProjectExecutionState) => {
+      callback(state);
+    };
+    ipcRenderer.on('orchestrator:orchestration:resume', handler);
+    return () => ipcRenderer.removeListener('orchestrator:orchestration:resume', handler);
+  },
+  onOrchestratorComplete: (callback: (state: ProjectExecutionState) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, state: ProjectExecutionState) => {
+      callback(state);
+    };
+    ipcRenderer.on('orchestrator:orchestration:complete', handler);
+    return () => ipcRenderer.removeListener('orchestrator:orchestration:complete', handler);
+  },
+  onOrchestratorError: (callback: (error: string) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, error: string) => {
+      callback(error);
+    };
+    ipcRenderer.on('orchestrator:orchestration:error', handler);
+    return () => ipcRenderer.removeListener('orchestrator:orchestration:error', handler);
+  },
+  onOrchestratorStateUpdate: (callback: (state: ProjectExecutionState) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, state: ProjectExecutionState) => {
+      callback(state);
+    };
+    ipcRenderer.on('orchestrator:state:update', handler);
+    return () => ipcRenderer.removeListener('orchestrator:state:update', handler);
+  },
 });
 
 // Type declaration for the renderer
@@ -1102,6 +1236,31 @@ declare global {
       pptxGeneratePPTXFromSections: (sections: PPTXSection[], outputPath: string, options?: PPTXGenerationOptions) => Promise<PPTXGenerationResult>;
       pptxGetAvailableThemes: () => Promise<string[]>;
       pptxGetTheme: (themeName: string) => Promise<PPTXTheme | null>;
+
+      // Phase orchestrator
+      orchestratorStart: (config: PhaseOrchestratorConfig) => Promise<void>;
+      orchestratorPause: () => Promise<boolean>;
+      orchestratorResume: () => Promise<void>;
+      orchestratorStop: () => Promise<boolean>;
+      orchestratorSkipCurrentPhase: () => Promise<boolean>;
+      orchestratorGetExecutionState: () => Promise<ProjectExecutionState | null>;
+      orchestratorIsRunning: () => Promise<boolean>;
+      orchestratorIsPaused: () => Promise<boolean>;
+      orchestratorGetCurrentPhase: () => Promise<PhaseState | null>;
+      orchestratorGetPhaseDisplayName: (phase: ProjectPhase) => Promise<string>;
+      orchestratorGetOverallProgress: () => Promise<number>;
+      orchestratorGetPhaseStates: () => Promise<PhaseState[]>;
+      orchestratorCleanup: () => Promise<void>;
+      onOrchestratorPhaseStart: (callback: (phase: ProjectPhase, phaseIndex: number) => void) => () => void;
+      onOrchestratorPhaseProgress: (callback: (phase: ProjectPhase, progress: number, content: string) => void) => () => void;
+      onOrchestratorPhaseComplete: (callback: (phase: ProjectPhase, output: string) => void) => () => void;
+      onOrchestratorPhaseError: (callback: (phase: ProjectPhase, error: string) => void) => () => void;
+      onOrchestratorStart: (callback: (state: ProjectExecutionState) => void) => () => void;
+      onOrchestratorPause: (callback: (state: ProjectExecutionState) => void) => () => void;
+      onOrchestratorResume: (callback: (state: ProjectExecutionState) => void) => () => void;
+      onOrchestratorComplete: (callback: (state: ProjectExecutionState) => void) => () => void;
+      onOrchestratorError: (callback: (error: string) => void) => () => void;
+      onOrchestratorStateUpdate: (callback: (state: ProjectExecutionState) => void) => () => void;
     };
   }
 }

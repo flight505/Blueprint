@@ -16,6 +16,7 @@ import { citationManager, type Citation, type CitationFile, type AddCitationInpu
 import { pdfGenerator, type PDFGenerationOptions, type PDFGenerationResult, type PDFSection } from './main/services/PDFGenerator';
 import { docxGenerator, type DOCXGenerationOptions, type DOCXGenerationResult, type DOCXSection } from './main/services/DOCXGenerator';
 import { pptxGenerator, type PPTXGenerationOptions, type PPTXGenerationResult, type PPTXSection, PPTX_THEMES } from './main/services/PPTXGenerator';
+import { phaseOrchestrator, type PhaseOrchestratorConfig, type ProjectExecutionState, type PhaseState } from './main/services/PhaseOrchestrator';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -676,6 +677,102 @@ function registerIpcHandlers() {
 
   ipcMain.handle('pptx:getTheme', async (_, themeName: string): Promise<typeof PPTX_THEMES[keyof typeof PPTX_THEMES] | null> => {
     return PPTX_THEMES[themeName] || null;
+  });
+
+  // Phase orchestrator handlers
+  ipcMain.handle('orchestrator:start', async (event, config: PhaseOrchestratorConfig): Promise<void> => {
+    const webContents = event.sender;
+
+    // Set up event listeners to forward to renderer
+    phaseOrchestrator.on('phase:start', (phase: ProjectPhase, phaseIndex: number) => {
+      webContents.send('orchestrator:phase:start', phase, phaseIndex);
+    });
+
+    phaseOrchestrator.on('phase:progress', (phase: ProjectPhase, progress: number, content: string) => {
+      webContents.send('orchestrator:phase:progress', phase, progress, content);
+    });
+
+    phaseOrchestrator.on('phase:complete', (phase: ProjectPhase, output: string) => {
+      webContents.send('orchestrator:phase:complete', phase, output);
+    });
+
+    phaseOrchestrator.on('phase:error', (phase: ProjectPhase, error: string) => {
+      webContents.send('orchestrator:phase:error', phase, error);
+    });
+
+    phaseOrchestrator.on('orchestration:start', (state: ProjectExecutionState) => {
+      webContents.send('orchestrator:orchestration:start', state);
+    });
+
+    phaseOrchestrator.on('orchestration:pause', (state: ProjectExecutionState) => {
+      webContents.send('orchestrator:orchestration:pause', state);
+    });
+
+    phaseOrchestrator.on('orchestration:resume', (state: ProjectExecutionState) => {
+      webContents.send('orchestrator:orchestration:resume', state);
+    });
+
+    phaseOrchestrator.on('orchestration:complete', (state: ProjectExecutionState) => {
+      webContents.send('orchestrator:orchestration:complete', state);
+    });
+
+    phaseOrchestrator.on('orchestration:error', (error: string) => {
+      webContents.send('orchestrator:orchestration:error', error);
+    });
+
+    phaseOrchestrator.on('state:update', (state: ProjectExecutionState) => {
+      webContents.send('orchestrator:state:update', state);
+    });
+
+    await phaseOrchestrator.start(config);
+  });
+
+  ipcMain.handle('orchestrator:pause', (): boolean => {
+    return phaseOrchestrator.pause();
+  });
+
+  ipcMain.handle('orchestrator:resume', async (): Promise<void> => {
+    await phaseOrchestrator.resume();
+  });
+
+  ipcMain.handle('orchestrator:stop', (): boolean => {
+    return phaseOrchestrator.stop();
+  });
+
+  ipcMain.handle('orchestrator:skipCurrentPhase', (): boolean => {
+    return phaseOrchestrator.skipCurrentPhase();
+  });
+
+  ipcMain.handle('orchestrator:getExecutionState', (): ProjectExecutionState | null => {
+    return phaseOrchestrator.getExecutionState();
+  });
+
+  ipcMain.handle('orchestrator:isRunning', (): boolean => {
+    return phaseOrchestrator.isRunning();
+  });
+
+  ipcMain.handle('orchestrator:isPaused', (): boolean => {
+    return phaseOrchestrator.isPaused();
+  });
+
+  ipcMain.handle('orchestrator:getCurrentPhase', (): PhaseState | null => {
+    return phaseOrchestrator.getCurrentPhase();
+  });
+
+  ipcMain.handle('orchestrator:getPhaseDisplayName', (_, phase: ProjectPhase): string => {
+    return phaseOrchestrator.getPhaseDisplayName(phase);
+  });
+
+  ipcMain.handle('orchestrator:getOverallProgress', (): number => {
+    return phaseOrchestrator.getOverallProgress();
+  });
+
+  ipcMain.handle('orchestrator:getPhaseStates', (): PhaseState[] => {
+    return phaseOrchestrator.getPhaseStates();
+  });
+
+  ipcMain.handle('orchestrator:cleanup', (): void => {
+    phaseOrchestrator.cleanup();
   });
 }
 
