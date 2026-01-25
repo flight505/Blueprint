@@ -607,6 +607,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('fs:listAllFiles', basePath),
   searchInFiles: (basePath: string, query: string, options?: SearchOptions): Promise<SearchResult[]> =>
     ipcRenderer.invoke('fs:searchInFiles', basePath, query, options),
+  writeFile: (filePath: string, content: string): Promise<void> =>
+    ipcRenderer.invoke('fs:writeFile', filePath, content),
 
   // Agent service
   agentInitialize: (apiKey: string): Promise<boolean> =>
@@ -937,6 +939,7 @@ declare global {
       readFile: (filePath: string) => Promise<FileContent>;
       listAllFiles: (basePath: string) => Promise<QuickOpenFile[]>;
       searchInFiles: (basePath: string, query: string, options?: SearchOptions) => Promise<SearchResult[]>;
+      writeFile: (filePath: string, content: string) => Promise<void>;
 
       // Agent service
       agentInitialize: (apiKey: string) => Promise<boolean>;

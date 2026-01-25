@@ -261,3 +261,15 @@ export async function searchInFiles(
   // Sort results by number of matches (most matches first)
   return results.sort((a, b) => b.matches.length - a.matches.length);
 }
+
+/**
+ * Write content to a file, creating parent directories if needed
+ */
+export async function writeFile(filePath: string, content: string): Promise<void> {
+  // Ensure parent directory exists
+  const dir = path.dirname(filePath);
+  await fs.promises.mkdir(dir, { recursive: true });
+
+  // Write file
+  await fs.promises.writeFile(filePath, content, 'utf-8');
+}

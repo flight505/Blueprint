@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import { checkAllPermissions, openSystemPreferences } from './main/permissions';
-import { readDirectory, readFileContent, listAllFiles, searchInFiles, FileNode, FileContent, QuickOpenFile, SearchResult } from './main/services/FileSystemService';
+import { readDirectory, readFileContent, listAllFiles, searchInFiles, writeFile, FileNode, FileContent, QuickOpenFile, SearchResult } from './main/services/FileSystemService';
 import { agentService, type AgentSession, type StreamChunk, type CreateSessionOptions, type SendMessageOptions, type MessageParam } from './main/services/AgentService';
 import { databaseService } from './main/services/DatabaseService';
 import type { SessionInput, DocumentInput, StoredSession, StoredDocument, PromptInput, StoredPrompt, RecentProjectInput, RecentProject } from './main/services/DatabaseService';
@@ -65,6 +65,10 @@ function registerIpcHandlers() {
     options?: { useRegex?: boolean; caseSensitive?: boolean; maxResults?: number }
   ): Promise<SearchResult[]> => {
     return await searchInFiles(basePath, query, options);
+  });
+
+  ipcMain.handle('fs:writeFile', async (_, filePath: string, content: string): Promise<void> => {
+    return await writeFile(filePath, content);
   });
 
   // Agent service handlers

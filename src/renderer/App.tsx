@@ -20,6 +20,7 @@ import { ChatContainer, ChatMessageData, AskUserQuestionData } from './component
 import { SearchPanel } from './components/search';
 import { ExportModal, ExportSection } from './components/export';
 import { WelcomeScreen } from './components/welcome';
+import { NewProjectWizard, ProjectConfig } from './components/wizard';
 
 const DEFAULT_LEFT_WIDTH_PERCENT = 40;
 const MIN_PANE_WIDTH = 300;
@@ -259,6 +260,40 @@ function MainApp() {
       console.error('Failed to save to recent projects:', error);
     }
   }, []);
+
+  // Handle creating a new project from wizard
+  const handleCreateProject = useCallback(async (config: ProjectConfig) => {
+    try {
+      // Create project directory
+      const projectDir = `${config.path}/${config.name.replace(/\s+/g, '-').toLowerCase()}`;
+
+      // Create project configuration file
+      const projectConfig = {
+        name: config.name,
+        researchMode: config.researchMode,
+        phases: config.phases,
+        createdAt: new Date().toISOString(),
+      };
+
+      // Save project config (this will create the directory and file)
+      await window.electronAPI.writeFile(
+        `${projectDir}/blueprint.json`,
+        JSON.stringify(projectConfig, null, 2)
+      );
+
+      // Open the project
+      await handleOpenProject(projectDir);
+
+      // Close wizard
+      setShowNewProjectWizard(false);
+
+      // Switch to planning section
+      setActiveSection('planning');
+    } catch (error) {
+      console.error('Failed to create project:', error);
+      throw error; // Re-throw so wizard can show error
+    }
+  }, [handleOpenProject]);
 
   // Command palette state
   const {
@@ -754,6 +789,13 @@ function MainApp() {
         sections={exportSections}
         projectPath={projectPath}
         projectTitle="Blueprint Project"
+      />
+
+      {/* New Project Wizard */}
+      <NewProjectWizard
+        isOpen={showNewProjectWizard}
+        onClose={() => setShowNewProjectWizard(false)}
+        onCreateProject={handleCreateProject}
       />
     </div>
   );
