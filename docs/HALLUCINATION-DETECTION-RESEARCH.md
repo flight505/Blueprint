@@ -113,6 +113,14 @@ Modern RAG separates "Search" and "Retrieve" stages:
 - Crossref: Use `query.bibliographic` for combined title/author/year matching
 - Crossref: Use `select=DOI,title,author,container-title,published,type` to minimize response size
 
+**Semantic Scholar API Restrictions (as of Nov 2024):**
+- API keys from free email domains (gmail, yahoo, etc.) **no longer accepted**
+- Third-party app key requests **no longer approved**
+- New key requests backlogged ~1 month
+- Inactive keys (60+ days) automatically pruned
+- Rate limit: 1 RPS even with API key
+- **Recommendation:** Use for enrichment only (TLDRs, citation counts), not primary verification
+
 **Confidence Scoring:**
 | Score | Status | Action |
 |-------|--------|--------|
