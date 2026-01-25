@@ -8,10 +8,12 @@ import { TabBar, TabData } from './components/layout';
 import { CommandPalette, useCommandPalette, Command } from './components/command';
 import { FileQuickOpen, useFileQuickOpen } from './components/quickopen';
 import { InlineEditOverlay } from './components/inline-edit';
+import { DiffPreview } from './components/diff';
 import { useThemeEffect } from './hooks/useTheme';
 import { useStreaming } from './hooks/useStreaming';
 import { useMermaidRenderer } from './hooks/useMermaid';
 import { useInlineEdit } from './hooks/useInlineEdit';
+import { useDiffPreview } from './hooks/useDiffPreview';
 import { ChatContainer, ChatMessageData, AskUserQuestionData } from './components/chat';
 import { SearchPanel } from './components/search';
 
@@ -104,6 +106,13 @@ function MainApp() {
     close: closeInlineEdit,
     handleSubmit: handleInlineEditSubmit,
   } = useInlineEdit();
+
+  // Set up diff preview for reviewing AI edits
+  const {
+    state: diffPreviewState,
+    acceptEdit: acceptDiffEdit,
+    rejectEdit: rejectDiffEdit,
+  } = useDiffPreview();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [leftWidthPercent, setLeftWidthPercent] = useState(DEFAULT_LEFT_WIDTH_PERCENT);
@@ -693,6 +702,28 @@ function MainApp() {
         onClose={closeInlineEdit}
         isGenerating={inlineEditState.isGenerating}
       />
+
+      {/* Diff Preview for reviewing AI edits */}
+      {diffPreviewState.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={rejectDiffEdit}
+            aria-hidden="true"
+          />
+          {/* Modal content */}
+          <div className="relative z-10 max-w-3xl w-full mx-4">
+            <DiffPreview
+              original={diffPreviewState.original}
+              proposed={diffPreviewState.proposed}
+              onAccept={acceptDiffEdit}
+              onReject={rejectDiffEdit}
+              mode="side-by-side"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
