@@ -615,6 +615,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('researchRouter:getAvailableModes'),
   researchRouterGetProjectPhases: (): Promise<ProjectPhase[]> =>
     ipcRenderer.invoke('researchRouter:getProjectPhases'),
+  // Research cancellation
+  researchRouterStartSession: (): Promise<string> =>
+    ipcRenderer.invoke('researchRouter:startSession'),
+  researchRouterCancelResearch: (sessionId: string): Promise<boolean> =>
+    ipcRenderer.invoke('researchRouter:cancelResearch', sessionId),
+  researchRouterEndSession: (sessionId: string): Promise<void> =>
+    ipcRenderer.invoke('researchRouter:endSession', sessionId),
+  researchRouterGetActiveSessions: (): Promise<string[]> =>
+    ipcRenderer.invoke('researchRouter:getActiveSessions'),
   onResearchRouterStreamChunk: (callback: (chunk: UnifiedStreamChunk) => void) => {
     const handler = (_event: Electron.IpcRendererEvent, chunk: UnifiedStreamChunk) => {
       callback(chunk);
@@ -747,6 +756,11 @@ declare global {
       researchRouterGetPhaseDescriptions: () => Promise<Record<ProjectPhase, string>>;
       researchRouterGetAvailableModes: () => Promise<ResearchMode[]>;
       researchRouterGetProjectPhases: () => Promise<ProjectPhase[]>;
+      // Research cancellation
+      researchRouterStartSession: () => Promise<string>;
+      researchRouterCancelResearch: (sessionId: string) => Promise<boolean>;
+      researchRouterEndSession: (sessionId: string) => Promise<void>;
+      researchRouterGetActiveSessions: () => Promise<string[]>;
       onResearchRouterStreamChunk: (callback: (chunk: UnifiedStreamChunk) => void) => () => void;
     };
   }

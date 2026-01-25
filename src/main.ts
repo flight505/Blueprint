@@ -456,6 +456,23 @@ function registerIpcHandlers() {
   ipcMain.handle('researchRouter:getProjectPhases', (): ProjectPhase[] => {
     return researchRouter.getProjectPhases();
   });
+
+  // Research cancellation handlers
+  ipcMain.handle('researchRouter:startSession', (): string => {
+    return researchRouter.startResearchSession();
+  });
+
+  ipcMain.handle('researchRouter:cancelResearch', (_, sessionId: string): boolean => {
+    return researchRouter.cancelResearch(sessionId);
+  });
+
+  ipcMain.handle('researchRouter:endSession', (_, sessionId: string): void => {
+    researchRouter.endResearchSession(sessionId);
+  });
+
+  ipcMain.handle('researchRouter:getActiveSessions', (): string[] => {
+    return researchRouter.getActiveResearchSessions();
+  });
 }
 
 const createWindow = async () => {

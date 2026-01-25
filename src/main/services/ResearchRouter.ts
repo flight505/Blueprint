@@ -116,11 +116,13 @@ export interface RoutedResearchOptions {
   temperature?: number;
   /** Timeout in milliseconds */
   timeout?: number;
+  /** Session ID for cancellation tracking */
+  sessionId?: string;
 }
 
 // Stream chunk type for unified streaming
 export interface UnifiedStreamChunk {
-  type: 'text' | 'citation' | 'progress' | 'error' | 'done';
+  type: 'text' | 'citation' | 'progress' | 'error' | 'done' | 'cancelled';
   content: string;
   provider: ResearchProvider;
   citation?: {
@@ -139,6 +141,8 @@ export type UnifiedStreamCallback = (chunk: UnifiedStreamChunk) => void;
  */
 class ResearchRouter {
   private defaultMode: ResearchMode = 'balanced';
+  // Map of active research sessions for cancellation support
+  private activeResearch: Map<string, { cancelled: boolean }> = new Map();
 
   /**
    * Get the provider for a given mode and phase
@@ -210,6 +214,50 @@ class ResearchRouter {
    */
   getPhaseRouting(phase: ProjectPhase): PhaseConfig {
     return { ...PHASE_ROUTING[phase] };
+  }
+
+  /**
+   * Start tracking a research session for cancellation
+   * Returns a unique session ID
+   */
+  startResearchSession(): string {
+    const sessionId = `research-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    this.activeResearch.set(sessionId, { cancelled: false });
+    return sessionId;
+  }
+
+  /**
+   * Cancel an active research session
+   */
+  cancelResearch(sessionId: string): boolean {
+    const session = this.activeResearch.get(sessionId);
+    if (session) {
+      session.cancelled = true;
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Check if a research session has been cancelled
+   */
+  isResearchCancelled(sessionId: string): boolean {
+    const session = this.activeResearch.get(sessionId);
+    return session?.cancelled ?? false;
+  }
+
+  /**
+   * Clean up a completed research session
+   */
+  endResearchSession(sessionId: string): void {
+    this.activeResearch.delete(sessionId);
+  }
+
+  /**
+   * Get active research session IDs
+   */
+  getActiveResearchSessions(): string[] {
+    return Array.from(this.activeResearch.keys());
   }
 
   /**
@@ -341,6 +389,7 @@ class ResearchRouter {
     onChunk: UnifiedStreamCallback,
     options: RoutedResearchOptions
   ): Promise<void> {
+    const sessionId = options.sessionId;
     const researchOptions: ResearchOptions = {
       systemPrompt: options.systemPrompt,
       maxTokens: options.maxTokens,
@@ -349,6 +398,15 @@ class ResearchRouter {
     };
 
     const streamCallback: StreamCallback = (chunk) => {
+      // Check for cancellation before emitting each chunk
+      if (sessionId && this.isResearchCancelled(sessionId)) {
+        onChunk({
+          type: 'cancelled',
+          content: 'Research cancelled by user.',
+          provider: 'perplexity',
+        });
+        throw new Error('Research cancelled');
+      }
       onChunk({
         type: chunk.type,
         content: chunk.content,
@@ -357,7 +415,18 @@ class ResearchRouter {
       });
     };
 
-    await openRouterService.researchStream(query, streamCallback, researchOptions);
+    try {
+      await openRouterService.researchStream(query, streamCallback, researchOptions);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Research cancelled') {
+        // Cancellation is expected, clean up session
+        if (sessionId) {
+          this.endResearchSession(sessionId);
+        }
+        return;
+      }
+      throw error;
+    }
   }
 
   /**
@@ -368,6 +437,7 @@ class ResearchRouter {
     onChunk: UnifiedStreamCallback,
     options: RoutedResearchOptions
   ): Promise<void> {
+    const sessionId = options.sessionId;
     const researchOptions: DeepResearchOptions = {
       systemInstruction: options.systemPrompt,
       maxOutputTokens: options.maxTokens,
@@ -376,6 +446,15 @@ class ResearchRouter {
     };
 
     const streamCallback: GeminiStreamCallback = (chunk) => {
+      // Check for cancellation before emitting each chunk
+      if (sessionId && this.isResearchCancelled(sessionId)) {
+        onChunk({
+          type: 'cancelled',
+          content: 'Research cancelled by user.',
+          provider: 'gemini',
+        });
+        throw new Error('Research cancelled');
+      }
       onChunk({
         type: chunk.type,
         content: chunk.content,
@@ -384,7 +463,18 @@ class ResearchRouter {
       });
     };
 
-    await geminiService.deepResearchStream(query, streamCallback, researchOptions);
+    try {
+      await geminiService.deepResearchStream(query, streamCallback, researchOptions);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Research cancelled') {
+        // Cancellation is expected, clean up session
+        if (sessionId) {
+          this.endResearchSession(sessionId);
+        }
+        return;
+      }
+      throw error;
+    }
   }
 
   /**
