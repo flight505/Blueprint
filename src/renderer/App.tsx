@@ -7,9 +7,11 @@ import { ContextPanel } from './components/context';
 import { TabBar, TabData } from './components/layout';
 import { CommandPalette, useCommandPalette, Command } from './components/command';
 import { FileQuickOpen, useFileQuickOpen } from './components/quickopen';
+import { InlineEditOverlay } from './components/inline-edit';
 import { useThemeEffect } from './hooks/useTheme';
 import { useStreaming } from './hooks/useStreaming';
 import { useMermaidRenderer } from './hooks/useMermaid';
+import { useInlineEdit } from './hooks/useInlineEdit';
 import { ChatContainer, ChatMessageData, AskUserQuestionData } from './components/chat';
 import { SearchPanel } from './components/search';
 
@@ -95,6 +97,13 @@ function MainApp() {
 
   // Set up global Mermaid renderer for Tiptap extension events
   useMermaidRenderer();
+
+  // Set up inline edit overlay for AI-powered text editing
+  const {
+    state: inlineEditState,
+    close: closeInlineEdit,
+    handleSubmit: handleInlineEditSubmit,
+  } = useInlineEdit();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [leftWidthPercent, setLeftWidthPercent] = useState(DEFAULT_LEFT_WIDTH_PERCENT);
@@ -672,6 +681,17 @@ function MainApp() {
         onClose={closeQuickOpen}
         onFileSelect={handleFileSelect}
         projectPath={projectPath}
+      />
+
+      {/* Inline Edit Overlay for AI-powered text editing */}
+      <InlineEditOverlay
+        isOpen={inlineEditState.isOpen}
+        position={inlineEditState.position}
+        selectedText={inlineEditState.selectedText}
+        selectionRange={inlineEditState.selectionRange}
+        onSubmit={handleInlineEditSubmit}
+        onClose={closeInlineEdit}
+        isGenerating={inlineEditState.isGenerating}
       />
     </div>
   );
