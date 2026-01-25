@@ -72,6 +72,8 @@
     "better-sqlite3": "^12.6.2",
     "dompurify": "^3.3.1",
     "electron-squirrel-startup": "^1.0.1",
+    "mermaid": "^11.12.2",
+    "panzoom": "^9.4.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",

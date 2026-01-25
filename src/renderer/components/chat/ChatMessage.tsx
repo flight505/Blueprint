@@ -1,6 +1,7 @@
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
+import { MermaidDiagram } from '../mermaid';
 
 export interface ChatMessageData {
   id: string;
@@ -37,8 +38,17 @@ export function ChatMessage({ message }: ChatMessageProps) {
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeHighlight]}
               components={{
-                // Custom rendering for inline code (rehype-highlight handles code blocks)
+                // Custom rendering for code blocks and inline code
                 code: ({ className, children, ...props }) => {
+                  // Check if this is a mermaid code block
+                  const isMermaid = className?.includes('language-mermaid');
+
+                  if (isMermaid) {
+                    // Extract the code content as string
+                    const code = String(children).replace(/\n$/, '');
+                    return <MermaidDiagram code={code} className="my-4" />;
+                  }
+
                   // If no className, it's inline code - style it manually
                   // If className exists (from rehype-highlight), use it as-is
                   if (!className) {
@@ -58,12 +68,21 @@ export function ChatMessage({ message }: ChatMessageProps) {
                     </code>
                   );
                 },
-                // Style pre blocks for code
-                pre: ({ children }) => (
-                  <pre className="bg-gray-900 dark:bg-gray-950 text-gray-100 p-3 rounded-lg overflow-x-auto text-sm">
-                    {children}
-                  </pre>
-                ),
+                // Style pre blocks for code (mermaid blocks are handled by code component)
+                pre: ({ children, ...props }) => {
+                  // Check if child is a mermaid diagram (rendered by code component above)
+                  // If so, just render the child directly without pre wrapper
+                  const childElement = children as React.ReactElement;
+                  if (childElement?.type === MermaidDiagram) {
+                    return <>{children}</>;
+                  }
+
+                  return (
+                    <pre className="bg-gray-900 dark:bg-gray-950 text-gray-100 p-3 rounded-lg overflow-x-auto text-sm" {...props}>
+                      {children}
+                    </pre>
+                  );
+                },
                 // Style links
                 a: ({ href, children }) => (
                   <a

@@ -6,6 +6,7 @@ import ApiKeySettings from './components/settings/ApiKeySettings';
 import { ContextPanel } from './components/context';
 import { useThemeEffect } from './hooks/useTheme';
 import { useStreaming } from './hooks/useStreaming';
+import { useMermaidRenderer } from './hooks/useMermaid';
 import { ChatContainer, ChatMessageData, AskUserQuestionData } from './components/chat';
 
 const DEFAULT_LEFT_WIDTH_PERCENT = 40;
@@ -85,6 +86,9 @@ interface OpenFile {
 function MainApp() {
   // Apply theme class to document element
   useThemeEffect();
+
+  // Set up global Mermaid renderer for Tiptap extension events
+  useMermaidRenderer();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [leftWidthPercent, setLeftWidthPercent] = useState(DEFAULT_LEFT_WIDTH_PERCENT);
