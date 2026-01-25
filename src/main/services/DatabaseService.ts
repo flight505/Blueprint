@@ -78,6 +78,29 @@ export interface DocumentInput {
   embedding?: number[];
 }
 
+// Checkpoint types for phase save/resume
+export interface StoredCheckpoint {
+  id: string;
+  projectId: string;
+  projectPath: string;
+  projectName: string;
+  executionState: string; // JSON serialized ProjectExecutionState
+  currentPhaseIndex: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CheckpointInput {
+  id: string;
+  projectId: string;
+  projectPath: string;
+  projectName: string;
+  executionState: string;
+  currentPhaseIndex: number;
+  status: string;
+}
+
 /**
  * Service for SQLite database operations
  */
@@ -156,6 +179,21 @@ export class DatabaseService {
       )
     `);
 
+    // Create checkpoints table for phase save/resume
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS checkpoints (
+        id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        project_path TEXT NOT NULL,
+        project_name TEXT NOT NULL,
+        execution_state TEXT NOT NULL,
+        current_phase_index INTEGER NOT NULL DEFAULT 0,
+        status TEXT NOT NULL DEFAULT 'pending',
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      )
+    `);
+
     // Create indexes for common queries
     this.db.exec(`
       CREATE INDEX IF NOT EXISTS idx_sessions_project_path ON sessions(project_path);
@@ -163,6 +201,8 @@ export class DatabaseService {
       CREATE INDEX IF NOT EXISTS idx_documents_file_path ON documents(file_path);
       CREATE INDEX IF NOT EXISTS idx_prompts_name ON prompts(name);
       CREATE INDEX IF NOT EXISTS idx_recent_projects_last_opened ON recent_projects(last_opened_at);
+      CREATE INDEX IF NOT EXISTS idx_checkpoints_project_id ON checkpoints(project_id);
+      CREATE INDEX IF NOT EXISTS idx_checkpoints_project_path ON checkpoints(project_path);
     `);
 
     console.log(`DatabaseService initialized at ${this.dbPath}`);
@@ -570,6 +610,145 @@ export class DatabaseService {
 
     const stmt = this.db.prepare('DELETE FROM recent_projects');
     const result = stmt.run();
+    return result.changes;
+  }
+
+  // ========== Checkpoint Operations ==========
+
+  /**
+   * Save or update a checkpoint
+   */
+  saveCheckpoint(checkpoint: CheckpointInput): void {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare(`
+      INSERT INTO checkpoints (id, project_id, project_path, project_name, execution_state, current_phase_index, status, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+      ON CONFLICT(id) DO UPDATE SET
+        project_id = excluded.project_id,
+        project_path = excluded.project_path,
+        project_name = excluded.project_name,
+        execution_state = excluded.execution_state,
+        current_phase_index = excluded.current_phase_index,
+        status = excluded.status,
+        updated_at = datetime('now')
+    `);
+
+    stmt.run(
+      checkpoint.id,
+      checkpoint.projectId,
+      checkpoint.projectPath,
+      checkpoint.projectName,
+      checkpoint.executionState,
+      checkpoint.currentPhaseIndex,
+      checkpoint.status
+    );
+  }
+
+  /**
+   * Get a checkpoint by ID
+   */
+  getCheckpoint(checkpointId: string): StoredCheckpoint | null {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare(`
+      SELECT id, project_id as projectId, project_path as projectPath, project_name as projectName,
+             execution_state as executionState, current_phase_index as currentPhaseIndex,
+             status, created_at as createdAt, updated_at as updatedAt
+      FROM checkpoints WHERE id = ?
+    `);
+
+    return (stmt.get(checkpointId) as StoredCheckpoint) || null;
+  }
+
+  /**
+   * Get the most recent checkpoint for a project by project ID
+   */
+  getCheckpointByProjectId(projectId: string): StoredCheckpoint | null {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare(`
+      SELECT id, project_id as projectId, project_path as projectPath, project_name as projectName,
+             execution_state as executionState, current_phase_index as currentPhaseIndex,
+             status, created_at as createdAt, updated_at as updatedAt
+      FROM checkpoints WHERE project_id = ?
+      ORDER BY updated_at DESC LIMIT 1
+    `);
+
+    return (stmt.get(projectId) as StoredCheckpoint) || null;
+  }
+
+  /**
+   * Get the most recent checkpoint for a project by project path
+   */
+  getCheckpointByProjectPath(projectPath: string): StoredCheckpoint | null {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare(`
+      SELECT id, project_id as projectId, project_path as projectPath, project_name as projectName,
+             execution_state as executionState, current_phase_index as currentPhaseIndex,
+             status, created_at as createdAt, updated_at as updatedAt
+      FROM checkpoints WHERE project_path = ?
+      ORDER BY updated_at DESC LIMIT 1
+    `);
+
+    return (stmt.get(projectPath) as StoredCheckpoint) || null;
+  }
+
+  /**
+   * List all checkpoints, optionally filtered by status
+   */
+  listCheckpoints(status?: string): StoredCheckpoint[] {
+    if (!this.db) throw new Error('Database not initialized');
+
+    let sql = `
+      SELECT id, project_id as projectId, project_path as projectPath, project_name as projectName,
+             execution_state as executionState, current_phase_index as currentPhaseIndex,
+             status, created_at as createdAt, updated_at as updatedAt
+      FROM checkpoints
+    `;
+
+    if (status) {
+      sql += ` WHERE status = ? ORDER BY updated_at DESC`;
+      const stmt = this.db.prepare(sql);
+      return stmt.all(status) as StoredCheckpoint[];
+    }
+
+    sql += ` ORDER BY updated_at DESC`;
+    const stmt = this.db.prepare(sql);
+    return stmt.all() as StoredCheckpoint[];
+  }
+
+  /**
+   * Delete a checkpoint
+   */
+  deleteCheckpoint(checkpointId: string): boolean {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare('DELETE FROM checkpoints WHERE id = ?');
+    const result = stmt.run(checkpointId);
+    return result.changes > 0;
+  }
+
+  /**
+   * Delete all checkpoints for a project
+   */
+  deleteCheckpointsByProjectId(projectId: string): number {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare('DELETE FROM checkpoints WHERE project_id = ?');
+    const result = stmt.run(projectId);
+    return result.changes;
+  }
+
+  /**
+   * Delete all checkpoints for a project by path
+   */
+  deleteCheckpointsByProjectPath(projectPath: string): number {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare('DELETE FROM checkpoints WHERE project_path = ?');
+    const result = stmt.run(projectPath);
     return result.changes;
   }
 

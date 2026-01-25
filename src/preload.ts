@@ -620,6 +620,17 @@ export interface PhaseOrchestratorConfig {
   phases: ProjectPhase[];
 }
 
+// Checkpoint data structure for save/resume
+export interface CheckpointData {
+  id: string;
+  projectId: string;
+  projectPath: string;
+  projectName: string;
+  executionState: ProjectExecutionState;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Expose protected methods to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
   // Permissions
@@ -1073,6 +1084,36 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('orchestrator:state:update', handler);
     return () => ipcRenderer.removeListener('orchestrator:state:update', handler);
   },
+
+  // Checkpoint API
+  checkpointSave: (): Promise<CheckpointData | null> =>
+    ipcRenderer.invoke('checkpoint:save'),
+  checkpointHasResumable: (projectPath: string): Promise<boolean> =>
+    ipcRenderer.invoke('checkpoint:hasResumable', projectPath),
+  checkpointGetForProject: (projectPath: string): Promise<CheckpointData | null> =>
+    ipcRenderer.invoke('checkpoint:getForProject', projectPath),
+  checkpointResumeFromCheckpoint: (checkpointId: string): Promise<void> =>
+    ipcRenderer.invoke('checkpoint:resumeFromCheckpoint', checkpointId),
+  checkpointDelete: (checkpointId: string): Promise<boolean> =>
+    ipcRenderer.invoke('checkpoint:delete', checkpointId),
+  checkpointDeleteForProject: (projectPath: string): Promise<number> =>
+    ipcRenderer.invoke('checkpoint:deleteForProject', projectPath),
+  checkpointGetCurrentId: (): Promise<string | null> =>
+    ipcRenderer.invoke('checkpoint:getCurrentId'),
+  onCheckpointSaved: (callback: (checkpoint: CheckpointData) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, checkpoint: CheckpointData) => {
+      callback(checkpoint);
+    };
+    ipcRenderer.on('checkpoint:saved', handler);
+    return () => ipcRenderer.removeListener('checkpoint:saved', handler);
+  },
+  onCheckpointResumed: (callback: (checkpoint: CheckpointData) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, checkpoint: CheckpointData) => {
+      callback(checkpoint);
+    };
+    ipcRenderer.on('checkpoint:resumed', handler);
+    return () => ipcRenderer.removeListener('checkpoint:resumed', handler);
+  },
 });
 
 // Type declaration for the renderer
@@ -1280,6 +1321,17 @@ declare global {
       onOrchestratorComplete: (callback: (state: ProjectExecutionState) => void) => () => void;
       onOrchestratorError: (callback: (error: string) => void) => () => void;
       onOrchestratorStateUpdate: (callback: (state: ProjectExecutionState) => void) => () => void;
+
+      // Checkpoint API
+      checkpointSave: () => Promise<CheckpointData | null>;
+      checkpointHasResumable: (projectPath: string) => Promise<boolean>;
+      checkpointGetForProject: (projectPath: string) => Promise<CheckpointData | null>;
+      checkpointResumeFromCheckpoint: (checkpointId: string) => Promise<void>;
+      checkpointDelete: (checkpointId: string) => Promise<boolean>;
+      checkpointDeleteForProject: (projectPath: string) => Promise<number>;
+      checkpointGetCurrentId: () => Promise<string | null>;
+      onCheckpointSaved: (callback: (checkpoint: CheckpointData) => void) => () => void;
+      onCheckpointResumed: (callback: (checkpoint: CheckpointData) => void) => () => void;
     };
   }
 }

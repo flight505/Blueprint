@@ -11,6 +11,7 @@
 import { EventEmitter } from 'events';
 import { researchRouter, type ResearchMode, type ProjectPhase, type UnifiedStreamChunk } from './ResearchRouter';
 import { agentService, type AgentSession } from './AgentService';
+import { checkpointService, type CheckpointData } from './CheckpointService';
 
 // Phase status values
 export type PhaseStatus = 'pending' | 'in_progress' | 'completed' | 'failed' | 'paused' | 'skipped';
@@ -147,6 +148,8 @@ export interface PhaseOrchestratorEvents {
   'orchestration:complete': (state: ProjectExecutionState) => void;
   'orchestration:error': (error: string) => void;
   'state:update': (state: ProjectExecutionState) => void;
+  'checkpoint:saved': (checkpoint: CheckpointData) => void;
+  'checkpoint:resumed': (checkpoint: CheckpointData) => void;
 }
 
 /**
@@ -159,6 +162,8 @@ class PhaseOrchestrator extends EventEmitter {
   private agentSession: AgentSession | null = null;
   /** Resolver for approval gate promise */
   private approvalResolver: ((action: { type: 'continue' } | { type: 'revise'; feedback: string }) => void) | null = null;
+  /** Current checkpoint ID for save/resume */
+  private currentCheckpointId: string | null = null;
 
   constructor() {
     super();
@@ -534,10 +539,15 @@ Please regenerate the content, addressing the feedback above.`;
 
       this.emit('phase:complete', phaseState.phase, accumulatedOutput);
       this.emitStateUpdate();
+
+      // Save checkpoint after phase revision completion
+      this.saveCheckpoint();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
       if (errorMessage === 'Execution paused' || errorMessage === 'Execution aborted') {
+        // Save checkpoint before pausing/aborting
+        this.saveCheckpoint();
         throw error;
       }
 
@@ -545,6 +555,9 @@ Please regenerate the content, addressing the feedback above.`;
       phaseState.error = errorMessage;
       this.emit('phase:error', phaseState.phase, errorMessage);
       this.emitStateUpdate();
+
+      // Save checkpoint on error as well
+      this.saveCheckpoint();
 
       // Continue with next phase on error (don't block entire execution)
       console.error(`Phase ${phaseState.phase} revision failed:`, errorMessage);
@@ -611,10 +624,15 @@ Please regenerate the content, addressing the feedback above.`;
 
       this.emit('phase:complete', phaseState.phase, accumulatedOutput);
       this.emitStateUpdate();
+
+      // Save checkpoint after each phase completion
+      this.saveCheckpoint();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
       if (errorMessage === 'Execution paused' || errorMessage === 'Execution aborted') {
+        // Save checkpoint before pausing/aborting
+        this.saveCheckpoint();
         throw error;
       }
 
@@ -622,6 +640,9 @@ Please regenerate the content, addressing the feedback above.`;
       phaseState.error = errorMessage;
       this.emit('phase:error', phaseState.phase, errorMessage);
       this.emitStateUpdate();
+
+      // Save checkpoint on error as well
+      this.saveCheckpoint();
 
       // Continue with next phase on error (don't block entire execution)
       console.error(`Phase ${phaseState.phase} failed:`, errorMessage);
@@ -695,6 +716,110 @@ Location: ${this.currentExecution.projectPath}
   }
 
   /**
+   * Get current checkpoint ID
+   */
+  getCurrentCheckpointId(): string | null {
+    return this.currentCheckpointId;
+  }
+
+  /**
+   * Save a checkpoint for the current execution state
+   */
+  saveCheckpoint(): CheckpointData | null {
+    if (!this.currentExecution) {
+      return null;
+    }
+
+    const checkpoint = checkpointService.saveCheckpoint(this.currentExecution);
+    this.currentCheckpointId = checkpoint.id;
+
+    this.emit('checkpoint:saved', checkpoint);
+    return checkpoint;
+  }
+
+  /**
+   * Check if a project has a resumable checkpoint
+   */
+  hasResumableCheckpoint(projectPath: string): boolean {
+    return checkpointService.hasResumableCheckpoint(projectPath);
+  }
+
+  /**
+   * Get checkpoint for a project path
+   */
+  getCheckpointForProject(projectPath: string): CheckpointData | null {
+    return checkpointService.getCheckpointByProjectPath(projectPath);
+  }
+
+  /**
+   * Resume execution from a checkpoint
+   */
+  async resumeFromCheckpoint(checkpointId: string): Promise<void> {
+    if (this.isRunning()) {
+      throw new Error('An execution is already running. Stop or complete it first.');
+    }
+
+    const checkpoint = checkpointService.getCheckpoint(checkpointId);
+    if (!checkpoint) {
+      throw new Error(`Checkpoint not found: ${checkpointId}`);
+    }
+
+    // Restore execution state from checkpoint
+    this.currentExecution = checkpoint.executionState;
+    this.currentCheckpointId = checkpointId;
+    this.pauseRequested = false;
+    this.abortController = new AbortController();
+
+    // Create agent session for the project
+    this.agentSession = agentService.createSession({
+      systemPrompt: `You are a project planning assistant helping to plan "${this.currentExecution.projectName}".
+Your role is to provide comprehensive, data-driven analysis for each planning phase.
+Format your responses in markdown with clear headings and structured content.
+Include Mermaid diagrams where appropriate for visualizations.
+Be thorough but concise.
+
+NOTE: This session is resuming from a previous checkpoint. Continue from where it left off.`,
+      autoSelectModel: true,
+    });
+
+    // Update status to running
+    this.currentExecution.status = 'running';
+    this.currentExecution.pausedAt = undefined;
+
+    this.emit('orchestration:resume', { ...this.currentExecution });
+    this.emit('checkpoint:resumed', checkpoint);
+    this.emitStateUpdate();
+
+    try {
+      await this.executePhases();
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Execution paused') {
+        // Save checkpoint on pause
+        this.saveCheckpoint();
+        return;
+      }
+      this.handleExecutionError(error);
+    }
+  }
+
+  /**
+   * Delete checkpoint for a project
+   */
+  deleteCheckpoint(checkpointId: string): boolean {
+    if (this.currentCheckpointId === checkpointId) {
+      this.currentCheckpointId = null;
+    }
+    return checkpointService.deleteCheckpoint(checkpointId);
+  }
+
+  /**
+   * Delete all checkpoints for a project path
+   */
+  deleteCheckpointsForProject(projectPath: string): number {
+    return checkpointService.deleteCheckpointsByProjectPath(projectPath);
+  }
+
+  /**
    * Cleanup resources
    */
   cleanup(): void {
@@ -703,6 +828,7 @@ Location: ${this.currentExecution.projectPath}
     this.agentSession = null;
     this.pauseRequested = false;
     this.approvalResolver = null;
+    this.currentCheckpointId = null;
     this.removeAllListeners();
   }
 }

@@ -728,6 +728,14 @@ function registerIpcHandlers() {
       webContents.send('orchestrator:state:update', state);
     });
 
+    phaseOrchestrator.on('checkpoint:saved', (checkpoint) => {
+      webContents.send('checkpoint:saved', checkpoint);
+    });
+
+    phaseOrchestrator.on('checkpoint:resumed', (checkpoint) => {
+      webContents.send('checkpoint:resumed', checkpoint);
+    });
+
     await phaseOrchestrator.start(config);
   });
 
@@ -789,6 +797,49 @@ function registerIpcHandlers() {
 
   ipcMain.handle('orchestrator:cleanup', (): void => {
     phaseOrchestrator.cleanup();
+  });
+
+  // Checkpoint handlers
+  ipcMain.handle('checkpoint:save', () => {
+    return phaseOrchestrator.saveCheckpoint();
+  });
+
+  ipcMain.handle('checkpoint:hasResumable', (_event, projectPath: string): boolean => {
+    return phaseOrchestrator.hasResumableCheckpoint(projectPath);
+  });
+
+  ipcMain.handle('checkpoint:getForProject', (_event, projectPath: string) => {
+    return phaseOrchestrator.getCheckpointForProject(projectPath);
+  });
+
+  ipcMain.handle('checkpoint:resumeFromCheckpoint', async (_event, checkpointId: string): Promise<void> => {
+    const webContents = BrowserWindow.getAllWindows()[0]?.webContents;
+    if (!webContents) {
+      throw new Error('No window available for checkpoint events');
+    }
+
+    // Forward checkpoint events to renderer
+    phaseOrchestrator.on('checkpoint:saved', (checkpoint) => {
+      webContents.send('checkpoint:saved', checkpoint);
+    });
+
+    phaseOrchestrator.on('checkpoint:resumed', (checkpoint) => {
+      webContents.send('checkpoint:resumed', checkpoint);
+    });
+
+    await phaseOrchestrator.resumeFromCheckpoint(checkpointId);
+  });
+
+  ipcMain.handle('checkpoint:delete', (_event, checkpointId: string): boolean => {
+    return phaseOrchestrator.deleteCheckpoint(checkpointId);
+  });
+
+  ipcMain.handle('checkpoint:deleteForProject', (_event, projectPath: string): number => {
+    return phaseOrchestrator.deleteCheckpointsForProject(projectPath);
+  });
+
+  ipcMain.handle('checkpoint:getCurrentId', (): string | null => {
+    return phaseOrchestrator.getCurrentCheckpointId();
   });
 }
 
