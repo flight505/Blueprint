@@ -13,6 +13,7 @@ import { openRouterService, type ResearchResponse, type ResearchOptions, type St
 import { geminiService, type DeepResearchResponse, type DeepResearchOptions, type GeminiStreamChunk, type ProgressCheckpoint } from './main/services/GeminiService';
 import { researchRouter, type ResearchMode, type ProjectPhase, type ResearchProvider, type UnifiedResearchResponse, type RoutedResearchOptions, type UnifiedStreamChunk } from './main/services/ResearchRouter';
 import { citationManager, type Citation, type CitationFile, type AddCitationInput, type ReferenceListOptions, type FormattedReference } from './main/services/CitationManager';
+import { pdfGenerator, type PDFGenerationOptions, type PDFGenerationResult, type PDFSection } from './main/services/PDFGenerator';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -534,6 +535,54 @@ function registerIpcHandlers() {
 
   ipcMain.handle('citation:getCitationFilePath', (_, documentPath: string): string => {
     return citationManager.getCitationFilePath(documentPath);
+  });
+
+  // PDF Generator handlers
+  ipcMain.handle('pdf:isPandocAvailable', async (): Promise<boolean> => {
+    return await pdfGenerator.isPandocAvailable();
+  });
+
+  ipcMain.handle('pdf:getPandocVersion', async (): Promise<string | null> => {
+    return await pdfGenerator.getPandocVersion();
+  });
+
+  ipcMain.handle('pdf:generatePDF', async (
+    _,
+    markdownContent: string,
+    outputPath: string,
+    options?: PDFGenerationOptions
+  ): Promise<PDFGenerationResult> => {
+    return await pdfGenerator.generatePDF(markdownContent, outputPath, options);
+  });
+
+  ipcMain.handle('pdf:generatePDFFromDocument', async (
+    _,
+    documentPath: string,
+    options?: PDFGenerationOptions
+  ): Promise<PDFGenerationResult> => {
+    return await pdfGenerator.generatePDFFromDocument(documentPath, options);
+  });
+
+  ipcMain.handle('pdf:generatePDFFromSections', async (
+    _,
+    sections: PDFSection[],
+    outputPath: string,
+    options?: PDFGenerationOptions
+  ): Promise<PDFGenerationResult> => {
+    return await pdfGenerator.generatePDFFromSections(sections, outputPath, options);
+  });
+
+  ipcMain.handle('pdf:generatePreview', async (
+    _,
+    pdfPath: string,
+    outputPath: string,
+    dpi?: number
+  ): Promise<{ success: boolean; error?: string }> => {
+    return await pdfGenerator.generatePreview(pdfPath, outputPath, dpi);
+  });
+
+  ipcMain.handle('pdf:cleanup', async (): Promise<void> => {
+    return await pdfGenerator.cleanup();
   });
 }
 

@@ -426,6 +426,54 @@ export interface AddCitationInput {
   offset?: number;
 }
 
+// PDF generation types
+export interface PDFGenerationOptions {
+  includeToc?: boolean;
+  includeCoverPage?: boolean;
+  coverPage?: CoverPageMetadata;
+  includeCitations?: boolean;
+  citationFormat?: 'ieee' | 'apa' | 'mla' | 'chicago';
+  outputDir?: string;
+  outputFilename?: string;
+  pageSize?: 'a4' | 'letter' | 'legal';
+  margin?: string;
+  fontSize?: number;
+  customCss?: string;
+  pageNumbers?: boolean;
+  pdfMetadata?: PDFMetadata;
+}
+
+export interface CoverPageMetadata {
+  title: string;
+  subtitle?: string;
+  author?: string;
+  date?: string;
+  organization?: string;
+  logo?: string;
+}
+
+export interface PDFMetadata {
+  title?: string;
+  author?: string;
+  subject?: string;
+  keywords?: string[];
+  creator?: string;
+}
+
+export interface PDFGenerationResult {
+  success: boolean;
+  outputPath?: string;
+  error?: string;
+  pageCount?: number;
+}
+
+export interface PDFSection {
+  title: string;
+  content: string;
+  order: number;
+  includeInToc?: boolean;
+}
+
 // Expose protected methods to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
   // Permissions
@@ -715,6 +763,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('citation:deleteCitationFile', documentPath),
   citationGetCitationFilePath: (documentPath: string): Promise<string> =>
     ipcRenderer.invoke('citation:getCitationFilePath', documentPath),
+
+  // PDF generation
+  pdfIsPandocAvailable: (): Promise<boolean> =>
+    ipcRenderer.invoke('pdf:isPandocAvailable'),
+  pdfGetPandocVersion: (): Promise<string | null> =>
+    ipcRenderer.invoke('pdf:getPandocVersion'),
+  pdfGeneratePDF: (markdownContent: string, outputPath: string, options?: PDFGenerationOptions): Promise<PDFGenerationResult> =>
+    ipcRenderer.invoke('pdf:generatePDF', markdownContent, outputPath, options),
+  pdfGeneratePDFFromDocument: (documentPath: string, options?: PDFGenerationOptions): Promise<PDFGenerationResult> =>
+    ipcRenderer.invoke('pdf:generatePDFFromDocument', documentPath, options),
+  pdfGeneratePDFFromSections: (sections: PDFSection[], outputPath: string, options?: PDFGenerationOptions): Promise<PDFGenerationResult> =>
+    ipcRenderer.invoke('pdf:generatePDFFromSections', sections, outputPath, options),
+  pdfGeneratePreview: (pdfPath: string, outputPath: string, dpi?: number): Promise<{ success: boolean; error?: string }> =>
+    ipcRenderer.invoke('pdf:generatePreview', pdfPath, outputPath, dpi),
+  pdfCleanup: (): Promise<void> =>
+    ipcRenderer.invoke('pdf:cleanup'),
 });
 
 // Type declaration for the renderer
@@ -863,6 +927,15 @@ declare global {
       citationGetCitationCount: (documentPath: string) => Promise<number>;
       citationDeleteCitationFile: (documentPath: string) => Promise<boolean>;
       citationGetCitationFilePath: (documentPath: string) => Promise<string>;
+
+      // PDF generation
+      pdfIsPandocAvailable: () => Promise<boolean>;
+      pdfGetPandocVersion: () => Promise<string | null>;
+      pdfGeneratePDF: (markdownContent: string, outputPath: string, options?: PDFGenerationOptions) => Promise<PDFGenerationResult>;
+      pdfGeneratePDFFromDocument: (documentPath: string, options?: PDFGenerationOptions) => Promise<PDFGenerationResult>;
+      pdfGeneratePDFFromSections: (sections: PDFSection[], outputPath: string, options?: PDFGenerationOptions) => Promise<PDFGenerationResult>;
+      pdfGeneratePreview: (pdfPath: string, outputPath: string, dpi?: number) => Promise<{ success: boolean; error?: string }>;
+      pdfCleanup: () => Promise<void>;
     };
   }
 }
