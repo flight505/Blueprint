@@ -1316,6 +1316,156 @@ pnpm exec electron .vite/build/main.js
 
 ---
 
+### Phase 9: Hallucination Detection & Trust (Week 17-18)
+
+#### US-056: Integrate Citation Verification APIs
+**As a** developer, **I want** citation verification APIs configured **so that** I can verify generated references.
+
+**Acceptance Criteria:**
+- [ ] OpenAlex API client with rate limiting (100K credits/day)
+  - **Must verify:** Check `src/main/services/CitationVerificationService.ts`
+  - **Expected:** OpenAlex client with API key configuration
+- [ ] Crossref API client with polite pool access (mailto header, 10 RPS)
+  - **Must verify:** Check Crossref client uses `mailto:` parameter
+  - **Expected:** Requests include polite pool identifier
+- [ ] Hybrid query strategy based on available data
+  - **Must verify:** Test DOI lookup routes to Crossref first; title-only routes to OpenAlex first
+  - **Expected:** DOI queries → Crossref → OpenAlex; Title queries → OpenAlex → Crossref
+- [ ] Confidence scoring with weighted field matching (0.0-1.0)
+  - **Must verify:** Verify partial match returns score between 0.5-0.85
+  - **Expected:** DOI match = 1.0, title+author+year ≥ 0.85, partial < 0.70
+- [ ] SQLite cache with tiered TTL (DOI: 7 days, search: 1 hour)
+  - **Must verify:** Verify same citation twice, check cache hit
+  - **Expected:** Second lookup uses cache, respects TTL per query type
+- [ ] Typecheck passes
+  - **Must verify:** `pnpm exec tsc --noEmit`
+  - **Expected:** No errors
+
+---
+
+#### US-057: Build Citation Attachment System
+**As a** user, **I want** citations attached during generation **so that** claims are traceable.
+
+**Acceptance Criteria:**
+- [ ] Citations extracted from RAG context and attached to generated text
+  - **Must verify:** Generate content with sources, check citation links
+  - **Expected:** Inline citations link to source metadata
+- [ ] Citation metadata stored in document sidecar (.citations.json)
+  - **Must verify:** Generate content, check sidecar file
+  - **Expected:** JSON with title, authors, year, DOI, verification status
+- [ ] Source-claim linking preserved across edits
+  - **Must verify:** Edit paragraph, check citations retained
+  - **Expected:** Citations remain linked after edit
+- [ ] Typecheck passes
+  - **Must verify:** `pnpm exec tsc --noEmit`
+  - **Expected:** No errors
+
+---
+
+#### US-058: Implement Confidence Scoring
+**As a** developer, **I want** confidence scores computed **so that** low-confidence content is flagged.
+
+**Acceptance Criteria:**
+- [ ] Token probability extraction during generation (where available)
+  - **Must verify:** Check streaming handler extracts logprobs
+  - **Expected:** Probability data captured per token
+- [ ] Paragraph-level confidence score computation
+  - **Must verify:** Generate content, check confidence per paragraph
+  - **Expected:** Score 0-1 stored with content
+- [ ] Configurable threshold for low-confidence alerts (default: 0.6)
+  - **Must verify:** Check Settings → Hallucination Detection
+  - **Expected:** Slider/input for threshold
+- [ ] Typecheck passes
+  - **Must verify:** `pnpm exec tsc --noEmit`
+  - **Expected:** No errors
+
+---
+
+#### US-059: Add Inline Confidence Indicators
+**As a** user, **I want** visual confidence markers **so that** I can identify uncertain content.
+
+**Acceptance Criteria:**
+- [ ] Color-coded underlines: green (>0.8), yellow (0.6-0.8), red (<0.6)
+  - **Must verify:** Generate content with varying confidence
+  - **Expected:** Colors match confidence levels
+- [ ] Hover tooltip shows confidence score and reasoning
+  - **Must verify:** Hover over low-confidence section
+  - **Expected:** Tooltip displays "Confidence: 0.52 - Limited source support"
+- [ ] Toggle to show/hide confidence indicators in View menu
+  - **Must verify:** Toggle setting, observe display
+  - **Expected:** Indicators appear/disappear
+- [ ] Typecheck passes
+  - **Must verify:** `pnpm exec tsc --noEmit`
+  - **Expected:** No errors
+
+---
+
+#### US-060: Build Citation Verification Panel
+**As a** user, **I want** a verification panel **so that** I can review citation status.
+
+**Acceptance Criteria:**
+- [ ] Panel shows all citations with status badges (Verified/Unverified/Partial)
+  - **Must verify:** Open panel, view citation list
+  - **Expected:** Each citation has status badge
+- [ ] Click citation scrolls to usage in document
+  - **Must verify:** Click citation in panel
+  - **Expected:** Document scrolls to citation location
+- [ ] "Verify All" button triggers batch verification
+  - **Must verify:** Click Verify All, observe progress
+  - **Expected:** Citations verified with progress indicator
+- [ ] Shows verification source (OpenAlex/Crossref)
+  - **Must verify:** View verified citation details
+  - **Expected:** Source API displayed
+- [ ] Typecheck passes
+  - **Must verify:** `pnpm exec tsc --noEmit`
+  - **Expected:** No errors
+
+---
+
+#### US-061: Implement Human Review Queue
+**As a** user, **I want** flagged content queued **so that** I can review high-risk sections.
+
+**Acceptance Criteria:**
+- [ ] Low-confidence sections (<0.6) auto-flagged for review
+  - **Must verify:** Generate content with low confidence
+  - **Expected:** Sections appear in review queue
+- [ ] Unverified citations flagged for review
+  - **Must verify:** Generate content with unverifiable citation
+  - **Expected:** Citation appears in review queue
+- [ ] Review interface shows original + sources side-by-side
+  - **Must verify:** Open review item
+  - **Expected:** Split view with content and sources
+- [ ] Accept/Edit/Remove actions for each flagged item
+  - **Must verify:** View action buttons
+  - **Expected:** Three action options available
+- [ ] Typecheck passes
+  - **Must verify:** `pnpm exec tsc --noEmit`
+  - **Expected:** No errors
+
+---
+
+#### US-062: Create Hallucination Dashboard
+**As a** user, **I want** hallucination metrics **so that** I can track document quality.
+
+**Acceptance Criteria:**
+- [ ] Per-document confidence score (average of paragraphs)
+  - **Must verify:** View dashboard for document
+  - **Expected:** Overall score displayed
+- [ ] Citation verification rate (verified/total)
+  - **Must verify:** View citation metrics
+  - **Expected:** Percentage and counts shown
+- [ ] Trend chart for project (if multiple documents)
+  - **Must verify:** View project-level dashboard
+  - **Expected:** Line chart of scores over time
+- [ ] Export verification report (JSON/CSV)
+  - **Must verify:** Click Export Report
+  - **Expected:** File downloads with all metrics
+- [ ] Typecheck passes
+  - **Must verify:** `pnpm exec tsc --noEmit`
+  - **Expected:** No errors
+
+---
+
 ## Known Blockers
 
 ### Electron Forge Vite Plugin Issue
@@ -1350,9 +1500,9 @@ pnpm exec electron .vite/build/main.js
 
 ## Summary
 
-**Total Stories:** 60
+**Total Stories:** 67
 **Completed:** 5 (US-001, US-002, US-003, US-004, US-005)
-**Remaining:** 55
+**Remaining:** 62
 
 **Phase Distribution:**
 - Foundation: 8 stories (5 complete) - added US-007a (Legend State)
@@ -1363,6 +1513,7 @@ pnpm exec electron .vite/build/main.js
 - Workflow: 6 stories
 - Polish & Testing: 6 stories - added US-048a (WCAG 2.2)
 - Packaging: 5 stories
+- Hallucination Detection & Trust: 7 stories (NEW)
 
 **Core Features:**
 1. Activity Bar (US-004, US-005)
@@ -1380,3 +1531,12 @@ pnpm exec electron .vite/build/main.js
 6. StreamingMarkdown with O(n) rendering (US-010)
 7. WCAG 2.2 accessibility compliance (US-048a)
 8. Semantic context retrieval (US-013)
+
+**Hallucination Detection Features (from docs/HALLUCINATION-DETECTION-RESEARCH.md):**
+1. Citation verification via OpenAlex + Crossref (US-056)
+2. Citation attachment system (US-057)
+3. Confidence scoring with token probabilities (US-058)
+4. Inline confidence indicators (US-059)
+5. Citation verification panel (US-060)
+6. Human review queue for low-confidence content (US-061)
+7. Hallucination analytics dashboard (US-062)
