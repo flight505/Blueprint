@@ -64,39 +64,39 @@ pnpm exec electron .vite/build/main.js
 
 ### Phase 1: Foundation (Week 1-2)
 
-#### US-001: Initialize Electron Project
+#### US-001: Initialize Electron Project ✅ COMPLETE
 **As a** developer, **I want** a working Electron + TypeScript + Vite setup **so that** I can build the application.
 
 **Acceptance Criteria:**
-- [ ] Electron Forge project initialized with TypeScript template
+- [x] Electron Forge project initialized with TypeScript template
   - **Must verify:** `pnpm create @electron-forge/app@latest blueprint -- --template=vite-typescript`
   - **Expected:** Project scaffolded successfully
-- [ ] Application window opens on launch
+- [x] Application window opens on launch
   - **Must verify:** `pnpm run start` or dev workaround
   - **Expected:** Electron window displays without errors
-- [ ] Hot reload updates renderer without full restart
+- [x] Hot reload updates renderer without full restart
   - **Must verify:** Edit `src/renderer.tsx`, observe change in browser
   - **Expected:** UI updates within 2 seconds
-- [ ] Typecheck passes
+- [x] Typecheck passes
   - **Must verify:** `pnpm exec tsc --noEmit`
   - **Expected:** No TypeScript errors
 
 ---
 
-#### US-002: Configure Tailwind CSS 4
+#### US-002: Configure Tailwind CSS 4 ✅ COMPLETE
 **As a** developer, **I want** Tailwind CSS configured **so that** I can style components efficiently.
 
 **Acceptance Criteria:**
-- [ ] Tailwind CSS 4 installed with PostCSS
+- [x] Tailwind CSS 4 installed with PostCSS
   - **Must verify:** `pnpm add -D tailwindcss @tailwindcss/postcss`
   - **Expected:** Packages in devDependencies
-- [ ] CSS classes apply correctly in renderer
+- [x] CSS classes apply correctly in renderer
   - **Must verify:** Add `className="bg-blue-500 text-white p-4"` to component
   - **Expected:** Blue background, white text, padding visible
-- [ ] Dark mode utilities work (`dark:` prefix)
+- [x] Dark mode utilities work (`dark:` prefix)
   - **Must verify:** Add `dark:bg-gray-900` and toggle dark mode
   - **Expected:** Background changes in dark mode
-- [ ] Typecheck passes
+- [x] Typecheck passes
   - **Must verify:** `pnpm exec tsc --noEmit`
   - **Expected:** No errors
 
@@ -1165,9 +1165,9 @@ pnpm exec electron .vite/build/main.js
 ## Known Blockers
 
 ### Electron Forge Vite Plugin Issue
-**Status:** Workaround documented
-**Impact:** Development workflow requires two terminals
-**Resolution:** Use manual Vite + Electron start commands
+**Status:** ✅ RESOLVED
+**Impact:** None - `pnpm start` works correctly
+**Resolution:** Added `.npmrc` with `node-linker=hoisted` and `"type": "module"` to package.json
 
 ## Demo Checkpoints
 
@@ -1197,8 +1197,11 @@ pnpm exec electron .vite/build/main.js
 ## Summary
 
 **Total Stories:** 55
+**Completed:** 2 (US-001, US-002)
+**Remaining:** 53
+
 **Phase Distribution:**
-- Foundation: 7 stories
+- Foundation: 7 stories (2 complete)
 - Agent SDK: 7 stories
 - Markdown & Nav: 8 stories
 - Inline Editing: 8 stories
