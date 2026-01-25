@@ -4,6 +4,7 @@ import FileBrowser from './components/explorer/FileBrowser';
 import ThemeToggle from './components/settings/ThemeToggle';
 import ApiKeySettings from './components/settings/ApiKeySettings';
 import { ContextPanel } from './components/context';
+import { TabBar, TabData } from './components/layout';
 import { useThemeEffect } from './hooks/useTheme';
 import { useStreaming } from './hooks/useStreaming';
 import { useMermaidRenderer } from './hooks/useMermaid';
@@ -78,9 +79,11 @@ export default function App() {
 }
 
 interface OpenFile {
+  id: string;
   path: string;
   name: string;
   content: string;
+  originalContent: string; // Track original content for unsaved detection
 }
 
 function MainApp() {
@@ -95,7 +98,7 @@ function MainApp() {
   const [isDragging, setIsDragging] = useState(false);
   const [activeSection, setActiveSection] = useState<Section>('chat');
   const [openFiles, setOpenFiles] = useState<OpenFile[]>([]);
-  const [activeFileIndex, setActiveFileIndex] = useState<number | null>(null);
+  const [activeFileId, setActiveFileId] = useState<string | null>(null);
 
   // Chat state
   const [chatMessages, setChatMessages] = useState<ChatMessageData[]>([]);
@@ -201,26 +204,54 @@ function MainApp() {
 
   const handleFileSelect = useCallback(async (filePath: string) => {
     // Check if file is already open
-    const existingIndex = openFiles.findIndex(f => f.path === filePath);
-    if (existingIndex !== -1) {
-      setActiveFileIndex(existingIndex);
+    const existingFile = openFiles.find(f => f.path === filePath);
+    if (existingFile) {
+      setActiveFileId(existingFile.id);
       return;
     }
 
     try {
       const fileData = await window.electronAPI.readFile(filePath);
       const fileName = filePath.split('/').pop() || 'Untitled';
+      const newFileId = `file-${Date.now()}-${Math.random().toString(36).slice(2)}`;
       const newFile: OpenFile = {
+        id: newFileId,
         path: filePath,
         name: fileName,
         content: fileData.content,
+        originalContent: fileData.content,
       };
       setOpenFiles(prev => [...prev, newFile]);
-      setActiveFileIndex(openFiles.length);
+      setActiveFileId(newFileId);
     } catch (error) {
       console.error('Failed to open file:', error);
     }
   }, [openFiles]);
+
+  // Tab selection handler
+  const handleTabSelect = useCallback((tabId: string) => {
+    setActiveFileId(tabId);
+  }, []);
+
+  // Tab close handler
+  const handleTabClose = useCallback((tabId: string) => {
+    const tabIndex = openFiles.findIndex(f => f.id === tabId);
+    if (tabIndex === -1) return;
+
+    const newFiles = openFiles.filter(f => f.id !== tabId);
+    setOpenFiles(newFiles);
+
+    // Update active file if needed
+    if (activeFileId === tabId) {
+      if (newFiles.length > 0) {
+        // Select the previous tab, or the first one if closing the first tab
+        const newActiveIndex = Math.max(0, tabIndex - 1);
+        setActiveFileId(newFiles[newActiveIndex].id);
+      } else {
+        setActiveFileId(null);
+      }
+    }
+  }, [openFiles, activeFileId]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -381,33 +412,22 @@ function MainApp() {
         className="flex-1 flex flex-col"
         style={{ minWidth: MIN_PANE_WIDTH }}
       >
-        <header className="h-10 flex items-center px-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-          <div className="flex gap-1">
-            {openFiles.length === 0 ? (
-              <Tab label="Welcome" active />
-            ) : (
-              openFiles.map((file, index) => (
-                <Tab
-                  key={file.path}
-                  label={file.name}
-                  active={index === activeFileIndex}
-                  onClick={() => setActiveFileIndex(index)}
-                  onClose={() => {
-                    const newFiles = openFiles.filter((_, i) => i !== index);
-                    setOpenFiles(newFiles);
-                    if (activeFileIndex === index) {
-                      setActiveFileIndex(newFiles.length > 0 ? Math.max(0, index - 1) : null);
-                    } else if (activeFileIndex !== null && activeFileIndex > index) {
-                      setActiveFileIndex(activeFileIndex - 1);
-                    }
-                  }}
-                />
-              ))
-            )}
-          </div>
+        <header className="h-10 flex items-center border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+          <TabBar
+            tabs={openFiles.map((file): TabData => ({
+              id: file.id,
+              label: file.name,
+              path: file.path,
+              hasUnsavedChanges: file.content !== file.originalContent,
+            }))}
+            activeTabId={activeFileId}
+            onTabSelect={handleTabSelect}
+            onTabClose={handleTabClose}
+            enableKeyboardShortcuts={openFiles.length > 0}
+          />
         </header>
         <div className="flex-1 overflow-y-auto">
-          {openFiles.length === 0 || activeFileIndex === null ? (
+          {openFiles.length === 0 || activeFileId === null ? (
             <div className="p-8">
               <div className="max-w-2xl mx-auto">
                 <h1 className="text-3xl font-bold mb-4">Blueprint</h1>
@@ -435,7 +455,7 @@ function MainApp() {
               </div>
             </div>
           ) : (
-            <FileContentView file={openFiles[activeFileIndex]} />
+            <FileContentView file={openFiles.find(f => f.id === activeFileId)!} />
           )}
         </div>
       </div>
@@ -586,40 +606,6 @@ function ActivityBarButton({ icon, label, shortcut, active, onClick }: ActivityB
     >
       <span className="text-lg" aria-hidden="true">{icon}</span>
     </button>
-  );
-}
-
-interface TabProps {
-  label: string;
-  active?: boolean;
-  onClick?: () => void;
-  onClose?: () => void;
-}
-
-function Tab({ label, active, onClick, onClose }: TabProps) {
-  return (
-    <div
-      className={`flex items-center gap-1 px-3 py-1 text-sm rounded-t-lg transition-colors cursor-pointer ${
-        active
-          ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-t border-x border-gray-200 dark:border-gray-700'
-          : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
-      }`}
-      onClick={onClick}
-    >
-      <span className="truncate max-w-[120px]">{label}</span>
-      {onClose && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
-          className="ml-1 w-4 h-4 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400"
-          aria-label={`Close ${label}`}
-        >
-          ×
-        </button>
-      )}
-    </div>
   );
 }
 
