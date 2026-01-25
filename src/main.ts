@@ -11,6 +11,7 @@ import { modelRouter, type TaskClassification, type TaskType, type ModelId, CLAU
 import { contextManager, type ContextEvent, type CompactionResult, type ContextStats, type CompactionSummary } from './main/services/ContextManager';
 import { openRouterService, type ResearchResponse, type ResearchOptions, type StreamChunk as OpenRouterStreamChunk } from './main/services/OpenRouterService';
 import { geminiService, type DeepResearchResponse, type DeepResearchOptions, type GeminiStreamChunk, type ProgressCheckpoint } from './main/services/GeminiService';
+import { researchRouter, type ResearchMode, type ProjectPhase, type ResearchProvider, type UnifiedResearchResponse, type RoutedResearchOptions, type UnifiedStreamChunk } from './main/services/ResearchRouter';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -397,6 +398,63 @@ function registerIpcHandlers() {
 
   ipcMain.handle('gemini:getProgressCheckpoints', (): number[] => {
     return geminiService.getProgressCheckpoints();
+  });
+
+  // Research router handlers
+  ipcMain.handle('researchRouter:getProvider', (_, mode: ResearchMode, phase?: ProjectPhase): ResearchProvider => {
+    return researchRouter.getProvider(mode, phase);
+  });
+
+  ipcMain.handle('researchRouter:isProviderAvailable', (_, provider: ResearchProvider): boolean => {
+    return researchRouter.isProviderAvailable(provider);
+  });
+
+  ipcMain.handle('researchRouter:getAvailableProviders', (): ResearchProvider[] => {
+    return researchRouter.getAvailableProviders();
+  });
+
+  ipcMain.handle('researchRouter:setDefaultMode', (_, mode: ResearchMode): void => {
+    researchRouter.setDefaultMode(mode);
+  });
+
+  ipcMain.handle('researchRouter:getDefaultMode', (): ResearchMode => {
+    return researchRouter.getDefaultMode();
+  });
+
+  ipcMain.handle('researchRouter:getPhaseRouting', (_, phase: ProjectPhase) => {
+    return researchRouter.getPhaseRouting(phase);
+  });
+
+  ipcMain.handle('researchRouter:research', async (_, query: string, options?: RoutedResearchOptions): Promise<UnifiedResearchResponse> => {
+    return await researchRouter.research(query, options);
+  });
+
+  ipcMain.handle('researchRouter:researchStream', async (event, query: string, options?: RoutedResearchOptions): Promise<void> => {
+    const webContents = event.sender;
+
+    await researchRouter.researchStream(
+      query,
+      (chunk: UnifiedStreamChunk) => {
+        webContents.send('researchRouter:streamChunk', chunk);
+      },
+      options
+    );
+  });
+
+  ipcMain.handle('researchRouter:getModeDescriptions', () => {
+    return researchRouter.getModeDescriptions();
+  });
+
+  ipcMain.handle('researchRouter:getPhaseDescriptions', () => {
+    return researchRouter.getPhaseDescriptions();
+  });
+
+  ipcMain.handle('researchRouter:getAvailableModes', (): ResearchMode[] => {
+    return researchRouter.getAvailableModes();
+  });
+
+  ipcMain.handle('researchRouter:getProjectPhases', (): ProjectPhase[] => {
+    return researchRouter.getProjectPhases();
   });
 }
 

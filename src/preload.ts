@@ -313,6 +313,67 @@ export interface GeminiStreamChunk {
   progress?: ProgressCheckpoint;
 }
 
+// Research router types
+export type ResearchMode = 'quick' | 'balanced' | 'comprehensive';
+export type ProjectPhase =
+  | 'market_research'
+  | 'competitive_analysis'
+  | 'technical_feasibility'
+  | 'architecture_design'
+  | 'risk_assessment'
+  | 'sprint_planning'
+  | 'general';
+export type ResearchProvider = 'perplexity' | 'gemini';
+
+export interface PhaseConfig {
+  quick: ResearchProvider;
+  balanced: ResearchProvider;
+  comprehensive: ResearchProvider;
+}
+
+export interface UnifiedResearchResponse {
+  id: string;
+  content: string;
+  provider: ResearchProvider;
+  model: string;
+  citations?: Array<{
+    url: string;
+    title?: string;
+    snippet?: string;
+    domain?: string;
+  }>;
+  usage: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
+  finishReason: string | null;
+  progress?: ProgressCheckpoint;
+}
+
+export interface RoutedResearchOptions {
+  mode?: ResearchMode;
+  phase?: ProjectPhase;
+  forceProvider?: ResearchProvider;
+  systemPrompt?: string;
+  maxTokens?: number;
+  temperature?: number;
+  timeout?: number;
+}
+
+export interface UnifiedStreamChunk {
+  type: 'text' | 'citation' | 'progress' | 'error' | 'done';
+  content: string;
+  provider: ResearchProvider;
+  citation?: {
+    url: string;
+    title?: string;
+    snippet?: string;
+    domain?: string;
+  };
+  progress?: ProgressCheckpoint;
+}
+
 // Expose protected methods to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
   // Permissions
@@ -528,6 +589,39 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('gemini:streamChunk', handler);
     return () => ipcRenderer.removeListener('gemini:streamChunk', handler);
   },
+
+  // Research router
+  researchRouterGetProvider: (mode: ResearchMode, phase?: ProjectPhase): Promise<ResearchProvider> =>
+    ipcRenderer.invoke('researchRouter:getProvider', mode, phase),
+  researchRouterIsProviderAvailable: (provider: ResearchProvider): Promise<boolean> =>
+    ipcRenderer.invoke('researchRouter:isProviderAvailable', provider),
+  researchRouterGetAvailableProviders: (): Promise<ResearchProvider[]> =>
+    ipcRenderer.invoke('researchRouter:getAvailableProviders'),
+  researchRouterSetDefaultMode: (mode: ResearchMode): Promise<void> =>
+    ipcRenderer.invoke('researchRouter:setDefaultMode', mode),
+  researchRouterGetDefaultMode: (): Promise<ResearchMode> =>
+    ipcRenderer.invoke('researchRouter:getDefaultMode'),
+  researchRouterGetPhaseRouting: (phase: ProjectPhase): Promise<PhaseConfig> =>
+    ipcRenderer.invoke('researchRouter:getPhaseRouting', phase),
+  researchRouterResearch: (query: string, options?: RoutedResearchOptions): Promise<UnifiedResearchResponse> =>
+    ipcRenderer.invoke('researchRouter:research', query, options),
+  researchRouterResearchStream: (query: string, options?: RoutedResearchOptions): Promise<void> =>
+    ipcRenderer.invoke('researchRouter:researchStream', query, options),
+  researchRouterGetModeDescriptions: (): Promise<Record<ResearchMode, string>> =>
+    ipcRenderer.invoke('researchRouter:getModeDescriptions'),
+  researchRouterGetPhaseDescriptions: (): Promise<Record<ProjectPhase, string>> =>
+    ipcRenderer.invoke('researchRouter:getPhaseDescriptions'),
+  researchRouterGetAvailableModes: (): Promise<ResearchMode[]> =>
+    ipcRenderer.invoke('researchRouter:getAvailableModes'),
+  researchRouterGetProjectPhases: (): Promise<ProjectPhase[]> =>
+    ipcRenderer.invoke('researchRouter:getProjectPhases'),
+  onResearchRouterStreamChunk: (callback: (chunk: UnifiedStreamChunk) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, chunk: UnifiedStreamChunk) => {
+      callback(chunk);
+    };
+    ipcRenderer.on('researchRouter:streamChunk', handler);
+    return () => ipcRenderer.removeListener('researchRouter:streamChunk', handler);
+  },
 });
 
 // Type declaration for the renderer
@@ -639,6 +733,21 @@ declare global {
       geminiGetProgressCheckpoints: () => Promise<number[]>;
       onGeminiProgressCheckpoint: (callback: (progress: ProgressCheckpoint) => void) => () => void;
       onGeminiStreamChunk: (callback: (chunk: GeminiStreamChunk) => void) => () => void;
+
+      // Research router
+      researchRouterGetProvider: (mode: ResearchMode, phase?: ProjectPhase) => Promise<ResearchProvider>;
+      researchRouterIsProviderAvailable: (provider: ResearchProvider) => Promise<boolean>;
+      researchRouterGetAvailableProviders: () => Promise<ResearchProvider[]>;
+      researchRouterSetDefaultMode: (mode: ResearchMode) => Promise<void>;
+      researchRouterGetDefaultMode: () => Promise<ResearchMode>;
+      researchRouterGetPhaseRouting: (phase: ProjectPhase) => Promise<PhaseConfig>;
+      researchRouterResearch: (query: string, options?: RoutedResearchOptions) => Promise<UnifiedResearchResponse>;
+      researchRouterResearchStream: (query: string, options?: RoutedResearchOptions) => Promise<void>;
+      researchRouterGetModeDescriptions: () => Promise<Record<ResearchMode, string>>;
+      researchRouterGetPhaseDescriptions: () => Promise<Record<ProjectPhase, string>>;
+      researchRouterGetAvailableModes: () => Promise<ResearchMode[]>;
+      researchRouterGetProjectPhases: () => Promise<ProjectPhase[]>;
+      onResearchRouterStreamChunk: (callback: (chunk: UnifiedStreamChunk) => void) => () => void;
     };
   }
 }
