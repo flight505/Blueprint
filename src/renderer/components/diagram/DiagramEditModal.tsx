@@ -14,6 +14,16 @@ export interface DiagramEditModalProps {
   onClose: () => void;
 }
 
+// System prompt for AI diagram generation
+const DIAGRAM_SYSTEM_PROMPT = `You are a Mermaid diagram expert. When asked to create or modify a Mermaid diagram, you respond ONLY with valid Mermaid code. Do not include any explanations, markdown code fences, or other text - just the raw Mermaid diagram code.
+
+Rules:
+1. Always output valid Mermaid syntax
+2. Use appropriate diagram types (flowchart, sequence, class, etc.)
+3. Keep diagrams clear and readable
+4. Preserve the structure of existing diagrams when modifying
+5. Use descriptive node labels`;
+
 /**
  * DiagramEditModal - Modal for editing Mermaid diagrams
  *
@@ -33,21 +43,45 @@ export function DiagramEditModal({
   const [code, setCode] = useState(initialCode);
   const [preview, setPreview] = useState<{ svg: string } | { error: string } | null>(null);
   const [isRendering, setIsRendering] = useState(false);
+  const [showAiPanel, setShowAiPanel] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [isAiGenerating, setIsAiGenerating] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiSessionId, setAiSessionId] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const aiInputRef = useRef<HTMLTextAreaElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const uniqueId = useId();
   const renderIdRef = useRef(0);
+  const streamCleanupRef = useRef<(() => void) | null>(null);
 
   // Reset state when modal opens with new code
   useEffect(() => {
     if (isOpen) {
       setCode(initialCode);
       setPreview(null);
+      setShowAiPanel(false);
+      setAiPrompt('');
+      setAiError(null);
       // Focus textarea when modal opens
       setTimeout(() => textareaRef.current?.focus(), 100);
     }
-  }, [isOpen, initialCode]);
+
+    // Cleanup stream listener when modal closes
+    return () => {
+      if (streamCleanupRef.current) {
+        streamCleanupRef.current();
+        streamCleanupRef.current = null;
+      }
+      // Clean up AI session when modal closes
+      if (aiSessionId) {
+        window.electronAPI.agentDeleteSession(aiSessionId).catch(() => {
+          // Ignore cleanup errors
+        });
+      }
+    };
+  }, [isOpen, initialCode, aiSessionId]);
 
   // Render Mermaid diagram
   const renderDiagram = useCallback(async (mermaidCode: string) => {
@@ -113,6 +147,105 @@ export function DiagramEditModal({
   const handleSave = useCallback(() => {
     onSave(code, nodePos);
   }, [code, nodePos, onSave]);
+
+  // Handle AI regeneration
+  const handleAiRegenerate = useCallback(async () => {
+    if (!aiPrompt.trim()) {
+      setAiError('Please describe the changes you want to make');
+      return;
+    }
+
+    setIsAiGenerating(true);
+    setAiError(null);
+
+    try {
+      // Check if agent is initialized
+      const isInitialized = await window.electronAPI.agentIsInitialized();
+      if (!isInitialized) {
+        // Try to initialize with stored API key
+        const apiKey = await window.electronAPI.secureStorageGetApiKey('anthropic');
+        if (!apiKey) {
+          setAiError('Please configure your Anthropic API key in Settings');
+          setIsAiGenerating(false);
+          return;
+        }
+        const success = await window.electronAPI.agentInitialize(apiKey);
+        if (!success) {
+          setAiError('Failed to initialize AI service. Check your API key.');
+          setIsAiGenerating(false);
+          return;
+        }
+      }
+
+      // Create a session for diagram editing
+      const session = await window.electronAPI.agentCreateSession({
+        systemPrompt: DIAGRAM_SYSTEM_PROMPT,
+        model: 'claude-sonnet-4-20250514', // Use Sonnet for diagram generation
+      });
+      setAiSessionId(session.id);
+
+      // Build the prompt with context
+      const fullPrompt = code.trim()
+        ? `Current Mermaid diagram:\n\`\`\`mermaid\n${code}\n\`\`\`\n\nUser request: ${aiPrompt}\n\nProvide the updated Mermaid diagram code only, no explanations.`
+        : `Create a Mermaid diagram for: ${aiPrompt}\n\nProvide only the Mermaid code, no explanations.`;
+
+      // Collect streamed response
+      let generatedCode = '';
+
+      // Set up stream listener
+      if (streamCleanupRef.current) {
+        streamCleanupRef.current();
+      }
+      streamCleanupRef.current = window.electronAPI.onAgentStreamChunk(
+        (streamSessionId, chunk) => {
+          if (streamSessionId === session.id) {
+            if (chunk.type === 'text') {
+              generatedCode += chunk.content;
+              // Clean up the generated code (remove markdown fences if present)
+              const cleanedCode = cleanMermaidCode(generatedCode);
+              setCode(cleanedCode);
+            } else if (chunk.type === 'done') {
+              setIsAiGenerating(false);
+            } else if (chunk.type === 'error') {
+              setAiError(chunk.content);
+              setIsAiGenerating(false);
+            }
+          }
+        }
+      );
+
+      // Send the message with streaming
+      await window.electronAPI.agentSendMessageStream(session.id, fullPrompt, {
+        maxTokens: 2048,
+        stream: true,
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to generate diagram';
+      setAiError(errorMessage);
+      setIsAiGenerating(false);
+    }
+  }, [aiPrompt, code]);
+
+  // Clean up Mermaid code by removing markdown fences
+  const cleanMermaidCode = (text: string): string => {
+    // Remove markdown code fences
+    let cleaned = text.replace(/^```mermaid\n?/i, '').replace(/^```\n?/gm, '');
+    // Remove trailing fence
+    cleaned = cleaned.replace(/\n?```$/gm, '');
+    return cleaned.trim();
+  };
+
+  // Toggle AI panel
+  const toggleAiPanel = useCallback(() => {
+    setShowAiPanel((prev) => {
+      if (!prev) {
+        // Focus AI input when panel opens
+        setTimeout(() => aiInputRef.current?.focus(), 100);
+      }
+      return !prev;
+    });
+    setAiError(null);
+  }, []);
 
   // Handle keyboard shortcuts
   const handleKeyDown = useCallback(
@@ -187,6 +320,22 @@ export function DiagramEditModal({
             Edit Diagram
           </h2>
           <div className="flex items-center gap-2">
+            {/* AI Regenerate Button */}
+            <button
+              onClick={toggleAiPanel}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                showAiPanel
+                  ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                  : 'bg-gray-100 text-gray-700 hover:bg-purple-50 hover:text-purple-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-purple-900/20 dark:hover:text-purple-400'
+              }`}
+              aria-label="Toggle AI regeneration panel"
+              aria-pressed={showAiPanel}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Regenerate with AI
+            </button>
             <span className="text-xs text-gray-500 dark:text-gray-400">
               Cmd+S to save • Esc to close
             </span>
@@ -201,6 +350,67 @@ export function DiagramEditModal({
             </button>
           </div>
         </div>
+
+        {/* AI Panel (collapsible) */}
+        {showAiPanel && (
+          <div className="px-4 py-3 bg-purple-50 dark:bg-purple-900/10 border-b border-purple-200 dark:border-purple-800">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="ai-diagram-input" className="text-sm font-medium text-purple-800 dark:text-purple-300">
+                Describe the changes you want to make
+              </label>
+              <div className="flex gap-2">
+                <textarea
+                  ref={aiInputRef}
+                  id="ai-diagram-input"
+                  value={aiPrompt}
+                  onChange={(e) => {
+                    setAiPrompt(e.target.value);
+                    setAiError(null);
+                  }}
+                  placeholder="e.g., Add a new node called 'Authentication' connected to 'User'"
+                  className="flex-1 px-3 py-2 text-sm border border-purple-300 dark:border-purple-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                  rows={2}
+                  disabled={isAiGenerating}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                      e.preventDefault();
+                      handleAiRegenerate();
+                    }
+                  }}
+                  aria-label="AI prompt for diagram changes"
+                />
+                <button
+                  onClick={handleAiRegenerate}
+                  disabled={isAiGenerating || !aiPrompt.trim()}
+                  className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  aria-label="Generate diagram with AI"
+                >
+                  {isAiGenerating ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      Generate
+                    </>
+                  )}
+                </button>
+              </div>
+              {aiError && (
+                <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+                  {aiError}
+                </p>
+              )}
+              <p className="text-xs text-purple-600 dark:text-purple-400">
+                Tip: Press Cmd+Enter to generate • The AI will update the code in the editor
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Content - Split panes */}
         <div className="flex-1 flex min-h-0">
