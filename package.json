@@ -64,12 +64,18 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
     "@legendapp/state": "^2.1.15",
+    "@tiptap/extension-collaboration": "^3.17.1",
+    "@tiptap/extension-collaboration-cursor": "^2.26.2",
+    "@tiptap/pm": "^3.17.1",
+    "@tiptap/react": "^3.17.1",
+    "@tiptap/starter-kit": "^3.17.1",
     "better-sqlite3": "^12.6.2",
     "dompurify": "^3.3.1",
     "electron-squirrel-startup": "^1.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-markdown": "^10.1.0"
+    "react-markdown": "^10.1.0",
+    "yjs": "^13.6.29"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
