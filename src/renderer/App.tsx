@@ -3,6 +3,7 @@ import PermissionsCheck from './components/PermissionsCheck';
 import FileBrowser from './components/explorer/FileBrowser';
 import ThemeToggle from './components/settings/ThemeToggle';
 import { useThemeEffect } from './hooks/useTheme';
+import { ChatContainer, ChatMessageData } from './components/chat';
 
 const DEFAULT_LEFT_WIDTH_PERCENT = 40;
 const MIN_PANE_WIDTH = 300;
@@ -87,6 +88,35 @@ function MainApp() {
   const [activeSection, setActiveSection] = useState<Section>('chat');
   const [openFiles, setOpenFiles] = useState<OpenFile[]>([]);
   const [activeFileIndex, setActiveFileIndex] = useState<number | null>(null);
+
+  // Chat state
+  const [chatMessages, setChatMessages] = useState<ChatMessageData[]>([]);
+  const [isChatLoading, setIsChatLoading] = useState(false);
+
+  const handleSendMessage = useCallback((content: string) => {
+    // Add user message
+    const userMessage: ChatMessageData = {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      content,
+      timestamp: new Date(),
+    };
+    setChatMessages(prev => [...prev, userMessage]);
+    setIsChatLoading(true);
+
+    // Simulate assistant response (in future, this will call AgentService)
+    // For now, we demonstrate the UI with a mock response
+    setTimeout(() => {
+      const assistantMessage: ChatMessageData = {
+        id: `assistant-${Date.now()}`,
+        role: 'assistant',
+        content: `This is a **demo response** to: "${content}"\n\nIn the full implementation, this will connect to the Claude Agent SDK to generate real responses.\n\n\`\`\`typescript\n// Example code block\nconst response = await agentService.sendMessage(message);\n\`\`\``,
+        timestamp: new Date(),
+      };
+      setChatMessages(prev => [...prev, assistantMessage]);
+      setIsChatLoading(false);
+    }, 1000);
+  }, []);
 
   const handleFileSelect = useCallback(async (filePath: string) => {
     // Check if file is already open
@@ -238,7 +268,13 @@ function MainApp() {
         <header className="h-10 flex items-center px-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <h2 className="text-sm font-medium">{SECTION_CONFIG[activeSection].label}</h2>
         </header>
-        <LeftPaneContent section={activeSection} onFileSelect={handleFileSelect} />
+        <LeftPaneContent
+          section={activeSection}
+          onFileSelect={handleFileSelect}
+          chatMessages={chatMessages}
+          isChatLoading={isChatLoading}
+          onSendMessage={handleSendMessage}
+        />
       </div>
 
       {/* Resize Handle */}
@@ -320,25 +356,24 @@ function MainApp() {
   );
 }
 
-function LeftPaneContent({ section, onFileSelect }: { section: Section; onFileSelect: (path: string) => void }) {
+interface LeftPaneContentProps {
+  section: Section;
+  onFileSelect: (path: string) => void;
+  chatMessages: ChatMessageData[];
+  isChatLoading: boolean;
+  onSendMessage: (content: string) => void;
+}
+
+function LeftPaneContent({ section, onFileSelect, chatMessages, isChatLoading, onSendMessage }: LeftPaneContentProps) {
   switch (section) {
     case 'chat':
       return (
-        <>
-          <div className="flex-1 overflow-y-auto p-4">
-            <div className="text-center text-gray-500 dark:text-gray-400 mt-8">
-              <p className="text-lg mb-2">Welcome to Blueprint</p>
-              <p className="text-sm">Start a new project or open an existing one</p>
-            </div>
-          </div>
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-            <input
-              type="text"
-              placeholder="Type a message..."
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-        </>
+        <ChatContainer
+          messages={chatMessages}
+          onSendMessage={onSendMessage}
+          isLoading={isChatLoading}
+          placeholder="Type a message to start planning..."
+        />
       );
     case 'explorer':
       return <FileBrowser onFileSelect={onFileSelect} />;
