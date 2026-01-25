@@ -152,6 +152,56 @@ export interface ClaudeModels {
   OPUS: string;
 }
 
+// Context manager types
+export type ContextEventType = 'user_message' | 'assistant_message' | 'tool_use' | 'file_read' | 'decision' | 'other';
+
+export interface ContextEvent {
+  id: string;
+  timestamp: Date;
+  type: ContextEventType;
+  content: string;
+  metadata?: Record<string, unknown>;
+  tokenEstimate: number;
+}
+
+export interface CompactionSummary {
+  id: string;
+  createdAt: Date;
+  eventRange: {
+    startId: string;
+    endId: string;
+    startTimestamp: Date;
+    endTimestamp: Date;
+    eventCount: number;
+  };
+  summary: string;
+  tokensBefore: number;
+  tokensAfter: number;
+  compressionRatio: number;
+}
+
+export interface CompactionResult {
+  success: boolean;
+  summary?: CompactionSummary;
+  tokensSaved: number;
+  error?: string;
+}
+
+export interface ContextStats {
+  sessionId: string;
+  totalEvents: number;
+  activeEvents: number;
+  compactedEvents: number;
+  summaryCount: number;
+  totalTokens: number;
+  lastCompactionAt?: Date;
+}
+
+export interface ContextConfiguration {
+  compactionThreshold: number;
+  recentEventsToKeep: number;
+}
+
 // Expose protected methods to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
   // Permissions
@@ -264,6 +314,44 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('modelRouter:getDefaultModel'),
   modelRouterGetModelConstants: (): Promise<ClaudeModels> =>
     ipcRenderer.invoke('modelRouter:getModelConstants'),
+
+  // Context manager
+  contextManagerInitialize: (apiKey: string): Promise<void> =>
+    ipcRenderer.invoke('contextManager:initialize', apiKey),
+  contextManagerIsInitialized: (): Promise<boolean> =>
+    ipcRenderer.invoke('contextManager:isInitialized'),
+  contextManagerAddEvent: (
+    sessionId: string,
+    type: ContextEventType,
+    content: string,
+    metadata?: Record<string, unknown>
+  ): Promise<ContextEvent> =>
+    ipcRenderer.invoke('contextManager:addEvent', sessionId, type, content, metadata),
+  contextManagerGetEvents: (sessionId: string): Promise<ContextEvent[]> =>
+    ipcRenderer.invoke('contextManager:getEvents', sessionId),
+  contextManagerGetActiveEvents: (sessionId: string): Promise<ContextEvent[]> =>
+    ipcRenderer.invoke('contextManager:getActiveEvents', sessionId),
+  contextManagerGetStats: (sessionId: string): Promise<ContextStats | null> =>
+    ipcRenderer.invoke('contextManager:getStats', sessionId),
+  contextManagerShouldCompact: (sessionId: string): Promise<boolean> =>
+    ipcRenderer.invoke('contextManager:shouldCompact', sessionId),
+  contextManagerCompact: (sessionId: string): Promise<CompactionResult> =>
+    ipcRenderer.invoke('contextManager:compact', sessionId),
+  contextManagerGetFullContext: (sessionId: string): Promise<string> =>
+    ipcRenderer.invoke('contextManager:getFullContext', sessionId),
+  contextManagerGetContextAsMessages: (sessionId: string): Promise<MessageParam[]> =>
+    ipcRenderer.invoke('contextManager:getContextAsMessages', sessionId),
+  contextManagerClearSession: (sessionId: string): Promise<boolean> =>
+    ipcRenderer.invoke('contextManager:clearSession', sessionId),
+  contextManagerConfigure: (options: {
+    compactionThreshold?: number;
+    recentEventsToKeep?: number;
+  }): Promise<void> =>
+    ipcRenderer.invoke('contextManager:configure', options),
+  contextManagerGetConfiguration: (): Promise<ContextConfiguration> =>
+    ipcRenderer.invoke('contextManager:getConfiguration'),
+  contextManagerGetSummaries: (sessionId: string): Promise<CompactionSummary[]> =>
+    ipcRenderer.invoke('contextManager:getSummaries', sessionId),
 });
 
 // Type declaration for the renderer
@@ -323,6 +411,30 @@ declare global {
       modelRouterSetDefaultModel: (model: ModelId) => Promise<void>;
       modelRouterGetDefaultModel: () => Promise<ModelId>;
       modelRouterGetModelConstants: () => Promise<ClaudeModels>;
+
+      // Context manager
+      contextManagerInitialize: (apiKey: string) => Promise<void>;
+      contextManagerIsInitialized: () => Promise<boolean>;
+      contextManagerAddEvent: (
+        sessionId: string,
+        type: ContextEventType,
+        content: string,
+        metadata?: Record<string, unknown>
+      ) => Promise<ContextEvent>;
+      contextManagerGetEvents: (sessionId: string) => Promise<ContextEvent[]>;
+      contextManagerGetActiveEvents: (sessionId: string) => Promise<ContextEvent[]>;
+      contextManagerGetStats: (sessionId: string) => Promise<ContextStats | null>;
+      contextManagerShouldCompact: (sessionId: string) => Promise<boolean>;
+      contextManagerCompact: (sessionId: string) => Promise<CompactionResult>;
+      contextManagerGetFullContext: (sessionId: string) => Promise<string>;
+      contextManagerGetContextAsMessages: (sessionId: string) => Promise<MessageParam[]>;
+      contextManagerClearSession: (sessionId: string) => Promise<boolean>;
+      contextManagerConfigure: (options: {
+        compactionThreshold?: number;
+        recentEventsToKeep?: number;
+      }) => Promise<void>;
+      contextManagerGetConfiguration: () => Promise<ContextConfiguration>;
+      contextManagerGetSummaries: (sessionId: string) => Promise<CompactionSummary[]>;
     };
   }
 }
