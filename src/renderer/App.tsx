@@ -9,11 +9,13 @@ import { CommandPalette, useCommandPalette, Command } from './components/command
 import { FileQuickOpen, useFileQuickOpen } from './components/quickopen';
 import { InlineEditOverlay } from './components/inline-edit';
 import { DiffPreview } from './components/diff';
+import { DiagramEditModal } from './components/diagram';
 import { useThemeEffect } from './hooks/useTheme';
 import { useStreaming } from './hooks/useStreaming';
 import { useMermaidRenderer } from './hooks/useMermaid';
 import { useInlineEdit } from './hooks/useInlineEdit';
 import { useDiffPreview } from './hooks/useDiffPreview';
+import { useDiagramEdit } from './hooks/useDiagramEdit';
 import { ChatContainer, ChatMessageData, AskUserQuestionData } from './components/chat';
 import { SearchPanel } from './components/search';
 
@@ -113,6 +115,13 @@ function MainApp() {
     acceptEdit: acceptDiffEdit,
     rejectEdit: rejectDiffEdit,
   } = useDiffPreview();
+
+  // Set up diagram edit modal for editing Mermaid diagrams
+  const {
+    state: diagramEditState,
+    close: closeDiagramEdit,
+    save: saveDiagramEdit,
+  } = useDiagramEdit();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [leftWidthPercent, setLeftWidthPercent] = useState(DEFAULT_LEFT_WIDTH_PERCENT);
@@ -724,6 +733,15 @@ function MainApp() {
           </div>
         </div>
       )}
+
+      {/* Diagram Edit Modal for editing Mermaid diagrams */}
+      <DiagramEditModal
+        isOpen={diagramEditState.isOpen}
+        initialCode={diagramEditState.code}
+        nodePos={diagramEditState.nodePos}
+        onSave={saveDiagramEdit}
+        onClose={closeDiagramEdit}
+      />
     </div>
   );
 }

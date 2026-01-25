@@ -40,6 +40,17 @@ export function requestMermaidRender(code: string, pos: number): void {
 }
 
 /**
+ * Request editing of a Mermaid diagram
+ * Emits an event that useDiagramEdit hook listens to
+ */
+export function requestMermaidEdit(code: string, pos: number): void {
+  const event = new CustomEvent('tiptap:mermaid-edit', {
+    detail: { code, pos },
+  });
+  document.dispatchEvent(event);
+}
+
+/**
  * Set the rendered SVG for a position
  */
 export function setMermaidRendered(pos: number, svg: string): void {
@@ -174,15 +185,20 @@ export const MermaidBlock = Node.create<MermaidBlockOptions, MermaidBlockStorage
       `;
       previewContainer.appendChild(placeholder);
 
-      // Toggle button
+      // Toggle button (Edit Diagram)
       const toggleBtn = document.createElement('button');
       toggleBtn.className = 'absolute top-2 right-2 px-2 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded opacity-0 group-hover:opacity-100 transition-opacity';
       toggleBtn.textContent = 'Edit';
       toggleBtn.setAttribute('aria-label', 'Edit Mermaid diagram');
       toggleBtn.onclick = () => {
         const pos = typeof getPos === 'function' ? getPos() : undefined;
-        if (this.options.onEdit && pos !== undefined) {
-          this.options.onEdit(node.textContent, pos);
+        if (pos !== undefined) {
+          // Emit edit event for the DiagramEditModal
+          requestMermaidEdit(node.textContent, pos);
+          // Also call onEdit callback if provided
+          if (this.options.onEdit) {
+            this.options.onEdit(node.textContent, pos);
+          }
         }
       };
 

@@ -17,6 +17,7 @@ export {
   type MermaidBlockOptions,
   type MermaidBlockStorage,
   requestMermaidRender,
+  requestMermaidEdit,
   setMermaidRendered,
   emitMermaidResult,
 } from './MermaidBlock';
