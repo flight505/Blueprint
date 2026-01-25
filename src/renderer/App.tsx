@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import PermissionsCheck from './components/PermissionsCheck';
 import FileBrowser from './components/explorer/FileBrowser';
 import ThemeToggle from './components/settings/ThemeToggle';
 import ApiKeySettings from './components/settings/ApiKeySettings';
 import { ContextPanel } from './components/context';
 import { TabBar, TabData } from './components/layout';
+import { CommandPalette, useCommandPalette, Command } from './components/command';
 import { useThemeEffect } from './hooks/useTheme';
 import { useStreaming } from './hooks/useStreaming';
 import { useMermaidRenderer } from './hooks/useMermaid';
@@ -202,6 +203,151 @@ function MainApp() {
     }
   }, [agentSessionId, sendStreamingMessage, fallbackDemoResponse]);
 
+  // Command palette state
+  const {
+    isOpen: isCommandPaletteOpen,
+    close: closeCommandPalette,
+    toggle: toggleCommandPalette,
+    recentCommandIds,
+    recordCommandUsage,
+  } = useCommandPalette();
+
+  // Define available commands
+  const commands: Command[] = useMemo(() => [
+    // Section navigation
+    {
+      id: 'nav:chat',
+      label: 'Go to Chat',
+      shortcut: 'Cmd+1',
+      category: 'Navigation',
+      action: () => setActiveSection('chat'),
+    },
+    {
+      id: 'nav:explorer',
+      label: 'Go to Explorer',
+      shortcut: 'Cmd+2',
+      category: 'Navigation',
+      action: () => setActiveSection('explorer'),
+    },
+    {
+      id: 'nav:search',
+      label: 'Go to Search',
+      shortcut: 'Cmd+3',
+      category: 'Navigation',
+      action: () => setActiveSection('search'),
+    },
+    {
+      id: 'nav:context',
+      label: 'Go to Context',
+      shortcut: 'Cmd+4',
+      category: 'Navigation',
+      action: () => setActiveSection('context'),
+    },
+    {
+      id: 'nav:planning',
+      label: 'Go to Planning',
+      shortcut: 'Cmd+5',
+      category: 'Navigation',
+      action: () => setActiveSection('planning'),
+    },
+    {
+      id: 'nav:export',
+      label: 'Go to Export',
+      shortcut: 'Cmd+6',
+      category: 'Navigation',
+      action: () => setActiveSection('export'),
+    },
+    {
+      id: 'nav:history',
+      label: 'Go to History',
+      shortcut: 'Cmd+7',
+      category: 'Navigation',
+      action: () => setActiveSection('history'),
+    },
+    {
+      id: 'nav:settings',
+      label: 'Open Settings',
+      shortcut: 'Cmd+,',
+      category: 'Navigation',
+      action: () => setActiveSection('settings'),
+    },
+    {
+      id: 'nav:help',
+      label: 'Open Help',
+      shortcut: 'Cmd+?',
+      category: 'Navigation',
+      action: () => setActiveSection('help'),
+    },
+    // View commands
+    {
+      id: 'view:reset-layout',
+      label: 'Reset Pane Layout',
+      category: 'View',
+      action: () => setLeftWidthPercent(DEFAULT_LEFT_WIDTH_PERCENT),
+    },
+    {
+      id: 'view:toggle-theme',
+      label: 'Toggle Dark Mode',
+      category: 'View',
+      action: () => {
+        // Toggle theme via Legend State store
+        const currentTheme = localStorage.getItem('blueprint:ui')
+          ? JSON.parse(localStorage.getItem('blueprint:ui')!).theme
+          : 'system';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        const ui = localStorage.getItem('blueprint:ui')
+          ? JSON.parse(localStorage.getItem('blueprint:ui')!)
+          : {};
+        ui.theme = newTheme;
+        localStorage.setItem('blueprint:ui', JSON.stringify(ui));
+        // Force refresh to apply theme
+        window.location.reload();
+      },
+    },
+    // File commands
+    {
+      id: 'file:close-tab',
+      label: 'Close Current Tab',
+      shortcut: 'Cmd+W',
+      category: 'File',
+      action: () => {
+        if (activeFileId) {
+          handleTabClose(activeFileId);
+        }
+      },
+    },
+    {
+      id: 'file:close-all-tabs',
+      label: 'Close All Tabs',
+      category: 'File',
+      action: () => {
+        setOpenFiles([]);
+        setActiveFileId(null);
+      },
+    },
+    // Chat commands
+    {
+      id: 'chat:clear',
+      label: 'Clear Chat History',
+      category: 'Chat',
+      action: () => {
+        setChatMessages([]);
+        setActiveQuestion(null);
+      },
+    },
+    {
+      id: 'chat:new-session',
+      label: 'Start New Chat Session',
+      category: 'Chat',
+      action: () => {
+        setChatMessages([]);
+        setActiveQuestion(null);
+        setAgentSessionId(null);
+        setActiveSection('chat');
+      },
+    },
+  ], [activeFileId]);
+
   const handleFileSelect = useCallback(async (filePath: string) => {
     // Check if file is already open
     const existingFile = openFiles.find(f => f.path === filePath);
@@ -299,11 +445,18 @@ function MainApp() {
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
-  // Keyboard shortcuts for Activity Bar navigation
+  // Keyboard shortcuts for Activity Bar navigation and Command Palette
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       // Only handle if Cmd (Mac) or Ctrl (Windows/Linux) is pressed
       if (!e.metaKey && !e.ctrlKey) return;
+
+      // Cmd+Shift+P for Command Palette (check first, before other handlers)
+      if (e.shiftKey && (e.key === 'p' || e.key === 'P')) {
+        e.preventDefault();
+        toggleCommandPalette();
+        return;
+      }
 
       const sectionByNumber: Record<string, Section> = {
         '1': 'chat',
@@ -338,7 +491,7 @@ function MainApp() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [toggleCommandPalette]);
 
   return (
     <div
@@ -459,6 +612,15 @@ function MainApp() {
           )}
         </div>
       </div>
+
+      {/* Command Palette */}
+      <CommandPalette
+        commands={commands}
+        isOpen={isCommandPaletteOpen}
+        onClose={closeCommandPalette}
+        recentCommandIds={recentCommandIds}
+        onCommandExecuted={recordCommandUsage}
+      />
     </div>
   );
 }
