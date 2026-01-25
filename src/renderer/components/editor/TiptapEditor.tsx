@@ -282,6 +282,12 @@ export function useEditorContext(editor: Editor | null) {
     // Focus
     focus: () => editor?.commands.focus(),
     blur: () => editor?.commands.blur(),
+    // History (undo/redo) - Tiptap StarterKit includes UndoRedo extension
+    // Cmd+Z and Cmd+Shift+Z keyboard shortcuts are built-in
+    undo: () => editor?.chain().focus().undo().run(),
+    redo: () => editor?.chain().focus().redo().run(),
+    canUndo: () => editor?.can().undo() ?? false,
+    canRedo: () => editor?.can().redo() ?? false,
   };
 }
 
