@@ -3,6 +3,7 @@ import PermissionsCheck from './components/PermissionsCheck';
 import FileBrowser from './components/explorer/FileBrowser';
 import ThemeToggle from './components/settings/ThemeToggle';
 import { useThemeEffect } from './hooks/useTheme';
+import { useStreaming } from './hooks/useStreaming';
 import { ChatContainer, ChatMessageData } from './components/chat';
 
 const DEFAULT_LEFT_WIDTH_PERCENT = 40;
@@ -92,8 +93,35 @@ function MainApp() {
   // Chat state
   const [chatMessages, setChatMessages] = useState<ChatMessageData[]>([]);
   const [isChatLoading, setIsChatLoading] = useState(false);
+  const [agentSessionId, setAgentSessionId] = useState<string | null>(null);
 
-  const handleSendMessage = useCallback((content: string) => {
+  // Streaming hook for real-time AI responses
+  const {
+    streamingContent,
+    isStreaming,
+    sendMessage: sendStreamingMessage,
+    initializeAgent,
+    createSession,
+  } = useStreaming({
+    onStreamComplete: (completedMessage) => {
+      // Convert completed streaming message to chat message
+      const assistantMessage: ChatMessageData = {
+        id: completedMessage.id,
+        role: 'assistant',
+        content: completedMessage.content,
+        timestamp: new Date(),
+      };
+      setChatMessages(prev => [...prev, assistantMessage]);
+      setIsChatLoading(false);
+    },
+    onError: (error) => {
+      console.error('Streaming error:', error);
+      setIsChatLoading(false);
+      // Could show error toast here
+    },
+  });
+
+  const handleSendMessage = useCallback(async (content: string) => {
     // Add user message
     const userMessage: ChatMessageData = {
       id: `user-${Date.now()}`,
@@ -104,13 +132,29 @@ function MainApp() {
     setChatMessages(prev => [...prev, userMessage]);
     setIsChatLoading(true);
 
-    // Simulate assistant response (in future, this will call AgentService)
-    // For now, we demonstrate the UI with a mock response
+    // If we have an active session, use streaming
+    if (agentSessionId) {
+      try {
+        await sendStreamingMessage(agentSessionId, content);
+      } catch (error) {
+        console.error('Failed to send message:', error);
+        setIsChatLoading(false);
+        // Fallback to demo response on error
+        fallbackDemoResponse(content);
+      }
+    } else {
+      // Demo mode - simulate response when no agent session
+      fallbackDemoResponse(content);
+    }
+  }, [agentSessionId, sendStreamingMessage]);
+
+  // Fallback demo response when agent is not connected
+  const fallbackDemoResponse = useCallback((content: string) => {
     setTimeout(() => {
       const assistantMessage: ChatMessageData = {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
-        content: `This is a **demo response** to: "${content}"\n\nIn the full implementation, this will connect to the Claude Agent SDK to generate real responses.\n\n\`\`\`typescript\n// Example code block\nconst response = await agentService.sendMessage(message);\n\`\`\``,
+        content: `This is a **demo response** to: "${content}"\n\nTo enable real AI responses:\n1. Configure your API key in Settings\n2. The app will use Claude Agent SDK for streaming responses\n\n\`\`\`typescript\n// Streaming is now integrated!\nconst { streamingContent, isStreaming } = useStreaming();\n\`\`\``,
         timestamp: new Date(),
       };
       setChatMessages(prev => [...prev, assistantMessage]);
@@ -274,6 +318,8 @@ function MainApp() {
           chatMessages={chatMessages}
           isChatLoading={isChatLoading}
           onSendMessage={handleSendMessage}
+          streamingContent={streamingContent}
+          isStreaming={isStreaming}
         />
       </div>
 
@@ -362,9 +408,19 @@ interface LeftPaneContentProps {
   chatMessages: ChatMessageData[];
   isChatLoading: boolean;
   onSendMessage: (content: string) => void;
+  streamingContent?: string;
+  isStreaming?: boolean;
 }
 
-function LeftPaneContent({ section, onFileSelect, chatMessages, isChatLoading, onSendMessage }: LeftPaneContentProps) {
+function LeftPaneContent({
+  section,
+  onFileSelect,
+  chatMessages,
+  isChatLoading,
+  onSendMessage,
+  streamingContent,
+  isStreaming,
+}: LeftPaneContentProps) {
   switch (section) {
     case 'chat':
       return (
@@ -373,6 +429,8 @@ function LeftPaneContent({ section, onFileSelect, chatMessages, isChatLoading, o
           onSendMessage={onSendMessage}
           isLoading={isChatLoading}
           placeholder="Type a message to start planning..."
+          streamingContent={streamingContent}
+          isStreaming={isStreaming}
         />
       );
     case 'explorer':

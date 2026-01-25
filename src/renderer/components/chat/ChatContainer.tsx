@@ -1,11 +1,16 @@
 import { useState, useRef, useEffect, useCallback, KeyboardEvent } from 'react';
 import { ChatMessage, ChatMessageData } from './ChatMessage';
+import { StreamingChatMessage } from './StreamingChatMessage';
 
 interface ChatContainerProps {
   messages: ChatMessageData[];
   onSendMessage: (content: string) => void;
   isLoading?: boolean;
   placeholder?: string;
+  /** Current streaming content (for real-time display) */
+  streamingContent?: string;
+  /** Whether currently streaming a response */
+  isStreaming?: boolean;
 }
 
 export function ChatContainer({
@@ -13,15 +18,17 @@ export function ChatContainer({
   onSendMessage,
   isLoading = false,
   placeholder = 'Type a message...',
+  streamingContent = '',
+  isStreaming = false,
 }: ChatContainerProps) {
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive or streaming content updates
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, streamingContent]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -73,7 +80,15 @@ export function ChatContainer({
             {messages.map((message) => (
               <ChatMessage key={message.id} message={message} />
             ))}
-            {isLoading && (
+            {/* Streaming message (real-time AI response) */}
+            {isStreaming && streamingContent && (
+              <StreamingChatMessage
+                content={streamingContent}
+                isStreaming={isStreaming}
+              />
+            )}
+            {/* Loading indicator (shown when waiting for stream to start) */}
+            {isLoading && !isStreaming && (
               <div className="flex justify-start mb-4">
                 <div className="bg-gray-100 dark:bg-gray-800 rounded-lg px-4 py-3 rounded-bl-sm">
                   <div className="flex items-center gap-1">

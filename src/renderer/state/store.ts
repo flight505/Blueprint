@@ -37,12 +37,25 @@ interface UIPreferences {
   activeSection: Section;
 }
 
+// Streaming message state
+export interface StreamingMessage {
+  id: string;
+  sessionId: string;
+  content: string;
+  isStreaming: boolean;
+  startedAt: Date;
+}
+
 // Session state interface (not persisted)
 interface SessionState {
   openFiles: OpenFile[];
   activeFileIndex: number | null;
   projectPath: string | null;
   isOnboarded: boolean;
+  // Streaming state for real-time AI responses
+  streamingMessage: StreamingMessage | null;
+  // Active agent session ID
+  agentSessionId: string | null;
 }
 
 // Complete store interface
@@ -63,6 +76,8 @@ const DEFAULT_SESSION_STATE: SessionState = {
   activeFileIndex: null,
   projectPath: null,
   isOnboarded: false,
+  streamingMessage: null,
+  agentSessionId: null,
 };
 
 // Create the global observable store
@@ -163,4 +178,43 @@ export function setProjectPath(path: string | null): void {
 // Action: Set onboarded status
 export function setOnboarded(onboarded: boolean): void {
   store$.session.isOnboarded.set(onboarded);
+}
+
+// Action: Set agent session ID
+export function setAgentSessionId(sessionId: string | null): void {
+  store$.session.agentSessionId.set(sessionId);
+}
+
+// Action: Start streaming message
+export function startStreamingMessage(id: string, sessionId: string): void {
+  store$.session.streamingMessage.set({
+    id,
+    sessionId,
+    content: '',
+    isStreaming: true,
+    startedAt: new Date(),
+  });
+}
+
+// Action: Append content to streaming message (O(1) operation via observable)
+export function appendStreamingContent(chunk: string): void {
+  const current = store$.session.streamingMessage.get();
+  if (current && current.isStreaming) {
+    store$.session.streamingMessage.content.set(current.content + chunk);
+  }
+}
+
+// Action: Complete streaming message
+export function completeStreamingMessage(): StreamingMessage | null {
+  const current = store$.session.streamingMessage.get();
+  if (current) {
+    store$.session.streamingMessage.isStreaming.set(false);
+    return { ...current, isStreaming: false };
+  }
+  return null;
+}
+
+// Action: Clear streaming message
+export function clearStreamingMessage(): void {
+  store$.session.streamingMessage.set(null);
 }
