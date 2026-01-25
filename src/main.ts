@@ -12,6 +12,7 @@ import { contextManager, type ContextEvent, type CompactionResult, type ContextS
 import { openRouterService, type ResearchResponse, type ResearchOptions, type StreamChunk as OpenRouterStreamChunk } from './main/services/OpenRouterService';
 import { geminiService, type DeepResearchResponse, type DeepResearchOptions, type GeminiStreamChunk, type ProgressCheckpoint } from './main/services/GeminiService';
 import { researchRouter, type ResearchMode, type ProjectPhase, type ResearchProvider, type UnifiedResearchResponse, type RoutedResearchOptions, type UnifiedStreamChunk } from './main/services/ResearchRouter';
+import { citationManager, type Citation, type CitationFile, type AddCitationInput, type ReferenceListOptions, type FormattedReference } from './main/services/CitationManager';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -472,6 +473,67 @@ function registerIpcHandlers() {
 
   ipcMain.handle('researchRouter:getActiveSessions', (): string[] => {
     return researchRouter.getActiveResearchSessions();
+  });
+
+  // Citation manager handlers
+  ipcMain.handle('citation:loadCitations', async (_, documentPath: string): Promise<CitationFile> => {
+    return await citationManager.loadCitations(documentPath);
+  });
+
+  ipcMain.handle('citation:saveCitations', async (_, documentPath: string, citationFile: CitationFile): Promise<void> => {
+    await citationManager.saveCitations(documentPath, citationFile);
+  });
+
+  ipcMain.handle('citation:addCitation', async (_, documentPath: string, input: AddCitationInput): Promise<Citation> => {
+    return await citationManager.addCitation(documentPath, input);
+  });
+
+  ipcMain.handle('citation:addCitations', async (_, documentPath: string, inputs: AddCitationInput[]): Promise<Citation[]> => {
+    return await citationManager.addCitations(documentPath, inputs);
+  });
+
+  ipcMain.handle('citation:updateCitation', async (_, documentPath: string, citationId: string, updates: Partial<AddCitationInput>): Promise<Citation | null> => {
+    return await citationManager.updateCitation(documentPath, citationId, updates);
+  });
+
+  ipcMain.handle('citation:removeCitation', async (_, documentPath: string, citationId: string): Promise<boolean> => {
+    return await citationManager.removeCitation(documentPath, citationId);
+  });
+
+  ipcMain.handle('citation:addUsage', async (_, documentPath: string, citationId: string, usage: { claim: string; line?: number; offset?: number }): Promise<boolean> => {
+    return await citationManager.addUsage(documentPath, citationId, usage);
+  });
+
+  ipcMain.handle('citation:getCitationByNumber', async (_, documentPath: string, number: number): Promise<Citation | null> => {
+    return await citationManager.getCitationByNumber(documentPath, number);
+  });
+
+  ipcMain.handle('citation:generateReferenceList', async (_, documentPath: string, options?: ReferenceListOptions): Promise<FormattedReference[]> => {
+    return await citationManager.generateReferenceList(documentPath, options);
+  });
+
+  ipcMain.handle('citation:generateReferenceListMarkdown', async (_, documentPath: string, options?: ReferenceListOptions): Promise<string> => {
+    return await citationManager.generateReferenceListMarkdown(documentPath, options);
+  });
+
+  ipcMain.handle('citation:formatTextWithCitations', (_, text: string, citations: Citation[]): string => {
+    return citationManager.formatTextWithCitations(text, citations);
+  });
+
+  ipcMain.handle('citation:hasCitations', async (_, documentPath: string): Promise<boolean> => {
+    return await citationManager.hasCitations(documentPath);
+  });
+
+  ipcMain.handle('citation:getCitationCount', async (_, documentPath: string): Promise<number> => {
+    return await citationManager.getCitationCount(documentPath);
+  });
+
+  ipcMain.handle('citation:deleteCitationFile', async (_, documentPath: string): Promise<boolean> => {
+    return await citationManager.deleteCitationFile(documentPath);
+  });
+
+  ipcMain.handle('citation:getCitationFilePath', (_, documentPath: string): string => {
+    return citationManager.getCitationFilePath(documentPath);
   });
 }
 

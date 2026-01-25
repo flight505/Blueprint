@@ -374,6 +374,58 @@ export interface UnifiedStreamChunk {
   progress?: ProgressCheckpoint;
 }
 
+// Citation management types (stored in .citations.json sidecar files)
+export interface ManagedCitation {
+  id: string;
+  number: number;
+  url: string;
+  title: string;
+  authors?: string[];
+  date?: string;
+  publisher?: string;
+  accessedAt: string;
+  source: 'perplexity' | 'gemini' | 'manual' | 'imported';
+  usages: CitationUsage[];
+}
+
+export interface CitationUsage {
+  claim: string;
+  line?: number;
+  offset?: number;
+}
+
+export interface CitationFile {
+  version: '1.0';
+  documentPath: string;
+  updatedAt: string;
+  citations: ManagedCitation[];
+  nextNumber: number;
+}
+
+export interface ReferenceListOptions {
+  format: 'ieee' | 'apa' | 'mla' | 'chicago';
+  includeUrls?: boolean;
+  includeAccessDates?: boolean;
+}
+
+export interface FormattedReference {
+  number: number;
+  text: string;
+  url?: string;
+}
+
+export interface AddCitationInput {
+  url: string;
+  title: string;
+  authors?: string[];
+  date?: string;
+  publisher?: string;
+  source: ManagedCitation['source'];
+  claim?: string;
+  line?: number;
+  offset?: number;
+}
+
 // Expose protected methods to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
   // Permissions
@@ -631,6 +683,38 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('researchRouter:streamChunk', handler);
     return () => ipcRenderer.removeListener('researchRouter:streamChunk', handler);
   },
+
+  // Citation management
+  citationLoadCitations: (documentPath: string): Promise<CitationFile> =>
+    ipcRenderer.invoke('citation:loadCitations', documentPath),
+  citationSaveCitations: (documentPath: string, citationFile: CitationFile): Promise<void> =>
+    ipcRenderer.invoke('citation:saveCitations', documentPath, citationFile),
+  citationAddCitation: (documentPath: string, input: AddCitationInput): Promise<ManagedCitation> =>
+    ipcRenderer.invoke('citation:addCitation', documentPath, input),
+  citationAddCitations: (documentPath: string, inputs: AddCitationInput[]): Promise<ManagedCitation[]> =>
+    ipcRenderer.invoke('citation:addCitations', documentPath, inputs),
+  citationUpdateCitation: (documentPath: string, citationId: string, updates: Partial<AddCitationInput>): Promise<ManagedCitation | null> =>
+    ipcRenderer.invoke('citation:updateCitation', documentPath, citationId, updates),
+  citationRemoveCitation: (documentPath: string, citationId: string): Promise<boolean> =>
+    ipcRenderer.invoke('citation:removeCitation', documentPath, citationId),
+  citationAddUsage: (documentPath: string, citationId: string, usage: CitationUsage): Promise<boolean> =>
+    ipcRenderer.invoke('citation:addUsage', documentPath, citationId, usage),
+  citationGetCitationByNumber: (documentPath: string, number: number): Promise<ManagedCitation | null> =>
+    ipcRenderer.invoke('citation:getCitationByNumber', documentPath, number),
+  citationGenerateReferenceList: (documentPath: string, options?: ReferenceListOptions): Promise<FormattedReference[]> =>
+    ipcRenderer.invoke('citation:generateReferenceList', documentPath, options),
+  citationGenerateReferenceListMarkdown: (documentPath: string, options?: ReferenceListOptions): Promise<string> =>
+    ipcRenderer.invoke('citation:generateReferenceListMarkdown', documentPath, options),
+  citationFormatTextWithCitations: (text: string, citations: ManagedCitation[]): Promise<string> =>
+    ipcRenderer.invoke('citation:formatTextWithCitations', text, citations),
+  citationHasCitations: (documentPath: string): Promise<boolean> =>
+    ipcRenderer.invoke('citation:hasCitations', documentPath),
+  citationGetCitationCount: (documentPath: string): Promise<number> =>
+    ipcRenderer.invoke('citation:getCitationCount', documentPath),
+  citationDeleteCitationFile: (documentPath: string): Promise<boolean> =>
+    ipcRenderer.invoke('citation:deleteCitationFile', documentPath),
+  citationGetCitationFilePath: (documentPath: string): Promise<string> =>
+    ipcRenderer.invoke('citation:getCitationFilePath', documentPath),
 });
 
 // Type declaration for the renderer
@@ -762,6 +846,23 @@ declare global {
       researchRouterEndSession: (sessionId: string) => Promise<void>;
       researchRouterGetActiveSessions: () => Promise<string[]>;
       onResearchRouterStreamChunk: (callback: (chunk: UnifiedStreamChunk) => void) => () => void;
+
+      // Citation management
+      citationLoadCitations: (documentPath: string) => Promise<CitationFile>;
+      citationSaveCitations: (documentPath: string, citationFile: CitationFile) => Promise<void>;
+      citationAddCitation: (documentPath: string, input: AddCitationInput) => Promise<ManagedCitation>;
+      citationAddCitations: (documentPath: string, inputs: AddCitationInput[]) => Promise<ManagedCitation[]>;
+      citationUpdateCitation: (documentPath: string, citationId: string, updates: Partial<AddCitationInput>) => Promise<ManagedCitation | null>;
+      citationRemoveCitation: (documentPath: string, citationId: string) => Promise<boolean>;
+      citationAddUsage: (documentPath: string, citationId: string, usage: CitationUsage) => Promise<boolean>;
+      citationGetCitationByNumber: (documentPath: string, number: number) => Promise<ManagedCitation | null>;
+      citationGenerateReferenceList: (documentPath: string, options?: ReferenceListOptions) => Promise<FormattedReference[]>;
+      citationGenerateReferenceListMarkdown: (documentPath: string, options?: ReferenceListOptions) => Promise<string>;
+      citationFormatTextWithCitations: (text: string, citations: ManagedCitation[]) => Promise<string>;
+      citationHasCitations: (documentPath: string) => Promise<boolean>;
+      citationGetCitationCount: (documentPath: string) => Promise<number>;
+      citationDeleteCitationFile: (documentPath: string) => Promise<boolean>;
+      citationGetCitationFilePath: (documentPath: string) => Promise<string>;
     };
   }
 }
