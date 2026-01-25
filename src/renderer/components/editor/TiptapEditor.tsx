@@ -1,7 +1,8 @@
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { store$ } from '../../state/store';
+import { EditorContextMenu, useEditorContextMenu } from '../contextmenu';
 
 export interface TiptapEditorProps {
   /** Initial content (HTML or plain text) */
@@ -18,6 +19,10 @@ export interface TiptapEditorProps {
   className?: string;
   /** Auto-focus the editor on mount */
   autoFocus?: boolean;
+  /** Callback when "Edit with AI" is triggered (via context menu or Cmd+K) */
+  onEditWithAI?: () => void;
+  /** Callback when "Search" is triggered from context menu */
+  onSearch?: (text: string) => void;
 }
 
 /**
@@ -40,7 +45,19 @@ export function TiptapEditor({
   placeholder = 'Start typing...',
   className = '',
   autoFocus = false,
+  onEditWithAI,
+  onSearch,
 }: TiptapEditorProps) {
+  // Context menu hook
+  const {
+    isOpen: isContextMenuOpen,
+    position: contextMenuPosition,
+    close: closeContextMenu,
+    handleContextMenu,
+  } = useEditorContextMenu();
+
+  // Container ref for context menu positioning
+  const containerRef = useRef<HTMLDivElement>(null);
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -168,8 +185,17 @@ export function TiptapEditor({
         e.preventDefault();
         editor.chain().focus().toggleCode().run();
       }
+      // Cmd/Ctrl+K for AI edit
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        // Check if there's a selection
+        const selection = store$.session.textSelection.get();
+        if (selection?.hasSelection && selection.text.trim().length > 0 && onEditWithAI) {
+          e.preventDefault();
+          onEditWithAI();
+        }
+      }
     },
-    [editor]
+    [editor, onEditWithAI]
   );
 
   if (!editor) {
@@ -182,8 +208,10 @@ export function TiptapEditor({
 
   return (
     <div
+      ref={containerRef}
       className={`tiptap-editor-container relative ${className} ${hasSelection ? 'has-selection' : ''}`}
       onKeyDown={handleKeyDown}
+      onContextMenu={handleContextMenu}
     >
       {/* Editor content */}
       <EditorContent
@@ -202,6 +230,16 @@ export function TiptapEditor({
       <div className="absolute bottom-2 right-2 text-xs text-gray-400 dark:text-gray-500">
         {editor.storage.characterCount?.characters?.() ?? editor.getText().length} chars
       </div>
+
+      {/* Context Menu */}
+      <EditorContextMenu
+        isOpen={isContextMenuOpen}
+        position={contextMenuPosition}
+        onClose={closeContextMenu}
+        onEditWithAI={onEditWithAI}
+        onSearch={onSearch}
+        containerRef={containerRef}
+      />
     </div>
   );
 }
