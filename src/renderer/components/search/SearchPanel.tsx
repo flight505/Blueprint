@@ -13,6 +13,15 @@ interface SearchResult {
   matches: SearchMatch[];
 }
 
+interface FlatMatch {
+  filePath: string;
+  relativePath: string;
+  line: number;
+  column: number;
+  content: string;
+  match: string;
+}
+
 interface SearchPanelProps {
   projectPath: string | null;
   onFileSelect: (filePath: string, line?: number) => void;
@@ -26,13 +35,39 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [expandedFiles, setExpandedFiles] = useState<Set<string>>(new Set());
   const [totalMatches, setTotalMatches] = useState(0);
+  const [currentMatchIndex, setCurrentMatchIndex] = useState<number>(-1);
+  const [flatMatches, setFlatMatches] = useState<FlatMatch[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const matchRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
-  // Calculate total matches
+  // Calculate total matches and create flat matches array
   useEffect(() => {
     const total = results.reduce((sum, result) => sum + result.matches.length, 0);
     setTotalMatches(total);
+
+    // Create flattened array of all matches for navigation
+    const flat: FlatMatch[] = [];
+    results.forEach(result => {
+      result.matches.forEach(match => {
+        flat.push({
+          filePath: result.filePath,
+          relativePath: result.relativePath,
+          line: match.line,
+          column: match.column,
+          content: match.content,
+          match: match.match,
+        });
+      });
+    });
+    setFlatMatches(flat);
+
+    // Reset current match index when results change
+    if (flat.length > 0) {
+      setCurrentMatchIndex(0);
+    } else {
+      setCurrentMatchIndex(-1);
+    }
   }, [results]);
 
   // Perform search with debouncing
@@ -102,9 +137,81 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
     });
   };
 
-  const handleMatchClick = (filePath: string, line: number) => {
+  // Navigate to a specific match by index
+  const navigateToMatch = useCallback((index: number) => {
+    if (index < 0 || index >= flatMatches.length) return;
+
+    const match = flatMatches[index];
+    setCurrentMatchIndex(index);
+
+    // Expand the file containing this match
+    setExpandedFiles(prev => new Set(prev).add(match.filePath));
+
+    // Navigate to the file and line
+    onFileSelect(match.filePath, match.line);
+
+    // Scroll the match into view
+    const matchKey = `${match.filePath}-${match.line}-${match.column}`;
+    const matchElement = matchRefs.current.get(matchKey);
+    if (matchElement) {
+      matchElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [flatMatches, onFileSelect]);
+
+  // Navigate to next match
+  const goToNextMatch = useCallback(() => {
+    if (flatMatches.length === 0) return;
+    const nextIndex = currentMatchIndex < flatMatches.length - 1 ? currentMatchIndex + 1 : 0;
+    navigateToMatch(nextIndex);
+  }, [currentMatchIndex, flatMatches.length, navigateToMatch]);
+
+  // Navigate to previous match
+  const goToPreviousMatch = useCallback(() => {
+    if (flatMatches.length === 0) return;
+    const prevIndex = currentMatchIndex > 0 ? currentMatchIndex - 1 : flatMatches.length - 1;
+    navigateToMatch(prevIndex);
+  }, [currentMatchIndex, flatMatches.length, navigateToMatch]);
+
+  // Get the index of a match in the flat array
+  const getMatchIndex = useCallback((filePath: string, line: number, column: number): number => {
+    return flatMatches.findIndex(
+      m => m.filePath === filePath && m.line === line && m.column === column
+    );
+  }, [flatMatches]);
+
+  const handleMatchClick = (filePath: string, line: number, column: number) => {
+    const matchIndex = getMatchIndex(filePath, line, column);
+    if (matchIndex !== -1) {
+      setCurrentMatchIndex(matchIndex);
+    }
     onFileSelect(filePath, line);
   };
+
+  // Keyboard shortcuts for navigation (F3 for next, Shift+F3 for previous)
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'F3') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          goToPreviousMatch();
+        } else {
+          goToNextMatch();
+        }
+      }
+      // Also support Cmd+G / Cmd+Shift+G (common in many editors)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'g') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          goToPreviousMatch();
+        } else {
+          goToNextMatch();
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [goToNextMatch, goToPreviousMatch]);
 
   // Focus input on mount
   useEffect(() => {
@@ -184,15 +291,50 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
           </label>
         </div>
 
-        {/* Results summary */}
+        {/* Results summary and navigation */}
         {query.trim().length >= 2 && (
-          <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-            {isSearching ? (
-              'Searching...'
-            ) : results.length > 0 ? (
-              `${totalMatches} result${totalMatches !== 1 ? 's' : ''} in ${results.length} file${results.length !== 1 ? 's' : ''}`
-            ) : (
-              'No results found'
+          <div className="mt-3 flex items-center justify-between">
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              {isSearching ? (
+                'Searching...'
+              ) : results.length > 0 ? (
+                <>
+                  <span className="font-medium">
+                    {currentMatchIndex >= 0 ? `${currentMatchIndex + 1} of ${totalMatches}` : `${totalMatches} result${totalMatches !== 1 ? 's' : ''}`}
+                  </span>
+                  <span className="ml-1">
+                    in {results.length} file{results.length !== 1 ? 's' : ''}
+                  </span>
+                </>
+              ) : (
+                'No results found'
+              )}
+            </div>
+
+            {/* Navigation buttons */}
+            {!isSearching && totalMatches > 0 && (
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={goToPreviousMatch}
+                  className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50"
+                  title="Previous match (Shift+F3)"
+                  aria-label="Go to previous match"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={goToNextMatch}
+                  className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50"
+                  title="Next match (F3)"
+                  aria-label="Go to next match"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </div>
             )}
           </div>
         )}
@@ -229,21 +371,43 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
                 {/* Matches list */}
                 {expandedFiles.has(result.filePath) && (
                   <div className="bg-gray-50 dark:bg-gray-800/50">
-                    {result.matches.map((match, idx) => (
-                      <button
-                        key={`${match.line}-${match.column}-${idx}`}
-                        onClick={() => handleMatchClick(result.filePath, match.line)}
-                        className="w-full px-4 py-1.5 flex items-start gap-3 hover:bg-gray-100 dark:hover:bg-gray-700 text-left"
-                        title={`Go to line ${match.line}`}
-                      >
-                        <span className="text-xs text-gray-400 dark:text-gray-500 font-mono w-8 text-right flex-shrink-0">
-                          {match.line}
-                        </span>
-                        <span className="text-xs text-gray-600 dark:text-gray-400 font-mono truncate flex-1">
-                          {highlightMatch(match.content, match.match)}
-                        </span>
-                      </button>
-                    ))}
+                    {result.matches.map((match, idx) => {
+                      const matchKey = `${result.filePath}-${match.line}-${match.column}`;
+                      const matchIndex = getMatchIndex(result.filePath, match.line, match.column);
+                      const isCurrentMatch = matchIndex === currentMatchIndex;
+
+                      return (
+                        <button
+                          key={`${match.line}-${match.column}-${idx}`}
+                          ref={(el) => {
+                            if (el) {
+                              matchRefs.current.set(matchKey, el);
+                            } else {
+                              matchRefs.current.delete(matchKey);
+                            }
+                          }}
+                          onClick={() => handleMatchClick(result.filePath, match.line, match.column)}
+                          className={`w-full px-4 py-1.5 flex items-start gap-3 text-left transition-colors ${
+                            isCurrentMatch
+                              ? 'bg-yellow-100 dark:bg-yellow-900/50 border-l-2 border-yellow-500'
+                              : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                          }`}
+                          title={`Go to line ${match.line}${isCurrentMatch ? ' (current)' : ''}`}
+                          aria-current={isCurrentMatch ? 'true' : undefined}
+                        >
+                          <span className={`text-xs font-mono w-8 text-right flex-shrink-0 ${
+                            isCurrentMatch
+                              ? 'text-yellow-700 dark:text-yellow-400 font-semibold'
+                              : 'text-gray-400 dark:text-gray-500'
+                          }`}>
+                            {match.line}
+                          </span>
+                          <span className="text-xs text-gray-600 dark:text-gray-400 font-mono truncate flex-1">
+                            {highlightMatch(match.content, match.match)}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
