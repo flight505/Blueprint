@@ -3,6 +3,7 @@ import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import { checkAllPermissions, openSystemPreferences } from './main/permissions';
 import { readDirectory, readFileContent, FileNode, FileContent } from './main/services/FileSystemService';
+import { agentService, type AgentSession, type StreamChunk, type CreateSessionOptions, type SendMessageOptions, type MessageParam } from './main/services/AgentService';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -39,6 +40,76 @@ function registerIpcHandlers() {
 
   ipcMain.handle('fs:readFile', async (_, filePath: string): Promise<FileContent> => {
     return await readFileContent(filePath);
+  });
+
+  // Agent service handlers
+  ipcMain.handle('agent:initialize', async (_, apiKey: string): Promise<boolean> => {
+    return await agentService.initialize(apiKey);
+  });
+
+  ipcMain.handle('agent:isInitialized', (): boolean => {
+    return agentService.isInitialized();
+  });
+
+  ipcMain.handle('agent:validateApiKey', async (_, apiKey: string): Promise<boolean> => {
+    return await agentService.validateApiKey(apiKey);
+  });
+
+  ipcMain.handle('agent:createSession', (_, options?: CreateSessionOptions): AgentSession => {
+    return agentService.createSession(options);
+  });
+
+  ipcMain.handle('agent:getSession', (_, sessionId: string): AgentSession | undefined => {
+    return agentService.getSession(sessionId);
+  });
+
+  ipcMain.handle('agent:deleteSession', (_, sessionId: string): boolean => {
+    return agentService.deleteSession(sessionId);
+  });
+
+  ipcMain.handle('agent:listSessions', (): AgentSession[] => {
+    return agentService.listSessions();
+  });
+
+  ipcMain.handle('agent:sendMessage', async (_, sessionId: string, userMessage: string, options?: SendMessageOptions) => {
+    const response = await agentService.sendMessage(sessionId, userMessage, options);
+    // Serialize the response for IPC
+    return {
+      id: response.id,
+      type: response.type,
+      role: response.role,
+      content: response.content,
+      model: response.model,
+      stop_reason: response.stop_reason,
+      usage: response.usage,
+    };
+  });
+
+  // For streaming, we use a different pattern with events
+  ipcMain.handle('agent:sendMessageStream', async (event, sessionId: string, userMessage: string, options?: SendMessageOptions) => {
+    const webContents = event.sender;
+
+    await agentService.sendMessageStream(
+      sessionId,
+      userMessage,
+      (chunk: StreamChunk) => {
+        // Send each chunk to the renderer via IPC
+        webContents.send('agent:streamChunk', sessionId, chunk);
+      },
+      options
+    );
+  });
+
+  ipcMain.handle('agent:resumeSession', (_, sessionId: string, messages: MessageParam[], model?: string): AgentSession => {
+    return agentService.resumeSession(sessionId, messages, model);
+  });
+
+  ipcMain.handle('agent:getConversationHistory', (_, sessionId: string): MessageParam[] => {
+    return agentService.getConversationHistory(sessionId);
+  });
+
+  ipcMain.handle('agent:clearConversationHistory', (_, sessionId: string): boolean => {
+    return agentService.clearConversationHistory(sessionId);
   });
 }
 
