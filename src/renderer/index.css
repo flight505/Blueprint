@@ -88,3 +88,34 @@ body {
   outline: 2px solid theme('colors.blue.500');
   outline-offset: 2px;
 }
+
+/* Text selection highlighting - distinct color for editor selections */
+.tiptap-editor-container ::selection {
+  background-color: rgba(99, 102, 241, 0.35);
+  color: inherit;
+}
+
+.dark .tiptap-editor-container ::selection {
+  background-color: rgba(129, 140, 248, 0.4);
+  color: inherit;
+}
+
+/* AI pending edit highlight */
+.ai-pending-edit {
+  background-color: rgba(250, 204, 21, 0.3);
+  border-bottom: 2px solid rgb(250, 204, 21);
+}
+
+.dark .ai-pending-edit {
+  background-color: rgba(250, 204, 21, 0.25);
+  border-bottom: 2px solid rgb(234, 179, 8);
+}
+
+/* Selection active state indicator */
+.tiptap-editor-container.has-selection {
+  border-color: rgb(99, 102, 241);
+}
+
+.dark .tiptap-editor-container.has-selection {
+  border-color: rgb(129, 140, 248);
+}

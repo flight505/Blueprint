@@ -1,6 +1,7 @@
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { store$ } from '../../state/store';
 
 export interface TiptapEditorProps {
   /** Initial content (HTML or plain text) */
@@ -97,6 +98,56 @@ export function TiptapEditor({
     }
   }, [content, editor]);
 
+  // Track selection state for visual indicator
+  const [hasSelection, setHasSelection] = useState(false);
+
+  // Listen for selection changes to update visual indicator and store
+  useEffect(() => {
+    if (!editor) return;
+
+    const handleSelectionUpdate = () => {
+      const { from, to } = editor.state.selection;
+      const text = editor.state.doc.textBetween(from, to, ' ');
+      const hasValidSelection = to - from >= 1 && text.trim().length > 0;
+
+      setHasSelection(hasValidSelection);
+
+      // Update store with selection state
+      if (hasValidSelection) {
+        store$.session.textSelection.set({
+          text,
+          from,
+          to,
+          hasSelection: true,
+          length: to - from,
+        });
+      } else {
+        store$.session.textSelection.set(null);
+      }
+    };
+
+    const handleBlur = () => {
+      // Clear selection on blur (click elsewhere)
+      setTimeout(() => {
+        if (!editor.isFocused) {
+          setHasSelection(false);
+          store$.session.textSelection.set(null);
+        }
+      }, 100);
+    };
+
+    editor.on('selectionUpdate', handleSelectionUpdate);
+    editor.on('blur', handleBlur);
+
+    // Initial check
+    handleSelectionUpdate();
+
+    return () => {
+      editor.off('selectionUpdate', handleSelectionUpdate);
+      editor.off('blur', handleBlur);
+    };
+  }, [editor]);
+
   // Keyboard shortcuts handler
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -131,7 +182,7 @@ export function TiptapEditor({
 
   return (
     <div
-      className={`tiptap-editor-container relative ${className}`}
+      className={`tiptap-editor-container relative ${className} ${hasSelection ? 'has-selection' : ''}`}
       onKeyDown={handleKeyDown}
     >
       {/* Editor content */}

@@ -62,6 +62,20 @@ export interface ActiveQuestion {
   timestamp: Date;
 }
 
+// Text selection state for editor
+export interface TextSelection {
+  /** The selected text content */
+  text: string;
+  /** Start position (ProseMirror position) */
+  from: number;
+  /** End position (ProseMirror position) */
+  to: number;
+  /** Whether there is an active selection */
+  hasSelection: boolean;
+  /** Length of selection in characters */
+  length: number;
+}
+
 // Session state interface (not persisted)
 interface SessionState {
   openFiles: OpenFile[];
@@ -74,6 +88,8 @@ interface SessionState {
   agentSessionId: string | null;
   // Active question from agent awaiting user response
   activeQuestion: ActiveQuestion | null;
+  // Current text selection in editor
+  textSelection: TextSelection | null;
 }
 
 // Complete store interface
@@ -97,6 +113,7 @@ const DEFAULT_SESSION_STATE: SessionState = {
   streamingMessage: null,
   agentSessionId: null,
   activeQuestion: null,
+  textSelection: null,
 };
 
 // Create the global observable store
@@ -246,4 +263,14 @@ export function setActiveQuestion(question: ActiveQuestion | null): void {
 // Action: Clear active question (after user responds)
 export function clearActiveQuestion(): void {
   store$.session.activeQuestion.set(null);
+}
+
+// Action: Set text selection
+export function setTextSelection(selection: TextSelection | null): void {
+  store$.session.textSelection.set(selection);
+}
+
+// Action: Clear text selection
+export function clearTextSelection(): void {
+  store$.session.textSelection.set(null);
 }
