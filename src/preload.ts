@@ -113,6 +113,9 @@ export interface DbStats {
   dbSize: number;
 }
 
+// Secure storage types
+export type ApiKeyType = 'anthropic' | 'openrouter' | 'gemini';
+
 // Expose protected methods to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
   // Permissions
@@ -195,6 +198,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('db:searchDocumentsByEmbedding', sessionId, queryEmbedding, limit),
   dbGetStats: (): Promise<DbStats> =>
     ipcRenderer.invoke('db:getStats'),
+
+  // Secure storage for API keys
+  secureStorageSetApiKey: (type: ApiKeyType, key: string): Promise<boolean> =>
+    ipcRenderer.invoke('secureStorage:setApiKey', type, key),
+  secureStorageGetApiKey: (type: ApiKeyType): Promise<string | null> =>
+    ipcRenderer.invoke('secureStorage:getApiKey', type),
+  secureStorageDeleteApiKey: (type: ApiKeyType): Promise<boolean> =>
+    ipcRenderer.invoke('secureStorage:deleteApiKey', type),
+  secureStorageHasApiKey: (type: ApiKeyType): Promise<boolean> =>
+    ipcRenderer.invoke('secureStorage:hasApiKey', type),
+  secureStorageListStoredKeys: (): Promise<ApiKeyType[]> =>
+    ipcRenderer.invoke('secureStorage:listStoredKeys'),
+  secureStorageIsEncryptionAvailable: (): Promise<boolean> =>
+    ipcRenderer.invoke('secureStorage:isEncryptionAvailable'),
 });
 
 // Type declaration for the renderer
@@ -237,6 +254,14 @@ declare global {
       dbDeleteDocument: (docId: string) => Promise<boolean>;
       dbSearchDocumentsByEmbedding: (sessionId: string, queryEmbedding: number[], limit?: number) => Promise<Array<StoredDocument & { similarity: number }>>;
       dbGetStats: () => Promise<DbStats>;
+
+      // Secure storage for API keys
+      secureStorageSetApiKey: (type: ApiKeyType, key: string) => Promise<boolean>;
+      secureStorageGetApiKey: (type: ApiKeyType) => Promise<string | null>;
+      secureStorageDeleteApiKey: (type: ApiKeyType) => Promise<boolean>;
+      secureStorageHasApiKey: (type: ApiKeyType) => Promise<boolean>;
+      secureStorageListStoredKeys: () => Promise<ApiKeyType[]>;
+      secureStorageIsEncryptionAvailable: () => Promise<boolean>;
     };
   }
 }

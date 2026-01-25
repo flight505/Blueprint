@@ -6,6 +6,7 @@ import { readDirectory, readFileContent, FileNode, FileContent } from './main/se
 import { agentService, type AgentSession, type StreamChunk, type CreateSessionOptions, type SendMessageOptions, type MessageParam } from './main/services/AgentService';
 import { databaseService } from './main/services/DatabaseService';
 import type { SessionInput, DocumentInput, StoredSession, StoredDocument } from './main/services/DatabaseService';
+import { secureStorageService, type ApiKeyType } from './main/services/SecureStorageService';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -162,6 +163,31 @@ function registerIpcHandlers() {
   ipcMain.handle('db:getStats', (): { sessionCount: number; documentCount: number; dbSize: number } => {
     return databaseService.getStats();
   });
+
+  // Secure storage handlers for API keys
+  ipcMain.handle('secureStorage:setApiKey', async (_, type: ApiKeyType, key: string): Promise<boolean> => {
+    return await secureStorageService.setApiKey(type, key);
+  });
+
+  ipcMain.handle('secureStorage:getApiKey', async (_, type: ApiKeyType): Promise<string | null> => {
+    return await secureStorageService.getApiKey(type);
+  });
+
+  ipcMain.handle('secureStorage:deleteApiKey', async (_, type: ApiKeyType): Promise<boolean> => {
+    return await secureStorageService.deleteApiKey(type);
+  });
+
+  ipcMain.handle('secureStorage:hasApiKey', (_, type: ApiKeyType): boolean => {
+    return secureStorageService.hasApiKey(type);
+  });
+
+  ipcMain.handle('secureStorage:listStoredKeys', (): ApiKeyType[] => {
+    return secureStorageService.listStoredKeys();
+  });
+
+  ipcMain.handle('secureStorage:isEncryptionAvailable', (): boolean => {
+    return secureStorageService.isEncryptionAvailable();
+  });
 }
 
 const createWindow = async () => {
@@ -212,8 +238,9 @@ const createWindow = async () => {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 app.on('ready', () => {
-  // Initialize database
+  // Initialize services
   databaseService.initialize();
+  secureStorageService.initialize();
 
   registerIpcHandlers();
   createWindow();

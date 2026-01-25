@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import PermissionsCheck from './components/PermissionsCheck';
 import FileBrowser from './components/explorer/FileBrowser';
 import ThemeToggle from './components/settings/ThemeToggle';
+import ApiKeySettings from './components/settings/ApiKeySettings';
 import { ContextPanel } from './components/context';
 import { useThemeEffect } from './hooks/useTheme';
 import { useStreaming } from './hooks/useStreaming';
@@ -528,10 +529,8 @@ function LeftPaneContent({
       return (
         <div className="flex-1 overflow-y-auto p-4">
           <div className="space-y-6">
-            <div>
-              <p className="text-sm font-medium mb-2">API Keys</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Configure your API keys for Claude, OpenRouter, and Gemini</p>
-            </div>
+            <ApiKeySettings />
+            <hr className="border-gray-200 dark:border-gray-700" />
             <ThemeToggle />
           </div>
         </div>
