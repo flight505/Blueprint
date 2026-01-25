@@ -700,6 +700,10 @@ function registerIpcHandlers() {
       webContents.send('orchestrator:phase:error', phase, error);
     });
 
+    phaseOrchestrator.on('phase:awaiting_approval', (phase: ProjectPhase, phaseIndex: number) => {
+      webContents.send('orchestrator:phase:awaiting_approval', phase, phaseIndex);
+    });
+
     phaseOrchestrator.on('orchestration:start', (state: ProjectExecutionState) => {
       webContents.send('orchestrator:orchestration:start', state);
     });
@@ -753,6 +757,18 @@ function registerIpcHandlers() {
 
   ipcMain.handle('orchestrator:isPaused', (): boolean => {
     return phaseOrchestrator.isPaused();
+  });
+
+  ipcMain.handle('orchestrator:isWaitingForApproval', (): boolean => {
+    return phaseOrchestrator.isWaitingForApproval();
+  });
+
+  ipcMain.handle('orchestrator:approveAndContinue', (): boolean => {
+    return phaseOrchestrator.approveAndContinue();
+  });
+
+  ipcMain.handle('orchestrator:revisePhase', (_, feedback: string): boolean => {
+    return phaseOrchestrator.revisePhase(feedback);
   });
 
   ipcMain.handle('orchestrator:getCurrentPhase', (): PhaseState | null => {

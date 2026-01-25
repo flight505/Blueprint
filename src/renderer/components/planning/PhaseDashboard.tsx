@@ -6,6 +6,7 @@
  * - Individual phase status and progress
  * - Pause/Resume/Stop controls
  * - Phase output preview
+ * - Approval gate for phase transitions
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -15,6 +16,7 @@ import type {
   ProjectExecutionState,
   PhaseOrchestratorConfig,
 } from '../../../preload';
+import { ApprovalGate } from './ApprovalGate';
 
 // Phase display metadata
 const PHASE_ICONS: Record<ProjectPhase, string> = {
@@ -56,6 +58,7 @@ export function PhaseDashboard({
   const [currentContent, setCurrentContent] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [expandedPhase, setExpandedPhase] = useState<ProjectPhase | null>(null);
+  const [isApprovalProcessing, setIsApprovalProcessing] = useState(false);
 
   // Set up event listeners
   useEffect(() => {
@@ -89,6 +92,14 @@ export function PhaseDashboard({
       onPhaseOutput?.(phase, output);
     });
     cleanups.push(onPhaseComplete);
+
+    // Phase awaiting approval handler
+    const onPhaseAwaitingApproval = window.electronAPI.onOrchestratorPhaseAwaitingApproval(
+      (awaitingPhase, _phaseIndex) => {
+        setExpandedPhase(awaitingPhase);
+      }
+    );
+    cleanups.push(onPhaseAwaitingApproval);
 
     // Orchestration complete handler
     const onOrchComplete = window.electronAPI.onOrchestratorComplete((state) => {
@@ -154,6 +165,30 @@ export function PhaseDashboard({
     await window.electronAPI.orchestratorSkipCurrentPhase();
   }, []);
 
+  // Approve and continue to next phase
+  const handleApproveAndContinue = useCallback(async () => {
+    setIsApprovalProcessing(true);
+    try {
+      await window.electronAPI.orchestratorApproveAndContinue();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to continue');
+    } finally {
+      setIsApprovalProcessing(false);
+    }
+  }, []);
+
+  // Revise the current phase with feedback
+  const handleRevise = useCallback(async (feedback: string) => {
+    setIsApprovalProcessing(true);
+    try {
+      await window.electronAPI.orchestratorRevisePhase(feedback);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to revise phase');
+    } finally {
+      setIsApprovalProcessing(false);
+    }
+  }, []);
+
   // Get status color
   const getStatusColor = (status: PhaseState['status']): string => {
     switch (status) {
@@ -205,6 +240,20 @@ export function PhaseDashboard({
   const isPaused = executionState?.status === 'paused';
   const isComplete = executionState?.status === 'completed';
   const isFailed = executionState?.status === 'failed';
+  const isWaitingForApproval = executionState?.status === 'waiting_for_approval';
+
+  // Get the phase awaiting approval
+  const awaitingApprovalPhaseIndex = executionState?.awaitingApprovalPhaseIndex;
+  const awaitingApprovalPhaseState =
+    awaitingApprovalPhaseIndex !== undefined
+      ? executionState?.phases[awaitingApprovalPhaseIndex]
+      : undefined;
+  const nextPhaseIndex =
+    awaitingApprovalPhaseIndex !== undefined ? awaitingApprovalPhaseIndex + 1 : null;
+  const nextPhase =
+    nextPhaseIndex !== null && executionState?.phases[nextPhaseIndex]
+      ? executionState.phases[nextPhaseIndex].phase
+      : undefined;
 
   // If no execution state and no config, show empty state
   if (!executionState && !projectConfig) {
@@ -354,6 +403,11 @@ export function PhaseDashboard({
                 ✗ Failed
               </span>
             )}
+            {isWaitingForApproval && (
+              <span className="px-2 py-1 text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full">
+                ⏳ Awaiting Approval
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -460,6 +514,19 @@ export function PhaseDashboard({
           ))}
         </div>
       </div>
+
+      {/* Approval Gate Modal */}
+      {isWaitingForApproval && awaitingApprovalPhaseState && (
+        <ApprovalGate
+          phaseState={awaitingApprovalPhaseState}
+          nextPhaseIndex={nextPhaseIndex}
+          totalPhases={executionState?.phases.length || 0}
+          nextPhase={nextPhase}
+          onContinue={handleApproveAndContinue}
+          onRevise={handleRevise}
+          isProcessing={isApprovalProcessing}
+        />
+      )}
     </div>
   );
 }

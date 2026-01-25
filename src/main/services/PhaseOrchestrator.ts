@@ -16,7 +16,7 @@ import { agentService, type AgentSession } from './AgentService';
 export type PhaseStatus = 'pending' | 'in_progress' | 'completed' | 'failed' | 'paused' | 'skipped';
 
 // Orchestration status values
-export type OrchestrationStatus = 'idle' | 'running' | 'paused' | 'completed' | 'failed';
+export type OrchestrationStatus = 'idle' | 'running' | 'paused' | 'completed' | 'failed' | 'waiting_for_approval';
 
 // Phase state for tracking execution
 export interface PhaseState {
@@ -41,6 +41,8 @@ export interface ProjectExecutionState {
   startedAt?: Date;
   pausedAt?: Date;
   completedAt?: Date;
+  /** Phase awaiting approval (if status is 'waiting_for_approval') */
+  awaitingApprovalPhaseIndex?: number;
 }
 
 // Phase prompts for AI planning
@@ -138,6 +140,7 @@ export interface PhaseOrchestratorEvents {
   'phase:progress': (phase: ProjectPhase, progress: number, content: string) => void;
   'phase:complete': (phase: ProjectPhase, output: string) => void;
   'phase:error': (phase: ProjectPhase, error: string) => void;
+  'phase:awaiting_approval': (phase: ProjectPhase, phaseIndex: number) => void;
   'orchestration:start': (state: ProjectExecutionState) => void;
   'orchestration:pause': (state: ProjectExecutionState) => void;
   'orchestration:resume': (state: ProjectExecutionState) => void;
@@ -154,6 +157,8 @@ class PhaseOrchestrator extends EventEmitter {
   private pauseRequested: boolean = false;
   private abortController: AbortController | null = null;
   private agentSession: AgentSession | null = null;
+  /** Resolver for approval gate promise */
+  private approvalResolver: ((action: { type: 'continue' } | { type: 'revise'; feedback: string }) => void) | null = null;
 
   constructor() {
     super();
@@ -178,6 +183,39 @@ class PhaseOrchestrator extends EventEmitter {
    */
   isPaused(): boolean {
     return this.currentExecution?.status === 'paused';
+  }
+
+  /**
+   * Check if execution is waiting for user approval
+   */
+  isWaitingForApproval(): boolean {
+    return this.currentExecution?.status === 'waiting_for_approval';
+  }
+
+  /**
+   * Approve the current phase and continue to the next one
+   */
+  approveAndContinue(): boolean {
+    if (!this.isWaitingForApproval() || !this.approvalResolver) {
+      return false;
+    }
+
+    this.approvalResolver({ type: 'continue' });
+    this.approvalResolver = null;
+    return true;
+  }
+
+  /**
+   * Revise the current phase with feedback
+   */
+  revisePhase(feedback: string): boolean {
+    if (!this.isWaitingForApproval() || !this.approvalResolver) {
+      return false;
+    }
+
+    this.approvalResolver({ type: 'revise', feedback });
+    this.approvalResolver = null;
+    return true;
   }
 
   /**
@@ -356,12 +394,47 @@ Be thorough but concise.`,
       }
 
       const phaseState = this.currentExecution.phases[i];
-      if (phaseState.status !== 'pending') {
-        continue; // Skip non-pending phases
+      if (phaseState.status !== 'pending' && phaseState.status !== 'completed') {
+        continue; // Skip phases that aren't pending or completed (e.g., failed, skipped)
       }
 
-      this.currentExecution.currentPhaseIndex = i;
-      await this.executePhase(phaseState);
+      // If phase is pending, execute it
+      if (phaseState.status === 'pending') {
+        this.currentExecution.currentPhaseIndex = i;
+        await this.executePhase(phaseState);
+      }
+
+      // After phase completion, wait for approval before continuing (unless it's the last phase)
+      const isLastPhase = i === this.currentExecution.phases.length - 1;
+      if (phaseState.status === 'completed' && !isLastPhase) {
+        // Approval gate loop - allows multiple revisions
+        let approved = false;
+        while (!approved) {
+          const action = await this.waitForApproval(phaseState.phase, i);
+
+          if (action.type === 'continue') {
+            approved = true;
+            // Update status back to running after approval
+            this.currentExecution.status = 'running';
+            this.currentExecution.awaitingApprovalPhaseIndex = undefined;
+            this.emitStateUpdate();
+          } else if (action.type === 'revise') {
+            // Update status back to running for revision
+            this.currentExecution.status = 'running';
+            this.currentExecution.awaitingApprovalPhaseIndex = undefined;
+            this.emitStateUpdate();
+
+            // Re-execute with feedback
+            await this.executePhaseWithFeedback(phaseState, action.feedback);
+
+            // If revision failed, exit the approval loop
+            if (phaseState.status !== 'completed') {
+              break;
+            }
+            // Otherwise, loop back to ask for approval again
+          }
+        }
+      }
     }
 
     // All phases completed
@@ -369,6 +442,113 @@ Be thorough but concise.`,
     this.currentExecution.completedAt = new Date();
     this.emit('orchestration:complete', { ...this.currentExecution });
     this.emitStateUpdate();
+  }
+
+  /**
+   * Wait for user approval before proceeding to the next phase
+   */
+  private waitForApproval(phase: ProjectPhase, phaseIndex: number): Promise<{ type: 'continue' } | { type: 'revise'; feedback: string }> {
+    if (!this.currentExecution) {
+      return Promise.resolve({ type: 'continue' });
+    }
+
+    // Set status to waiting for approval
+    this.currentExecution.status = 'waiting_for_approval';
+    this.currentExecution.awaitingApprovalPhaseIndex = phaseIndex;
+
+    this.emit('phase:awaiting_approval', phase, phaseIndex);
+    this.emitStateUpdate();
+
+    // Return a promise that resolves when the user approves or revises
+    return new Promise((resolve) => {
+      this.approvalResolver = resolve;
+    });
+  }
+
+  /**
+   * Execute a phase with revision feedback
+   */
+  private async executePhaseWithFeedback(phaseState: PhaseState, feedback: string): Promise<void> {
+    if (!this.currentExecution || !this.agentSession) {
+      return;
+    }
+
+    phaseState.status = 'in_progress';
+    phaseState.startedAt = new Date();
+    phaseState.progress = 0;
+
+    this.emit('phase:start', phaseState.phase, this.currentExecution.currentPhaseIndex);
+    this.emitStateUpdate();
+
+    try {
+      // Build prompt with feedback
+      const basePrompt = this.buildPhasePrompt(phaseState.phase);
+      const revisionPrompt = `${basePrompt}
+
+REVISION REQUESTED:
+The previous output needs to be revised based on the following feedback:
+${feedback}
+
+Please regenerate the content, addressing the feedback above.`;
+
+      let accumulatedOutput = '';
+
+      // Use streaming research for the phase
+      await researchRouter.researchStream(
+        revisionPrompt,
+        (chunk: UnifiedStreamChunk) => {
+          if (this.abortController?.signal.aborted) {
+            throw new Error('Execution aborted');
+          }
+
+          if (chunk.type === 'text') {
+            accumulatedOutput += chunk.content;
+
+            // Estimate progress based on output length (rough heuristic)
+            const estimatedProgress = Math.min(95, Math.floor(accumulatedOutput.length / 100));
+            phaseState.progress = estimatedProgress;
+
+            this.emit('phase:progress', phaseState.phase, estimatedProgress, chunk.content);
+            this.emitStateUpdate();
+          } else if (chunk.type === 'progress' && chunk.progress) {
+            phaseState.progress = chunk.progress.percentage;
+            this.emit('phase:progress', phaseState.phase, chunk.progress.percentage, '');
+            this.emitStateUpdate();
+          } else if (chunk.type === 'error') {
+            throw new Error(chunk.content);
+          } else if (chunk.type === 'cancelled') {
+            throw new Error('Phase cancelled');
+          }
+        },
+        {
+          mode: this.currentExecution.researchMode,
+          phase: phaseState.phase,
+        }
+      );
+
+      // Phase completed successfully
+      phaseState.status = 'completed';
+      phaseState.completedAt = new Date();
+      phaseState.output = accumulatedOutput;
+      phaseState.progress = 100;
+
+      this.emit('phase:complete', phaseState.phase, accumulatedOutput);
+      this.emitStateUpdate();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+      if (errorMessage === 'Execution paused' || errorMessage === 'Execution aborted') {
+        throw error;
+      }
+
+      phaseState.status = 'failed';
+      phaseState.error = errorMessage;
+      this.emit('phase:error', phaseState.phase, errorMessage);
+      this.emitStateUpdate();
+
+      // Continue with next phase on error (don't block entire execution)
+      console.error(`Phase ${phaseState.phase} revision failed:`, errorMessage);
+    }
   }
 
   /**
@@ -522,6 +702,7 @@ Location: ${this.currentExecution.projectPath}
     this.currentExecution = null;
     this.agentSession = null;
     this.pauseRequested = false;
+    this.approvalResolver = null;
     this.removeAllListeners();
   }
 }

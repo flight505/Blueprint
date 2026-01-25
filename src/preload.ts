@@ -585,7 +585,7 @@ export interface PPTXSection {
 
 // Phase orchestrator types
 export type PhaseStatus = 'pending' | 'in_progress' | 'completed' | 'failed' | 'paused' | 'skipped';
-export type OrchestrationStatus = 'idle' | 'running' | 'paused' | 'completed' | 'failed';
+export type OrchestrationStatus = 'idle' | 'running' | 'paused' | 'completed' | 'failed' | 'waiting_for_approval';
 
 export interface PhaseState {
   phase: ProjectPhase;
@@ -608,6 +608,8 @@ export interface ProjectExecutionState {
   startedAt?: Date;
   pausedAt?: Date;
   completedAt?: Date;
+  /** Phase awaiting approval (if status is 'waiting_for_approval') */
+  awaitingApprovalPhaseIndex?: number;
 }
 
 export interface PhaseOrchestratorConfig {
@@ -977,6 +979,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('orchestrator:isRunning'),
   orchestratorIsPaused: (): Promise<boolean> =>
     ipcRenderer.invoke('orchestrator:isPaused'),
+  orchestratorIsWaitingForApproval: (): Promise<boolean> =>
+    ipcRenderer.invoke('orchestrator:isWaitingForApproval'),
+  orchestratorApproveAndContinue: (): Promise<boolean> =>
+    ipcRenderer.invoke('orchestrator:approveAndContinue'),
+  orchestratorRevisePhase: (feedback: string): Promise<boolean> =>
+    ipcRenderer.invoke('orchestrator:revisePhase', feedback),
   orchestratorGetCurrentPhase: (): Promise<PhaseState | null> =>
     ipcRenderer.invoke('orchestrator:getCurrentPhase'),
   orchestratorGetPhaseDisplayName: (phase: ProjectPhase): Promise<string> =>
@@ -1015,6 +1023,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     };
     ipcRenderer.on('orchestrator:phase:error', handler);
     return () => ipcRenderer.removeListener('orchestrator:phase:error', handler);
+  },
+  onOrchestratorPhaseAwaitingApproval: (callback: (phase: ProjectPhase, phaseIndex: number) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, phase: ProjectPhase, phaseIndex: number) => {
+      callback(phase, phaseIndex);
+    };
+    ipcRenderer.on('orchestrator:phase:awaiting_approval', handler);
+    return () => ipcRenderer.removeListener('orchestrator:phase:awaiting_approval', handler);
   },
   onOrchestratorStart: (callback: (state: ProjectExecutionState) => void) => {
     const handler = (_event: Electron.IpcRendererEvent, state: ProjectExecutionState) => {
@@ -1246,6 +1261,9 @@ declare global {
       orchestratorGetExecutionState: () => Promise<ProjectExecutionState | null>;
       orchestratorIsRunning: () => Promise<boolean>;
       orchestratorIsPaused: () => Promise<boolean>;
+      orchestratorIsWaitingForApproval: () => Promise<boolean>;
+      orchestratorApproveAndContinue: () => Promise<boolean>;
+      orchestratorRevisePhase: (feedback: string) => Promise<boolean>;
       orchestratorGetCurrentPhase: () => Promise<PhaseState | null>;
       orchestratorGetPhaseDisplayName: (phase: ProjectPhase) => Promise<string>;
       orchestratorGetOverallProgress: () => Promise<number>;
@@ -1255,6 +1273,7 @@ declare global {
       onOrchestratorPhaseProgress: (callback: (phase: ProjectPhase, progress: number, content: string) => void) => () => void;
       onOrchestratorPhaseComplete: (callback: (phase: ProjectPhase, output: string) => void) => () => void;
       onOrchestratorPhaseError: (callback: (phase: ProjectPhase, error: string) => void) => () => void;
+      onOrchestratorPhaseAwaitingApproval: (callback: (phase: ProjectPhase, phaseIndex: number) => void) => () => void;
       onOrchestratorStart: (callback: (state: ProjectExecutionState) => void) => () => void;
       onOrchestratorPause: (callback: (state: ProjectExecutionState) => void) => () => void;
       onOrchestratorResume: (callback: (state: ProjectExecutionState) => void) => () => void;
