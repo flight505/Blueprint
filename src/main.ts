@@ -1,10 +1,28 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
+import { checkAllPermissions, openSystemPreferences } from './main/permissions';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
   app.quit();
+}
+
+// Register IPC handlers
+function registerIpcHandlers() {
+  // Permissions
+  ipcMain.handle('permissions:check', async () => {
+    return await checkAllPermissions();
+  });
+
+  ipcMain.handle('permissions:openSettings', async (_, pane: 'files' | 'network') => {
+    openSystemPreferences(pane);
+  });
+
+  // App info
+  ipcMain.handle('app:getVersion', () => {
+    return app.getVersion();
+  });
 }
 
 const createWindow = async () => {
@@ -54,7 +72,10 @@ const createWindow = async () => {
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
-app.on('ready', createWindow);
+app.on('ready', () => {
+  registerIpcHandlers();
+  createWindow();
+});
 
 // Quit when all windows are closed, except on macOS.
 app.on('window-all-closed', () => {

@@ -1,4 +1,58 @@
+import { useState, useEffect } from 'react';
+import PermissionsCheck from './components/PermissionsCheck';
+
+type OnboardingStep = 'permissions' | 'complete';
+
 export default function App() {
+  const [onboardingStep, setOnboardingStep] = useState<OnboardingStep | null>(null);
+  const [isOnboarded, setIsOnboarded] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    // Check if user has completed onboarding
+    const completed = localStorage.getItem('blueprint:onboarded');
+    if (completed === 'true') {
+      setIsOnboarded(true);
+    } else {
+      setIsOnboarded(false);
+      setOnboardingStep('permissions');
+    }
+  }, []);
+
+  function completeOnboarding() {
+    localStorage.setItem('blueprint:onboarded', 'true');
+    setIsOnboarded(true);
+    setOnboardingStep('complete');
+  }
+
+  function skipOnboarding() {
+    // Allow skipping but mark as incomplete for next launch
+    setIsOnboarded(true);
+  }
+
+  // Loading state
+  if (isOnboarded === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Onboarding flow
+  if (!isOnboarded && onboardingStep === 'permissions') {
+    return (
+      <PermissionsCheck
+        onComplete={completeOnboarding}
+        onSkip={skipOnboarding}
+      />
+    );
+  }
+
+  // Main app
+  return <MainApp />;
+}
+
+function MainApp() {
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {/* Activity Bar */}
