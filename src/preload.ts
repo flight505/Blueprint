@@ -474,6 +474,50 @@ export interface PDFSection {
   includeInToc?: boolean;
 }
 
+// DOCX generation types
+export interface DOCXGenerationOptions {
+  includeToc?: boolean;
+  includeCoverPage?: boolean;
+  coverPage?: DOCXCoverPageMetadata;
+  includeCitations?: boolean;
+  citationFormat?: 'ieee' | 'apa' | 'mla' | 'chicago';
+  outputDir?: string;
+  outputFilename?: string;
+  documentMetadata?: DOCXMetadata;
+  fontFamily?: string;
+  fontSize?: number;
+  pageSize?: 'a4' | 'letter' | 'legal';
+}
+
+export interface DOCXCoverPageMetadata {
+  title: string;
+  subtitle?: string;
+  author?: string;
+  date?: string;
+  organization?: string;
+}
+
+export interface DOCXMetadata {
+  title?: string;
+  author?: string;
+  subject?: string;
+  description?: string;
+  keywords?: string[];
+  creator?: string;
+}
+
+export interface DOCXGenerationResult {
+  success: boolean;
+  outputPath?: string;
+  error?: string;
+}
+
+export interface DOCXSection {
+  title: string;
+  content: string;
+  order: number;
+}
+
 // Expose protected methods to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
   // Permissions
@@ -779,6 +823,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('pdf:generatePreview', pdfPath, outputPath, dpi),
   pdfCleanup: (): Promise<void> =>
     ipcRenderer.invoke('pdf:cleanup'),
+
+  // DOCX generation
+  docxGenerateDOCX: (markdownContent: string, outputPath: string, options?: DOCXGenerationOptions): Promise<DOCXGenerationResult> =>
+    ipcRenderer.invoke('docx:generateDOCX', markdownContent, outputPath, options),
+  docxGenerateDOCXFromDocument: (documentPath: string, options?: DOCXGenerationOptions): Promise<DOCXGenerationResult> =>
+    ipcRenderer.invoke('docx:generateDOCXFromDocument', documentPath, options),
+  docxGenerateDOCXFromSections: (sections: DOCXSection[], outputPath: string, options?: DOCXGenerationOptions): Promise<DOCXGenerationResult> =>
+    ipcRenderer.invoke('docx:generateDOCXFromSections', sections, outputPath, options),
 });
 
 // Type declaration for the renderer
@@ -936,6 +988,11 @@ declare global {
       pdfGeneratePDFFromSections: (sections: PDFSection[], outputPath: string, options?: PDFGenerationOptions) => Promise<PDFGenerationResult>;
       pdfGeneratePreview: (pdfPath: string, outputPath: string, dpi?: number) => Promise<{ success: boolean; error?: string }>;
       pdfCleanup: () => Promise<void>;
+
+      // DOCX generation
+      docxGenerateDOCX: (markdownContent: string, outputPath: string, options?: DOCXGenerationOptions) => Promise<DOCXGenerationResult>;
+      docxGenerateDOCXFromDocument: (documentPath: string, options?: DOCXGenerationOptions) => Promise<DOCXGenerationResult>;
+      docxGenerateDOCXFromSections: (sections: DOCXSection[], outputPath: string, options?: DOCXGenerationOptions) => Promise<DOCXGenerationResult>;
     };
   }
 }

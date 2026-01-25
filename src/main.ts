@@ -14,6 +14,7 @@ import { geminiService, type DeepResearchResponse, type DeepResearchOptions, typ
 import { researchRouter, type ResearchMode, type ProjectPhase, type ResearchProvider, type UnifiedResearchResponse, type RoutedResearchOptions, type UnifiedStreamChunk } from './main/services/ResearchRouter';
 import { citationManager, type Citation, type CitationFile, type AddCitationInput, type ReferenceListOptions, type FormattedReference } from './main/services/CitationManager';
 import { pdfGenerator, type PDFGenerationOptions, type PDFGenerationResult, type PDFSection } from './main/services/PDFGenerator';
+import { docxGenerator, type DOCXGenerationOptions, type DOCXGenerationResult, type DOCXSection } from './main/services/DOCXGenerator';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -583,6 +584,33 @@ function registerIpcHandlers() {
 
   ipcMain.handle('pdf:cleanup', async (): Promise<void> => {
     return await pdfGenerator.cleanup();
+  });
+
+  // DOCX generation
+  ipcMain.handle('docx:generateDOCX', async (
+    _,
+    markdownContent: string,
+    outputPath: string,
+    options?: DOCXGenerationOptions
+  ): Promise<DOCXGenerationResult> => {
+    return await docxGenerator.generateDOCX(markdownContent, outputPath, options);
+  });
+
+  ipcMain.handle('docx:generateDOCXFromDocument', async (
+    _,
+    documentPath: string,
+    options?: DOCXGenerationOptions
+  ): Promise<DOCXGenerationResult> => {
+    return await docxGenerator.generateDOCXFromDocument(documentPath, options);
+  });
+
+  ipcMain.handle('docx:generateDOCXFromSections', async (
+    _,
+    sections: DOCXSection[],
+    outputPath: string,
+    options?: DOCXGenerationOptions
+  ): Promise<DOCXGenerationResult> => {
+    return await docxGenerator.generateDOCXFromSections(sections, outputPath, options);
   });
 }
 
