@@ -34,6 +34,11 @@ pnpm-debug.log*
 # Test coverage
 coverage/
 
+# E2E Testing (Playwright - US-050)
+playwright-report/
+test-results/
+.playwright/
+
 # SQLite databases (local dev)
 *.db
 *.sqlite
@@ -41,6 +46,21 @@ coverage/
 
 # Planning outputs (user data)
 planning_outputs/
+
+# Export outputs (generated PDFs, DOCX, PPTX - US-036/037/038)
+exports/
+
+# Electron Builder (US-051/052/053/054)
+release/
+*.dmg
+*.exe
+*.AppImage
+*.deb
+*.rpm
+*.snap
+
+# Auto-update cache (US-055)
+.updater-cache/
 
 # Temporary files
 tmp/

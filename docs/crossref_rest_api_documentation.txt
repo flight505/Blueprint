@@ -1,0 +1,953 @@
+# CROSSREF REST API - COMPREHENSIVE DOCUMENTATION FOR LLM INGESTION
+# Version: 2025-01
+# Source: https://api.crossref.org/ and https://www.crossref.org/documentation/retrieve-metadata/rest-api/
+
+================================================================================
+SECTION 1: OVERVIEW AND PURPOSE
+================================================================================
+
+Crossref is a non-profit organization that maintains the largest database of scholarly metadata in the world. The REST API provides free, open access to metadata deposited by Crossref members (publishers, universities, research institutions).
+
+BASE_URL: https://api.crossref.org/
+
+WHAT THE API PROVIDES:
+- Bibliographic metadata (titles, authors, publication dates, DOIs)
+- Funding data (funder names, grant numbers, funder IDs)
+- License information (open access status, license URLs)
+- Full-text links (for text mining)
+- Post-publication updates (corrections, retractions)
+- ORCID identifiers (author identification)
+- ROR identifiers (organization identification)
+- Abstracts (when deposited by publishers)
+- Citation/reference data
+- Journal and publisher information
+
+CONTENT STATISTICS (as of 2025):
+- ~180 million metadata records
+- ~20,000+ member organizations
+- ~1.8 billion API requests per month
+- Records indexed within 20 minutes of deposit
+
+================================================================================
+SECTION 2: ACCESS AND AUTHENTICATION
+================================================================================
+
+NO REGISTRATION REQUIRED: The API is completely open and free to use.
+
+ACCESS POOLS:
+There are three access pools with different rate limits:
+
+1. PUBLIC POOL (default)
+   - No identification required
+   - Lower rate limits
+   - Subject to performance fluctuations
+   - May be affected by impolite users
+
+2. POLITE POOL (recommended)
+   - Requires email identification
+   - Higher rate limits
+   - More stable performance
+   - Contact for troubleshooting
+
+3. PLUS POOL (premium)
+   - Requires paid Metadata Plus subscription
+   - Highest rate limits
+   - Priority support
+   - For production services
+
+HOW TO ACCESS POLITE POOL:
+Method 1 - mailto parameter:
+  https://api.crossref.org/works?mailto=your@email.com
+
+Method 2 - User-Agent header:
+  User-Agent: MyApp/1.0 (https://myapp.com; mailto:your@email.com)
+
+IMPORTANT: Always use HTTPS (not HTTP) for polite pool access.
+
+METADATA PLUS AUTHENTICATION:
+For Plus subscribers, include API key in header:
+  Crossref-Plus-API-Token: Bearer YOUR_API_KEY
+
+Test Plus authentication:
+  curl -I -H "Crossref-Plus-API-Token: Bearer YOUR_API_KEY" "https://api.crossref.org/v1/works"
+
+================================================================================
+SECTION 3: RATE LIMITS (Updated December 2025)
+================================================================================
+
+RATE LIMIT HEADERS:
+  X-Rate-Limit-Limit: Maximum requests allowed
+  X-Rate-Limit-Interval: Time window (in seconds)
+
+CURRENT LIMITS (as of December 2025):
+
+Public Pool:
+  - Rate limit: ~50 requests/second
+  - Concurrency limit: Limited simultaneous requests
+
+Polite Pool:
+  - Rate limit: Higher than public
+  - Concurrency limit: Higher than public
+
+Plus Pool:
+  - Highest rate limits
+  - Priority access
+
+HTTP 429 RESPONSE:
+If you exceed limits, you receive HTTP 429 (Too Many Requests).
+Action: Wait and retry with lower request rate.
+
+BEST PRACTICES:
+- Cache responses to avoid repeated identical requests
+- Monitor X-Rate-Limit headers
+- Implement exponential backoff on 429 responses
+- Use cursor pagination for large result sets
+- Avoid parallel requests that exceed concurrency limits
+
+================================================================================
+SECTION 4: API ENDPOINTS
+================================================================================
+
+PRIMARY ENDPOINTS:
+
+/works
+  Description: Search and retrieve metadata for all content items
+  Returns: Journal articles, books, conference papers, datasets, etc.
+  Example: https://api.crossref.org/works?rows=10
+
+/works/{doi}
+  Description: Get metadata for a specific DOI
+  Example: https://api.crossref.org/works/10.1038/nature12373
+
+/works/{doi}/agency
+  Description: Get registration agency for a DOI
+  Example: https://api.crossref.org/works/10.1038/nature12373/agency
+  Returns: crossref, datacite, medra, or public (test DOIs)
+
+/journals
+  Description: List journals with registered content
+  Example: https://api.crossref.org/journals
+
+/journals/{issn}
+  Description: Get journal details by ISSN
+  Example: https://api.crossref.org/journals/1234-5678
+
+/journals/{issn}/works
+  Description: Get works in a specific journal
+  Example: https://api.crossref.org/journals/1234-5678/works
+
+/members
+  Description: List all Crossref member organizations
+  Example: https://api.crossref.org/members
+
+/members/{id}
+  Description: Get member details by ID
+  Example: https://api.crossref.org/members/78
+
+/members/{id}/works
+  Description: Get works deposited by a member
+  Example: https://api.crossref.org/members/78/works
+
+/funders
+  Description: List funders from Open Funder Registry
+  Example: https://api.crossref.org/funders
+
+/funders/{id}
+  Description: Get funder details by ID
+  Example: https://api.crossref.org/funders/10.13039/100000001
+
+/funders/{id}/works
+  Description: Get works funded by a specific funder
+  Example: https://api.crossref.org/funders/10.13039/100000001/works
+
+/prefixes/{prefix}
+  Description: Get owner info for a DOI prefix
+  Example: https://api.crossref.org/prefixes/10.1016
+
+/prefixes/{prefix}/works
+  Description: Get works under a prefix
+  Example: https://api.crossref.org/prefixes/10.1016/works
+
+/types
+  Description: List all work types
+  Example: https://api.crossref.org/types
+
+/types/{type}/works
+  Description: Get works of a specific type
+  Example: https://api.crossref.org/types/journal-article/works
+
+/licenses
+  Description: List licenses used in metadata
+  Example: https://api.crossref.org/licenses
+
+================================================================================
+SECTION 5: QUERY PARAMETERS
+================================================================================
+
+BASIC PARAMETERS:
+
+query={terms}
+  Description: Free-text search
+  Example: /works?query=machine+learning
+
+rows={number}
+  Description: Results per page (default: 20, max: 1000)
+  Example: /works?rows=100
+
+offset={number}
+  Description: Skip first N results (max: 10000)
+  Example: /works?offset=100
+  NOTE: Use cursor for results beyond 10000
+
+sample={number}
+  Description: Return random N results (max: 100)
+  Example: /works?sample=50
+
+cursor={value}
+  Description: Deep pagination token
+  Example: /works?cursor=*  (start)
+  Example: /works?cursor=AoE/CGh0...  (continue)
+
+select={fields}
+  Description: Return only specific fields
+  Example: /works?select=DOI,title,author
+
+FIELD QUERIES (for /works):
+
+query.bibliographic={terms}
+  Description: Search titles, authors, ISSNs, publication years
+  Example: /works?query.bibliographic=einstein+relativity
+
+query.author={terms}
+  Description: Search author names
+  Example: /works?query.author=john+smith
+
+query.container-title={terms}
+  Description: Search journal/book titles
+  Example: /works?query.container-title=nature
+
+query.affiliation={terms}
+  Description: Search author affiliations
+  Example: /works?query.affiliation=harvard
+
+query.editor={terms}
+  Description: Search editor names
+
+query.chair={terms}
+  Description: Search chair names
+
+query.translator={terms}
+  Description: Search translator names
+
+query.contributor={terms}
+  Description: Search all contributor types
+
+SORTING:
+
+sort={field}
+  Options: score, relevance, updated, deposited, indexed, published, 
+           published-print, published-online, issued,
+           is-referenced-by-count, references-count
+  Example: /works?sort=published
+
+order={direction}
+  Options: asc, desc
+  Example: /works?sort=published&order=desc
+
+================================================================================
+SECTION 6: FILTERS
+================================================================================
+
+FILTER SYNTAX:
+  /works?filter={filter_name}:{value}
+  Multiple: /works?filter=name1:value1,name2:value2
+
+DATE FILTERS:
+Format: YYYY-MM-DD, YYYY-MM, or YYYY
+
+from-pub-date:{date}          - Published since date
+until-pub-date:{date}         - Published before date
+from-online-pub-date:{date}   - Online published since
+until-online-pub-date:{date}  - Online published before
+from-print-pub-date:{date}    - Print published since
+until-print-pub-date:{date}   - Print published before
+from-posted-date:{date}       - Posted since (preprints)
+until-posted-date:{date}      - Posted before
+from-accepted-date:{date}     - Accepted since
+until-accepted-date:{date}    - Accepted before
+from-created-date:{date}      - First deposited since
+until-created-date:{date}     - First deposited before
+from-deposit-date:{date}      - Last (re)deposited since
+until-deposit-date:{date}     - Last (re)deposited before
+from-index-date:{date}        - Indexed since (RECOMMENDED for updates)
+until-index-date:{date}       - Indexed before
+from-update-date:{date}       - Updated since
+until-update-date:{date}      - Updated before
+
+IDENTIFIER FILTERS:
+doi:{doi}                     - Specific DOI
+issn:{issn}                   - Journal ISSN (format: xxxx-xxxx)
+isbn:{isbn}                   - Book ISBN
+orcid:{orcid}                 - Contributor ORCID
+prefix:{prefix}               - DOI prefix (e.g., 10.1016)
+member:{id}                   - Member ID
+funder:{funder_id}            - Funder ID from registry
+alternative-id:{id}           - Publisher-specific ID
+
+TYPE FILTERS:
+type:{type_id}                - Work type
+type-name:{name}              - Work type name
+directory:{name}              - Directory listing (e.g., doaj)
+
+CONTENT FILTERS:
+has-funder                    - Has funding information
+has-license                   - Has license information
+has-full-text                 - Has full-text links
+has-references                - Has reference list
+has-orcid                     - Has ORCID identifiers
+has-authenticated-orcid       - Has verified ORCIDs
+has-abstract                  - Has abstract
+has-affiliation               - Has affiliation info
+has-clinical-trial-number     - Has clinical trial number
+has-archive                   - Has archive partner
+has-update-policy             - Has update policy
+has-relation                  - Has related items
+has-assertion                 - Has Crossmark assertions
+
+LICENSE FILTERS:
+license.url:{url}             - Specific license URL
+license.version:{version}     - License applies-to attribute
+license.delay:{days}          - Max days from pub to license start
+
+FULL-TEXT FILTERS:
+full-text.version:{version}   - Content version
+full-text.type:{mime_type}    - Content type (e.g., application/pdf)
+full-text.application:{app}   - Intended use (text-mining, similarity-checking)
+
+REFERENCE FILTERS:
+reference-visibility:{level}  - open, limited, or closed
+
+UPDATE FILTERS:
+is-update                     - Is an editorial update
+updates:{doi}                 - Updates to specific DOI
+
+RELATION FILTERS:
+relation.type:{type}          - Relation type (is-referenced-by, is-preprint-of, etc.)
+relation.object:{id}          - Relation object identifier
+relation.object-type:{type}   - Relation object type (doi, issn, etc.)
+
+AWARD FILTERS:
+award.number:{number}         - Award/grant number
+award.funder:{funder_id}      - Award funder ID
+
+OTHER FILTERS:
+archive:{partner}             - Archive partner name (e.g., CLOCKSS)
+container-title:{title}       - Exact publication title match
+category-name:{category}      - Subject category
+assertion:{name}              - Crossmark assertion name
+assertion-group:{group}       - Crossmark assertion group
+article-number:{number}       - Article number/ID
+content-domain:{domain}       - Crossmark content domain
+
+FILTER COMBINATION LOGIC:
+- Different filters: AND logic
+- Same filter repeated: OR logic
+
+Example (AND):
+  /works?filter=from-pub-date:2024-01-01,has-orcid:true
+  (Published after 2024-01-01 AND has ORCID)
+
+Example (OR):
+  /works?filter=funder:10.13039/100000001,funder:10.13039/100000050
+  (Funded by NSF OR NIH)
+
+================================================================================
+SECTION 7: FACETS
+================================================================================
+
+SYNTAX:
+  /works?facet={facet_name}:{max_values}
+  /works?facet={facet_name}:*  (all values)
+
+AVAILABLE FACETS:
+affiliation:*          - Author affiliations
+funder-name:*          - Funder names
+funder-doi:*           - Funder DOIs
+orcid:100              - Contributor ORCIDs (max 100)
+container-title:100    - Publication titles (max 100)
+assertion:*            - Crossmark assertions
+archive:*              - Archive locations
+update-type:*          - Update types
+issn:100               - Journal ISSNs (max 100)
+published:*            - Publication years
+type-name:*            - Work types
+license:*              - License URIs
+category-name:*        - Subject categories
+relation-type:*        - Relation types
+assertion-group:*      - Assertion groups
+publisher-name:*       - Publisher names
+
+Example: Get work type distribution
+  /works?rows=0&facet=type-name:*
+
+Example: Get license distribution for a member
+  /works?filter=member:78&rows=0&facet=license:*
+
+================================================================================
+SECTION 8: PAGINATION
+================================================================================
+
+STANDARD PAGINATION (up to 10,000 results):
+  /works?rows=100&offset=0     (first 100)
+  /works?rows=100&offset=100   (next 100)
+  Maximum offset: 10,000
+
+CURSOR-BASED DEEP PAGING (unlimited results):
+
+Initial request:
+  /works?cursor=*&rows=100
+
+Response includes:
+  "next-cursor": "AoE/CGh0dHA6Ly9keC5kb2kub3JnLzEwLjEw..."
+
+Subsequent request:
+  /works?cursor=AoE/CGh0dHA6Ly9keC5kb2kub3JnLzEwLjEw...&rows=100
+
+END OF RESULTS:
+When items returned < rows requested, you've reached the end.
+
+IMPORTANT:
+- Always URL-encode cursor values
+- Cursor works only on /works routes
+- Cannot combine cursor with offset or sample
+
+================================================================================
+SECTION 9: RESPONSE FORMAT
+================================================================================
+
+DEFAULT FORMAT: JSON (application/vnd.crossref-api-message+json)
+
+RESPONSE STRUCTURE:
+
+{
+  "status": "ok",
+  "message-type": "work-list",
+  "message-version": "1.0.0",
+  "message": {
+    "facets": {},
+    "total-results": 12345,
+    "items-per-page": 20,
+    "query": {...},
+    "items": [
+      {
+        "DOI": "10.1234/example",
+        "title": ["Article Title"],
+        "author": [...],
+        ...
+      }
+    ],
+    "next-cursor": "..."  // only with cursor pagination
+  }
+}
+
+MESSAGE TYPES:
+- work (singleton)
+- work-list (list)
+- funder (singleton)
+- funder-list (list)
+- member (singleton)
+- member-list (list)
+- prefix (singleton)
+- prefix-list (list)
+- journal (singleton)
+- journal-list (list)
+- type (singleton)
+- type-list (list)
+- license-list (list)
+
+WORK METADATA FIELDS:
+DOI                      - Digital Object Identifier
+URL                      - DOI URL
+title                    - Work title(s)
+subtitle                 - Subtitle(s)
+author                   - Author list with ORCID, affiliation
+editor                   - Editor list
+publisher                - Publisher name
+container-title          - Journal/book title
+short-container-title    - Abbreviated title
+ISSN                     - Journal ISSNs
+ISBN                     - Book ISBNs
+volume                   - Volume number
+issue                    - Issue number
+page                     - Page range
+article-number           - Article identifier
+published                - Publication date
+published-print          - Print publication date
+published-online         - Online publication date
+created                  - Deposit date
+deposited                - Last deposit date
+indexed                  - Last index date
+issued                   - Earliest known date
+type                     - Work type
+member                   - Member ID
+prefix                   - DOI prefix
+abstract                 - Abstract text
+funder                   - Funding information
+license                  - License information
+link                     - Full-text links
+reference                - Reference list
+is-referenced-by-count   - Times cited
+references-count         - Number of references
+subject                  - Subject categories
+relation                 - Related items
+update-to                - Updates this DOI
+update-policy            - Update policy URL
+clinical-trial-number    - Clinical trial IDs
+assertion                - Crossmark assertions
+
+================================================================================
+SECTION 10: CONTENT NEGOTIATION
+================================================================================
+
+Content negotiation retrieves metadata in various formats via the Accept header.
+
+USING DOI.ORG:
+  curl -LH "Accept: {format}" "https://doi.org/{doi}"
+
+USING API DIRECTLY:
+  curl -LH "Accept: {format}" "https://api.crossref.org/works/{doi}"
+
+SUPPORTED FORMATS:
+
+application/vnd.crossref.unixsd+xml     - Crossref Unixref XML
+application/vnd.crossref.unixref+xml    - Crossref Unixref XML
+application/rdf+xml                      - RDF XML
+text/turtle                              - RDF Turtle
+application/vnd.citationstyles.csl+json - CSL JSON
+application/citeproc+json               - Citeproc JSON
+text/x-bibliography                     - Formatted citation
+application/x-bibtex                    - BibTeX
+application/x-research-info-systems     - RIS
+
+FORMATTED CITATIONS:
+  curl -LH "Accept: text/x-bibliography; style=apa" "https://doi.org/10.1038/nrd842"
+
+Available styles: apa, harvard, mla, chicago, ieee, vancouver, bibtex, etc.
+Full list: https://github.com/citation-style-language/styles
+
+With locale:
+  curl -LH "Accept: text/x-bibliography; style=apa; locale=fr-FR" "https://doi.org/10.1038/nrd842"
+
+BIBTEX EXAMPLE:
+  curl -LH "Accept: application/x-bibtex" "https://doi.org/10.1038/nrd842"
+
+Returns:
+  @article{Author_Year,
+    title={...},
+    author={...},
+    journal={...},
+    DOI={...},
+    ...
+  }
+
+================================================================================
+SECTION 11: PYTHON LIBRARIES
+================================================================================
+
+RECOMMENDED LIBRARIES:
+
+1. HABANERO (most popular)
+   Install: pip install habanero
+   GitHub: https://github.com/sckott/habanero
+   Docs: https://habanero.readthedocs.io/
+
+   Usage:
+   ```python
+   from habanero import Crossref
+   
+   # Basic usage
+   cr = Crossref()
+   
+   # Polite pool (recommended)
+   cr = Crossref(mailto="your@email.com")
+   
+   # With API key (Metadata Plus)
+   cr = Crossref(api_key="YOUR_API_KEY", mailto="your@email.com")
+   
+   # Search works
+   result = cr.works(query="machine learning")
+   print(result['message']['total-results'])
+   
+   # Get by DOI
+   work = cr.works(ids='10.1038/nature12373')
+   
+   # With filters
+   result = cr.works(filter={'has-orcid': True, 'from-pub-date': '2024-01-01'})
+   
+   # Deep paging with cursor
+   result = cr.works(query="ecology", cursor="*", cursor_max=500)
+   
+   # Select specific fields
+   result = cr.works(query="biology", select="DOI,title,author")
+   
+   # Other resources
+   cr.funders(query="national")
+   cr.members(query="elsevier")
+   cr.journals(ids="0028-0836")
+   cr.prefixes(ids="10.1038")
+   cr.types()
+   cr.licenses()
+   ```
+
+2. CROSSREFAPI
+   Install: pip install crossrefapi
+   GitHub: https://github.com/fabiobatalha/crossrefapi
+
+   Usage:
+   ```python
+   from crossref.restful import Works, Etiquette, Journals, Members, Funders
+   
+   # Set up etiquette (polite pool)
+   my_etiquette = Etiquette('MyApp', '1.0', 'https://myapp.com', 'your@email.com')
+   
+   works = Works(etiquette=my_etiquette)
+   
+   # Search
+   for item in works.query('climate change'):
+       print(item['DOI'], item['title'])
+   
+   # Get by DOI
+   work = works.doi('10.1038/nature12373')
+   
+   # With filters
+   w = works.query(bibliographic='neural network').filter(has_orcid=True)
+   
+   # Sample random works
+   for item in works.sample(5).select('DOI'):
+       print(item)
+   
+   # Journals
+   journals = Journals(etiquette=my_etiquette)
+   journal = journals.journal('0028-0836')
+   
+   # Members
+   members = Members(etiquette=my_etiquette)
+   member = members.member(78)
+   
+   # Funders
+   funders = Funders(etiquette=my_etiquette)
+   funder = funders.funder('10.13039/100000001')
+   ```
+
+3. CROSSREF-COMMONS (Official)
+   Install: pip install crossref-commons
+   GitLab: https://gitlab.com/crossref/crossref_commons_py
+
+================================================================================
+SECTION 12: OTHER LANGUAGE LIBRARIES
+================================================================================
+
+R: rcrossref
+  Install: install.packages("rcrossref")
+  GitHub: https://github.com/ropensci/rcrossref
+
+  Usage:
+  ```r
+  library(rcrossref)
+  
+  # Set email for polite pool
+  Sys.setenv(crossref_email = "your@email.com")
+  
+  # Search works
+  cr_works(query = "machine learning")
+  
+  # Get by DOI
+  cr_works(dois = "10.1038/nature12373")
+  
+  # With filters
+  cr_works(filter = c(has_orcid = TRUE, from_pub_date = "2024-01-01"))
+  
+  # Content negotiation
+  cr_cn(dois = "10.1038/nature12373", format = "bibtex")
+  ```
+
+RUBY: serrano
+  Install: gem install serrano
+  GitHub: https://github.com/sckott/serrano
+
+  Usage:
+  ```ruby
+  require 'serrano'
+  
+  # Search
+  Serrano.works(query: "machine learning")
+  
+  # Get by DOI
+  Serrano.works(ids: "10.1038/nature12373")
+  
+  # With filters
+  Serrano.works(filter: {has_orcid: true})
+  ```
+
+RUST: crossref-rs
+  GitHub: https://github.com/MattsSe/crossref-rs
+
+JULIA: pitaya
+  GitHub: https://github.com/naustica/Pitaya
+
+================================================================================
+SECTION 13: WORK TYPES
+================================================================================
+
+AVAILABLE WORK TYPES:
+book                     - Monograph
+book-chapter             - Chapter in a book
+book-part                - Part of a book
+book-section             - Section of a book
+book-series              - Book series
+book-set                 - Set of books
+book-track               - Track within a book
+component                - Component of a work
+database                 - Database
+dataset                  - Research dataset
+dissertation             - Thesis/dissertation
+edited-book              - Edited volume
+grant                    - Research grant
+journal                  - Journal (container)
+journal-article          - Journal article
+journal-issue            - Journal issue
+journal-volume           - Journal volume
+monograph                - Monograph
+other                    - Other type
+peer-review              - Peer review
+posted-content           - Preprint/posted content
+proceedings              - Conference proceedings
+proceedings-article      - Conference paper
+proceedings-series       - Proceedings series
+reference-book           - Reference work
+reference-entry          - Reference entry
+report                   - Report
+report-component         - Report component
+report-series            - Report series
+standard                 - Standard
+standard-series          - Standard series
+
+================================================================================
+SECTION 14: COMMON USE CASES
+================================================================================
+
+1. SEARCH BY AUTHOR:
+   /works?query.author=albert+einstein
+
+2. SEARCH BY TITLE:
+   /works?query.bibliographic=special+relativity
+
+3. GET ALL WORKS FROM A JOURNAL:
+   /journals/0028-0836/works?rows=100
+
+4. GET RECENT PUBLICATIONS:
+   /works?filter=from-pub-date:2024-01-01&sort=published&order=desc
+
+5. FIND OPEN ACCESS ARTICLES:
+   /works?filter=has-license:true,license.url:http://creativecommons.org/licenses/by/4.0/
+
+6. GET FUNDED RESEARCH:
+   /works?filter=has-funder:true
+
+7. GET WORKS WITH ORCID:
+   /works?filter=has-orcid:true
+
+8. GET PREPRINTS:
+   /types/posted-content/works
+
+9. GET DATASETS:
+   /types/dataset/works
+
+10. FIND WORKS BY AFFILIATION:
+    /works?query.affiliation=stanford+university
+
+11. GET CITATION COUNTS:
+    /works?filter=member:78&sort=is-referenced-by-count&order=desc
+
+12. INCREMENTAL UPDATES (for syncing):
+    /works?filter=from-index-date:2024-01-15&cursor=*
+
+13. GET REFERENCE LISTS:
+    /works?filter=has-references:true,reference-visibility:open
+
+14. FIND RETRACTIONS:
+    /works?filter=type:retraction
+
+15. TEXT MINING (full-text links):
+    /works?filter=has-full-text:true,full-text.application:text-mining
+
+================================================================================
+SECTION 15: ERROR HANDLING
+================================================================================
+
+HTTP STATUS CODES:
+
+200 OK              - Successful request
+400 Bad Request     - Invalid parameters
+404 Not Found       - Resource doesn't exist
+406 Not Acceptable  - Invalid content negotiation
+408 Request Timeout - Query took too long
+429 Too Many Requests - Rate limit exceeded
+500 Server Error    - Internal error
+503 Service Unavailable - Service temporarily down
+
+ERROR RESPONSE FORMAT:
+{
+  "status": "failed",
+  "message-type": "error",
+  "message": [
+    {
+      "message": "Error description",
+      "code": "error_code"
+    }
+  ]
+}
+
+HANDLING 429 ERRORS:
+1. Wait for specified interval
+2. Reduce request rate
+3. Use polite pool
+4. Consider Metadata Plus for production
+
+================================================================================
+SECTION 16: API ETIQUETTE / BEST PRACTICES
+================================================================================
+
+1. ALWAYS USE HTTPS
+   Good:  https://api.crossref.org/works
+   Bad:   http://api.crossref.org/works
+
+2. ALWAYS PROVIDE CONTACT INFORMATION
+   Via parameter: ?mailto=your@email.com
+   Via header: User-Agent: MyApp/1.0 (mailto:your@email.com)
+
+3. CACHE RESPONSES
+   Don't request the same data repeatedly.
+   Set appropriate cache expiration (hours/days for stable data).
+
+4. RESPECT RATE LIMITS
+   Monitor X-Rate-Limit headers.
+   Implement exponential backoff.
+   Wait before retrying 429 errors.
+
+5. USE CURSOR FOR LARGE RESULTS
+   Avoid offset > 10000.
+   Use cursor=* for complete dataset retrieval.
+
+6. SELECT ONLY NEEDED FIELDS
+   Use select parameter to reduce response size.
+   Example: ?select=DOI,title,author
+
+7. USE FILTERS EFFECTIVELY
+   Filter server-side instead of client-side.
+   Combine filters to narrow results.
+
+8. MONITOR RESPONSE TIMES
+   If times increase, reduce request frequency.
+   Check status.crossref.org for known issues.
+
+9. URL-ENCODE ALL PARAMETERS
+   Especially DOIs with special characters.
+   Cursor values must be encoded.
+
+10. HANDLE ERRORS GRACEFULLY
+    Implement retry logic with backoff.
+    Log errors for debugging.
+
+================================================================================
+SECTION 17: VERSIONING
+================================================================================
+
+API VERSION FORMAT: Major.Minor
+Current: v1.x
+
+VERSION IN URL:
+  https://api.crossref.org/v1/works
+  (Default redirects to latest)
+
+COMPATIBILITY:
+- Major versions may break backwards compatibility
+- Minor versions are backwards compatible
+- Crossref supports latest two major versions
+- Legacy versions supported for max 9 months after deprecation
+
+================================================================================
+SECTION 18: ADDITIONAL RESOURCES
+================================================================================
+
+OFFICIAL DOCUMENTATION:
+- API Docs: https://api.crossref.org/swagger-ui/index.html
+- Main Docs: https://www.crossref.org/documentation/retrieve-metadata/rest-api/
+- GitHub: https://github.com/CrossRef/rest-api-doc
+
+STATUS AND SUPPORT:
+- Status Page: https://status.crossref.org
+- Community Forum: https://community.crossref.org
+- Support: support@crossref.org
+- Issue Tracker: https://gitlab.com/crossref/issues
+
+OTHER CROSSREF APIS:
+- XML API: /documentation/retrieve-metadata/xml-api/
+- OAI-PMH: /documentation/retrieve-metadata/oai-pmh/
+- OpenURL: /documentation/retrieve-metadata/openurl/
+
+RELATED SERVICES:
+- Metadata Plus: https://www.crossref.org/services/metadata-retrieval/metadata-plus/
+- Event Data: https://www.crossref.org/services/event-data/
+- Funder Registry: https://www.crossref.org/services/funder-registry/
+- Similarity Check: https://www.crossref.org/services/similarity-check/
+
+================================================================================
+SECTION 19: QUICK REFERENCE - COMMON REQUESTS
+================================================================================
+
+# Get metadata for a DOI
+https://api.crossref.org/works/10.1038/nature12373?mailto=your@email.com
+
+# Search by title
+https://api.crossref.org/works?query.bibliographic=climate+change&mailto=your@email.com
+
+# Search by author
+https://api.crossref.org/works?query.author=smith&mailto=your@email.com
+
+# Recent publications (last 30 days)
+https://api.crossref.org/works?filter=from-pub-date:2024-12-01&sort=published&order=desc&mailto=your@email.com
+
+# Journal articles only
+https://api.crossref.org/works?filter=type:journal-article&mailto=your@email.com
+
+# With ORCID identifiers
+https://api.crossref.org/works?filter=has-orcid:true&mailto=your@email.com
+
+# Open access with CC-BY license
+https://api.crossref.org/works?filter=license.url:http://creativecommons.org/licenses/by/4.0/&mailto=your@email.com
+
+# Works from specific publisher (e.g., Elsevier member ID 78)
+https://api.crossref.org/members/78/works?mailto=your@email.com
+
+# Works funded by NSF
+https://api.crossref.org/funders/10.13039/100000001/works?mailto=your@email.com
+
+# Get journal info
+https://api.crossref.org/journals/0028-0836?mailto=your@email.com
+
+# Get random sample
+https://api.crossref.org/works?sample=10&mailto=your@email.com
+
+# Deep paging (start)
+https://api.crossref.org/works?cursor=*&rows=100&mailto=your@email.com
+
+# Facet: work types distribution
+https://api.crossref.org/works?rows=0&facet=type-name:*&mailto=your@email.com
+
+# Select specific fields only
+https://api.crossref.org/works?select=DOI,title,author&rows=10&mailto=your@email.com
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================
