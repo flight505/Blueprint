@@ -19,6 +19,7 @@ import { useDiagramEdit } from './hooks/useDiagramEdit';
 import { ChatContainer, ChatMessageData, AskUserQuestionData } from './components/chat';
 import { SearchPanel } from './components/search';
 import { ExportModal, ExportSection } from './components/export';
+import { WelcomeScreen } from './components/welcome';
 
 const DEFAULT_LEFT_WIDTH_PERCENT = 40;
 const MIN_PANE_WIDTH = 300;
@@ -140,6 +141,9 @@ function MainApp() {
   // Export modal state
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [exportSections, setExportSections] = useState<ExportSection[]>([]);
+
+  // New project wizard state (will be used by US-042)
+  const [showNewProjectWizard, setShowNewProjectWizard] = useState(false);
 
   // Streaming hook for real-time AI responses
   const {
@@ -658,32 +662,13 @@ function MainApp() {
         </header>
         <div className="flex-1 overflow-y-auto">
           {openFiles.length === 0 || activeFileId === null ? (
-            <div className="p-8">
-              <div className="max-w-2xl mx-auto">
-                <h1 className="text-3xl font-bold mb-4">Blueprint</h1>
-                <p className="text-gray-600 dark:text-gray-300 mb-8">
-                  AI-powered project planning with Claude Agent SDK
-                </p>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <WelcomeCard
-                    title="New Project"
-                    description="Start a new planning project with the wizard"
-                    icon="✨"
-                  />
-                  <WelcomeCard
-                    title="Open Project"
-                    description="Open an existing project folder"
-                    icon="📂"
-                  />
-                </div>
-
-                <div className="mt-8">
-                  <h2 className="text-lg font-semibold mb-4">Recent Projects</h2>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm">No recent projects</p>
-                </div>
-              </div>
-            </div>
+            <WelcomeScreen
+              onNewProject={() => setShowNewProjectWizard(true)}
+              onOpenProject={(path) => {
+                setProjectPath(path);
+                setActiveSection('explorer');
+              }}
+            />
           ) : (
             <FileContentView file={openFiles.find(f => f.id === activeFileId)!} />
           )}
@@ -979,12 +964,3 @@ function FileContentView({ file }: { file: OpenFile }) {
   );
 }
 
-function WelcomeCard({ title, description, icon }: { title: string; description: string; icon: string }) {
-  return (
-    <button className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-500 dark:hover:border-blue-500 transition-colors text-left">
-      <span className="text-2xl mb-2 block">{icon}</span>
-      <h3 className="font-medium mb-1">{title}</h3>
-      <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>
-    </button>
-  );
-}
