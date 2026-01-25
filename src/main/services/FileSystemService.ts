@@ -78,3 +78,48 @@ export async function readFileContent(filePath: string): Promise<FileContent> {
 export function getFileExtension(filePath: string): string {
   return path.extname(filePath).toLowerCase().slice(1);
 }
+
+export interface QuickOpenFile {
+  name: string;
+  path: string;
+  relativePath: string;
+}
+
+/**
+ * List all files in a directory recursively (flat list for quick open)
+ * Returns files sorted by name, limited to common document/code file types
+ */
+export async function listAllFiles(basePath: string): Promise<QuickOpenFile[]> {
+  const files: QuickOpenFile[] = [];
+
+  async function walk(dirPath: string): Promise<void> {
+    try {
+      const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
+
+      for (const entry of entries) {
+        if (shouldIgnore(entry.name)) continue;
+
+        const fullPath = path.join(dirPath, entry.name);
+
+        if (entry.isDirectory()) {
+          await walk(fullPath);
+        } else {
+          // Get path relative to basePath
+          const relativePath = path.relative(basePath, fullPath);
+          files.push({
+            name: entry.name,
+            path: fullPath,
+            relativePath,
+          });
+        }
+      }
+    } catch (error) {
+      console.error(`Error walking directory ${dirPath}:`, error);
+    }
+  }
+
+  await walk(basePath);
+
+  // Sort alphabetically by name
+  return files.sort((a, b) => a.name.localeCompare(b.name));
+}

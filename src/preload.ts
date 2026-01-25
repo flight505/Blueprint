@@ -23,6 +23,12 @@ export interface FileContent {
   encoding: string;
 }
 
+export interface QuickOpenFile {
+  name: string;
+  path: string;
+  relativePath: string;
+}
+
 // Agent types (matching main process)
 export interface AgentSession {
   id: string;
@@ -222,6 +228,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('fs:readDirectory', dirPath),
   readFile: (filePath: string): Promise<FileContent> =>
     ipcRenderer.invoke('fs:readFile', filePath),
+  listAllFiles: (basePath: string): Promise<QuickOpenFile[]> =>
+    ipcRenderer.invoke('fs:listAllFiles', basePath),
 
   // Agent service
   agentInitialize: (apiKey: string): Promise<boolean> =>
@@ -365,6 +373,7 @@ declare global {
       selectDirectory: () => Promise<string | null>;
       readDirectory: (dirPath: string) => Promise<FileNode[]>;
       readFile: (filePath: string) => Promise<FileContent>;
+      listAllFiles: (basePath: string) => Promise<QuickOpenFile[]>;
 
       // Agent service
       agentInitialize: (apiKey: string) => Promise<boolean>;

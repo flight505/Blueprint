@@ -6,6 +6,7 @@ import ApiKeySettings from './components/settings/ApiKeySettings';
 import { ContextPanel } from './components/context';
 import { TabBar, TabData } from './components/layout';
 import { CommandPalette, useCommandPalette, Command } from './components/command';
+import { FileQuickOpen, useFileQuickOpen } from './components/quickopen';
 import { useThemeEffect } from './hooks/useTheme';
 import { useStreaming } from './hooks/useStreaming';
 import { useMermaidRenderer } from './hooks/useMermaid';
@@ -203,6 +204,9 @@ function MainApp() {
     }
   }, [agentSessionId, sendStreamingMessage, fallbackDemoResponse]);
 
+  // Project path state (for file browser and quick open)
+  const [projectPath, setProjectPath] = useState<string | null>(null);
+
   // Command palette state
   const {
     isOpen: isCommandPaletteOpen,
@@ -211,6 +215,13 @@ function MainApp() {
     recentCommandIds,
     recordCommandUsage,
   } = useCommandPalette();
+
+  // File quick open state
+  const {
+    isOpen: isQuickOpenOpen,
+    close: closeQuickOpen,
+    toggle: toggleQuickOpen,
+  } = useFileQuickOpen();
 
   // Define available commands
   const commands: Command[] = useMemo(() => [
@@ -346,7 +357,15 @@ function MainApp() {
         setActiveSection('chat');
       },
     },
-  ], [activeFileId]);
+    // Quick open command
+    {
+      id: 'file:quick-open',
+      label: 'Quick Open File',
+      shortcut: 'Cmd+P',
+      category: 'File',
+      action: () => toggleQuickOpen(),
+    },
+  ], [activeFileId, toggleQuickOpen]);
 
   const handleFileSelect = useCallback(async (filePath: string) => {
     // Check if file is already open
@@ -458,6 +477,13 @@ function MainApp() {
         return;
       }
 
+      // Cmd+P for File Quick Open
+      if (!e.shiftKey && (e.key === 'p' || e.key === 'P')) {
+        e.preventDefault();
+        toggleQuickOpen();
+        return;
+      }
+
       const sectionByNumber: Record<string, Section> = {
         '1': 'chat',
         '2': 'explorer',
@@ -491,7 +517,7 @@ function MainApp() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggleCommandPalette]);
+  }, [toggleCommandPalette, toggleQuickOpen]);
 
   return (
     <div
@@ -545,6 +571,8 @@ function MainApp() {
           activeQuestion={activeQuestion}
           onAnswerQuestion={handleAnswerQuestion}
           agentSessionId={agentSessionId}
+          projectPath={projectPath}
+          onProjectPathChange={setProjectPath}
         />
       </div>
 
@@ -621,6 +649,14 @@ function MainApp() {
         recentCommandIds={recentCommandIds}
         onCommandExecuted={recordCommandUsage}
       />
+
+      {/* File Quick Open */}
+      <FileQuickOpen
+        isOpen={isQuickOpenOpen}
+        onClose={closeQuickOpen}
+        onFileSelect={handleFileSelect}
+        projectPath={projectPath}
+      />
     </div>
   );
 }
@@ -636,6 +672,8 @@ interface LeftPaneContentProps {
   activeQuestion?: AskUserQuestionData | null;
   onAnswerQuestion?: (questionId: string, answer: string | string[]) => void;
   agentSessionId?: string | null;
+  projectPath?: string | null;
+  onProjectPathChange?: (path: string | null) => void;
 }
 
 function LeftPaneContent({
@@ -649,6 +687,8 @@ function LeftPaneContent({
   activeQuestion,
   onAnswerQuestion,
   agentSessionId,
+  projectPath,
+  onProjectPathChange,
 }: LeftPaneContentProps) {
   switch (section) {
     case 'chat':
@@ -665,7 +705,13 @@ function LeftPaneContent({
         />
       );
     case 'explorer':
-      return <FileBrowser onFileSelect={onFileSelect} />;
+      return (
+        <FileBrowser
+          onFileSelect={onFileSelect}
+          projectPath={projectPath}
+          onProjectPathChange={onProjectPathChange}
+        />
+      );
     case 'search':
       return (
         <div className="flex-1 overflow-y-auto p-4">

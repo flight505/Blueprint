@@ -9,6 +9,8 @@ interface FileNode {
 
 interface FileBrowserProps {
   onFileSelect: (filePath: string) => void;
+  projectPath?: string | null;
+  onProjectPathChange?: (path: string | null) => void;
 }
 
 const FILE_ICONS: Record<string, string> = {
@@ -95,8 +97,15 @@ function FileTreeNode({
   );
 }
 
-export default function FileBrowser({ onFileSelect }: FileBrowserProps) {
-  const [projectPath, setProjectPath] = useState<string | null>(null);
+export default function FileBrowser({
+  onFileSelect,
+  projectPath: controlledProjectPath,
+  onProjectPathChange,
+}: FileBrowserProps) {
+  // Support both controlled and uncontrolled modes
+  const [internalProjectPath, setInternalProjectPath] = useState<string | null>(null);
+  const projectPath = controlledProjectPath !== undefined ? controlledProjectPath : internalProjectPath;
+
   const [fileTree, setFileTree] = useState<FileNode[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -107,7 +116,9 @@ export default function FileBrowser({ onFileSelect }: FileBrowserProps) {
       setError(null);
       const selectedPath = await window.electronAPI.selectDirectory();
       if (selectedPath) {
-        setProjectPath(selectedPath);
+        // Update both internal and external state
+        setInternalProjectPath(selectedPath);
+        onProjectPathChange?.(selectedPath);
         const tree = await window.electronAPI.readDirectory(selectedPath);
         setFileTree(tree);
       }
@@ -117,7 +128,7 @@ export default function FileBrowser({ onFileSelect }: FileBrowserProps) {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [onProjectPathChange]);
 
   if (!projectPath) {
     return (
