@@ -5,7 +5,7 @@ import { checkAllPermissions, openSystemPreferences } from './main/permissions';
 import { readDirectory, readFileContent, listAllFiles, searchInFiles, FileNode, FileContent, QuickOpenFile, SearchResult } from './main/services/FileSystemService';
 import { agentService, type AgentSession, type StreamChunk, type CreateSessionOptions, type SendMessageOptions, type MessageParam } from './main/services/AgentService';
 import { databaseService } from './main/services/DatabaseService';
-import type { SessionInput, DocumentInput, StoredSession, StoredDocument, PromptInput, StoredPrompt } from './main/services/DatabaseService';
+import type { SessionInput, DocumentInput, StoredSession, StoredDocument, PromptInput, StoredPrompt, RecentProjectInput, RecentProject } from './main/services/DatabaseService';
 import { secureStorageService, type ApiKeyType } from './main/services/SecureStorageService';
 import { modelRouter, type TaskClassification, type TaskType, type ModelId, CLAUDE_MODELS } from './main/services/ModelRouter';
 import { contextManager, type ContextEvent, type CompactionResult, type ContextStats, type CompactionSummary } from './main/services/ContextManager';
@@ -184,6 +184,31 @@ function registerIpcHandlers() {
 
   ipcMain.handle('db:getStats', (): { sessionCount: number; documentCount: number; dbSize: number } => {
     return databaseService.getStats();
+  });
+
+  // Recent projects handlers
+  ipcMain.handle('recentProjects:add', (_, input: RecentProjectInput): RecentProject => {
+    return databaseService.addRecentProject(input);
+  });
+
+  ipcMain.handle('recentProjects:list', (_, limit?: number): RecentProject[] => {
+    return databaseService.listRecentProjects(limit);
+  });
+
+  ipcMain.handle('recentProjects:remove', (_, projectId: string): boolean => {
+    return databaseService.removeRecentProject(projectId);
+  });
+
+  ipcMain.handle('recentProjects:removeByPath', (_, path: string): boolean => {
+    return databaseService.removeRecentProjectByPath(path);
+  });
+
+  ipcMain.handle('recentProjects:clear', (): number => {
+    return databaseService.clearRecentProjects();
+  });
+
+  ipcMain.handle('recentProjects:getByPath', (_, path: string): RecentProject | null => {
+    return databaseService.getRecentProjectByPath(path);
   });
 
   // Secure storage handlers for API keys

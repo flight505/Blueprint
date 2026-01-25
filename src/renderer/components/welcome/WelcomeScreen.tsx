@@ -3,9 +3,11 @@
  *
  * Displays a welcome screen when no project is open.
  * Provides buttons to start a new project (wizard) or open an existing project.
+ * Shows recent projects list with right-click to remove.
  */
 
 import { useCallback } from 'react';
+import { RecentProjectsList } from './RecentProjectsList';
 
 interface WelcomeScreenProps {
   /** Callback when user wants to start a new project (opens wizard) */
@@ -53,6 +55,11 @@ export function WelcomeScreen({ onNewProject, onOpenProject }: WelcomeScreenProp
             icon="📂"
             onClick={handleOpenProject}
           />
+        </div>
+
+        {/* Recent Projects */}
+        <div className="mb-8">
+          <RecentProjectsList onOpenProject={onOpenProject} maxProjects={5} />
         </div>
 
         {/* Getting Started */}

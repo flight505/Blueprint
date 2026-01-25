@@ -138,6 +138,20 @@ export interface DbStats {
   dbSize: number;
 }
 
+// Recent projects types
+export interface RecentProject {
+  id: string;
+  path: string;
+  name: string;
+  lastOpenedAt: string;
+  createdAt: string;
+}
+
+export interface RecentProjectInput {
+  path: string;
+  name: string;
+}
+
 // Secure storage types
 export type ApiKeyType = 'anthropic' | 'openrouter' | 'gemini';
 
@@ -656,6 +670,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
   dbGetStats: (): Promise<DbStats> =>
     ipcRenderer.invoke('db:getStats'),
 
+  // Recent projects
+  recentProjectsAdd: (input: RecentProjectInput): Promise<RecentProject> =>
+    ipcRenderer.invoke('recentProjects:add', input),
+  recentProjectsList: (limit?: number): Promise<RecentProject[]> =>
+    ipcRenderer.invoke('recentProjects:list', limit),
+  recentProjectsRemove: (projectId: string): Promise<boolean> =>
+    ipcRenderer.invoke('recentProjects:remove', projectId),
+  recentProjectsRemoveByPath: (path: string): Promise<boolean> =>
+    ipcRenderer.invoke('recentProjects:removeByPath', path),
+  recentProjectsClear: (): Promise<number> =>
+    ipcRenderer.invoke('recentProjects:clear'),
+  recentProjectsGetByPath: (path: string): Promise<RecentProject | null> =>
+    ipcRenderer.invoke('recentProjects:getByPath', path),
+
   // Secure storage for API keys
   secureStorageSetApiKey: (type: ApiKeyType, key: string): Promise<boolean> =>
     ipcRenderer.invoke('secureStorage:setApiKey', type, key),
@@ -938,6 +966,14 @@ declare global {
       dbDeleteDocument: (docId: string) => Promise<boolean>;
       dbSearchDocumentsByEmbedding: (sessionId: string, queryEmbedding: number[], limit?: number) => Promise<Array<StoredDocument & { similarity: number }>>;
       dbGetStats: () => Promise<DbStats>;
+
+      // Recent projects
+      recentProjectsAdd: (input: RecentProjectInput) => Promise<RecentProject>;
+      recentProjectsList: (limit?: number) => Promise<RecentProject[]>;
+      recentProjectsRemove: (projectId: string) => Promise<boolean>;
+      recentProjectsRemoveByPath: (path: string) => Promise<boolean>;
+      recentProjectsClear: () => Promise<number>;
+      recentProjectsGetByPath: (path: string) => Promise<RecentProject | null>;
 
       // Secure storage for API keys
       secureStorageSetApiKey: (type: ApiKeyType, key: string) => Promise<boolean>;

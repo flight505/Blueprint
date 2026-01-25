@@ -244,6 +244,22 @@ function MainApp() {
   // Project path state (for file browser and quick open)
   const [projectPath, setProjectPath] = useState<string | null>(null);
 
+  // Handle opening a project (sets path and saves to recent projects)
+  const handleOpenProject = useCallback(async (path: string) => {
+    setProjectPath(path);
+    setActiveSection('explorer');
+
+    // Extract project name from path
+    const name = path.split('/').pop() || path;
+
+    // Add to recent projects (async, don't block UI)
+    try {
+      await window.electronAPI.recentProjectsAdd({ path, name });
+    } catch (error) {
+      console.error('Failed to save to recent projects:', error);
+    }
+  }, []);
+
   // Command palette state
   const {
     isOpen: isCommandPaletteOpen,
@@ -664,10 +680,7 @@ function MainApp() {
           {openFiles.length === 0 || activeFileId === null ? (
             <WelcomeScreen
               onNewProject={() => setShowNewProjectWizard(true)}
-              onOpenProject={(path) => {
-                setProjectPath(path);
-                setActiveSection('explorer');
-              }}
+              onOpenProject={handleOpenProject}
             />
           ) : (
             <FileContentView file={openFiles.find(f => f.id === activeFileId)!} />

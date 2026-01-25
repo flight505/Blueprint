@@ -8,6 +8,7 @@ import Database from 'better-sqlite3';
 import { app } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 
 // Re-export types for consumers
 export interface StoredSession {
@@ -53,6 +54,20 @@ export interface PromptInput {
   template: string;
   description?: string;
   isBuiltIn: boolean;
+}
+
+// Recent projects types
+export interface RecentProject {
+  id: string;
+  path: string;
+  name: string;
+  lastOpenedAt: string;
+  createdAt: string;
+}
+
+export interface RecentProjectInput {
+  path: string;
+  name: string;
 }
 
 export interface DocumentInput {
@@ -130,12 +145,24 @@ export class DatabaseService {
       )
     `);
 
+    // Create recent_projects table
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS recent_projects (
+        id TEXT PRIMARY KEY,
+        path TEXT NOT NULL UNIQUE,
+        name TEXT NOT NULL,
+        last_opened_at TEXT NOT NULL DEFAULT (datetime('now')),
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      )
+    `);
+
     // Create indexes for common queries
     this.db.exec(`
       CREATE INDEX IF NOT EXISTS idx_sessions_project_path ON sessions(project_path);
       CREATE INDEX IF NOT EXISTS idx_documents_session_id ON documents(session_id);
       CREATE INDEX IF NOT EXISTS idx_documents_file_path ON documents(file_path);
       CREATE INDEX IF NOT EXISTS idx_prompts_name ON prompts(name);
+      CREATE INDEX IF NOT EXISTS idx_recent_projects_last_opened ON recent_projects(last_opened_at);
     `);
 
     console.log(`DatabaseService initialized at ${this.dbPath}`);
@@ -454,6 +481,96 @@ export class DatabaseService {
     const stmt = this.db.prepare('DELETE FROM prompts WHERE id = ? AND is_built_in = 0');
     const result = stmt.run(promptId);
     return result.changes > 0;
+  }
+
+  // ========== Recent Projects Operations ==========
+
+  /**
+   * Add or update a recent project
+   * If project with same path exists, updates last_opened_at
+   */
+  addRecentProject(input: RecentProjectInput): RecentProject {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const id = crypto.randomUUID();
+    const now = new Date().toISOString();
+
+    // Use INSERT OR REPLACE to handle unique constraint on path
+    const stmt = this.db.prepare(`
+      INSERT INTO recent_projects (id, path, name, last_opened_at, created_at)
+      VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(path) DO UPDATE SET
+        name = excluded.name,
+        last_opened_at = excluded.last_opened_at
+    `);
+
+    stmt.run(id, input.path, input.name, now, now);
+
+    // Return the project (either newly created or existing one with updated timestamp)
+    return this.getRecentProjectByPath(input.path)!;
+  }
+
+  /**
+   * Get a recent project by path
+   */
+  getRecentProjectByPath(path: string): RecentProject | null {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare(`
+      SELECT id, path, name, last_opened_at as lastOpenedAt, created_at as createdAt
+      FROM recent_projects WHERE path = ?
+    `);
+
+    return (stmt.get(path) as RecentProject) || null;
+  }
+
+  /**
+   * List all recent projects sorted by last opened date (most recent first)
+   */
+  listRecentProjects(limit: number = 10): RecentProject[] {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare(`
+      SELECT id, path, name, last_opened_at as lastOpenedAt, created_at as createdAt
+      FROM recent_projects
+      ORDER BY last_opened_at DESC
+      LIMIT ?
+    `);
+
+    return stmt.all(limit) as RecentProject[];
+  }
+
+  /**
+   * Remove a recent project by ID
+   */
+  removeRecentProject(projectId: string): boolean {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare('DELETE FROM recent_projects WHERE id = ?');
+    const result = stmt.run(projectId);
+    return result.changes > 0;
+  }
+
+  /**
+   * Remove a recent project by path
+   */
+  removeRecentProjectByPath(path: string): boolean {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare('DELETE FROM recent_projects WHERE path = ?');
+    const result = stmt.run(path);
+    return result.changes > 0;
+  }
+
+  /**
+   * Clear all recent projects
+   */
+  clearRecentProjects(): number {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare('DELETE FROM recent_projects');
+    const result = stmt.run();
+    return result.changes;
   }
 
   /**
