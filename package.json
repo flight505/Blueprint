@@ -72,13 +72,16 @@
     "better-sqlite3": "^12.6.2",
     "dompurify": "^3.3.1",
     "electron-squirrel-startup": "^1.0.1",
+    "katex": "^0.16.28",
     "mermaid": "^11.12.2",
     "panzoom": "^9.4.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
     "rehype-highlight": "^7.0.2",
+    "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
     "yjs": "^13.6.29"
   },
   "pnpm": {

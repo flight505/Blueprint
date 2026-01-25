@@ -3,6 +3,9 @@
 /* Import highlight.js CSS for syntax highlighting (github themes) */
 @import "highlight.js/styles/github.css";
 
+/* Import KaTeX CSS for math equation rendering */
+@import "katex/dist/katex.min.css";
+
 /* Custom scrollbar for dark mode */
 :root {
   color-scheme: light dark;
