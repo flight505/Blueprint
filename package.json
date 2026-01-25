@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "description": "Electron desktop app for AI-powered project planning with Claude Agent SDK",
   "main": ".vite/build/main.js",
+  "type": "module",
   "private": true,
   "scripts": {
     "start": "electron-forge start",
