@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+/* Custom scrollbar for dark mode */
+:root {
+  color-scheme: light dark;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Remove default body margin */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+/* Prevent text selection on drag handles */
+.drag-handle {
+  user-select: none;
+}
+
+/* Custom focus styles */
+*:focus-visible {
+  outline: 2px solid theme('colors.blue.500');
+  outline-offset: 2px;
+}
