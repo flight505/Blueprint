@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import PermissionsCheck from './components/PermissionsCheck';
+import FileBrowser from './components/explorer/FileBrowser';
 
 const DEFAULT_LEFT_WIDTH_PERCENT = 40;
 const MIN_PANE_WIDTH = 300;
@@ -68,11 +69,42 @@ export default function App() {
   return <MainApp />;
 }
 
+interface OpenFile {
+  path: string;
+  name: string;
+  content: string;
+}
+
 function MainApp() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [leftWidthPercent, setLeftWidthPercent] = useState(DEFAULT_LEFT_WIDTH_PERCENT);
   const [isDragging, setIsDragging] = useState(false);
   const [activeSection, setActiveSection] = useState<Section>('chat');
+  const [openFiles, setOpenFiles] = useState<OpenFile[]>([]);
+  const [activeFileIndex, setActiveFileIndex] = useState<number | null>(null);
+
+  const handleFileSelect = useCallback(async (filePath: string) => {
+    // Check if file is already open
+    const existingIndex = openFiles.findIndex(f => f.path === filePath);
+    if (existingIndex !== -1) {
+      setActiveFileIndex(existingIndex);
+      return;
+    }
+
+    try {
+      const fileData = await window.electronAPI.readFile(filePath);
+      const fileName = filePath.split('/').pop() || 'Untitled';
+      const newFile: OpenFile = {
+        path: filePath,
+        name: fileName,
+        content: fileData.content,
+      };
+      setOpenFiles(prev => [...prev, newFile]);
+      setActiveFileIndex(openFiles.length);
+    } catch (error) {
+      console.error('Failed to open file:', error);
+    }
+  }, [openFiles]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -201,7 +233,7 @@ function MainApp() {
         <header className="h-10 flex items-center px-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <h2 className="text-sm font-medium">{SECTION_CONFIG[activeSection].label}</h2>
         </header>
-        <LeftPaneContent section={activeSection} />
+        <LeftPaneContent section={activeSection} onFileSelect={handleFileSelect} />
       </div>
 
       {/* Resize Handle */}
@@ -223,41 +255,67 @@ function MainApp() {
       >
         <header className="h-10 flex items-center px-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <div className="flex gap-1">
-            <Tab label="Welcome" active />
+            {openFiles.length === 0 ? (
+              <Tab label="Welcome" active />
+            ) : (
+              openFiles.map((file, index) => (
+                <Tab
+                  key={file.path}
+                  label={file.name}
+                  active={index === activeFileIndex}
+                  onClick={() => setActiveFileIndex(index)}
+                  onClose={() => {
+                    const newFiles = openFiles.filter((_, i) => i !== index);
+                    setOpenFiles(newFiles);
+                    if (activeFileIndex === index) {
+                      setActiveFileIndex(newFiles.length > 0 ? Math.max(0, index - 1) : null);
+                    } else if (activeFileIndex !== null && activeFileIndex > index) {
+                      setActiveFileIndex(activeFileIndex - 1);
+                    }
+                  }}
+                />
+              ))
+            )}
           </div>
         </header>
-        <div className="flex-1 overflow-y-auto p-8">
-          <div className="max-w-2xl mx-auto">
-            <h1 className="text-3xl font-bold mb-4">Blueprint</h1>
-            <p className="text-gray-600 dark:text-gray-300 mb-8">
-              AI-powered project planning with Claude Agent SDK
-            </p>
+        <div className="flex-1 overflow-y-auto">
+          {openFiles.length === 0 || activeFileIndex === null ? (
+            <div className="p-8">
+              <div className="max-w-2xl mx-auto">
+                <h1 className="text-3xl font-bold mb-4">Blueprint</h1>
+                <p className="text-gray-600 dark:text-gray-300 mb-8">
+                  AI-powered project planning with Claude Agent SDK
+                </p>
 
-            <div className="grid grid-cols-2 gap-4">
-              <WelcomeCard
-                title="New Project"
-                description="Start a new planning project with the wizard"
-                icon="✨"
-              />
-              <WelcomeCard
-                title="Open Project"
-                description="Open an existing project folder"
-                icon="📂"
-              />
-            </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <WelcomeCard
+                    title="New Project"
+                    description="Start a new planning project with the wizard"
+                    icon="✨"
+                  />
+                  <WelcomeCard
+                    title="Open Project"
+                    description="Open an existing project folder"
+                    icon="📂"
+                  />
+                </div>
 
-            <div className="mt-8">
-              <h2 className="text-lg font-semibold mb-4">Recent Projects</h2>
-              <p className="text-gray-500 dark:text-gray-400 text-sm">No recent projects</p>
+                <div className="mt-8">
+                  <h2 className="text-lg font-semibold mb-4">Recent Projects</h2>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">No recent projects</p>
+                </div>
+              </div>
             </div>
-          </div>
+          ) : (
+            <FileContentView file={openFiles[activeFileIndex]} />
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-function LeftPaneContent({ section }: { section: Section }) {
+function LeftPaneContent({ section, onFileSelect }: { section: Section; onFileSelect: (path: string) => void }) {
   switch (section) {
     case 'chat':
       return (
@@ -278,14 +336,7 @@ function LeftPaneContent({ section }: { section: Section }) {
         </>
       );
     case 'explorer':
-      return (
-        <div className="flex-1 overflow-y-auto p-4">
-          <div className="text-gray-500 dark:text-gray-400">
-            <p className="text-sm font-medium mb-2">File Explorer</p>
-            <p className="text-xs">Open a project to browse files</p>
-          </div>
-        </div>
-      );
+      return <FileBrowser onFileSelect={onFileSelect} />;
     case 'search':
       return (
         <div className="flex-1 overflow-y-auto p-4">
@@ -389,17 +440,56 @@ function ActivityBarButton({ icon, label, shortcut, active, onClick }: ActivityB
   );
 }
 
-function Tab({ label, active }: { label: string; active?: boolean }) {
+interface TabProps {
+  label: string;
+  active?: boolean;
+  onClick?: () => void;
+  onClose?: () => void;
+}
+
+function Tab({ label, active, onClick, onClose }: TabProps) {
   return (
-    <button
-      className={`px-3 py-1 text-sm rounded-t-lg transition-colors ${
+    <div
+      className={`flex items-center gap-1 px-3 py-1 text-sm rounded-t-lg transition-colors cursor-pointer ${
         active
           ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-t border-x border-gray-200 dark:border-gray-700'
           : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
       }`}
+      onClick={onClick}
     >
-      {label}
-    </button>
+      <span className="truncate max-w-[120px]">{label}</span>
+      {onClose && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          className="ml-1 w-4 h-4 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400"
+          aria-label={`Close ${label}`}
+        >
+          ×
+        </button>
+      )}
+    </div>
+  );
+}
+
+function FileContentView({ file }: { file: OpenFile }) {
+  const ext = file.name.split('.').pop()?.toLowerCase() || '';
+  const isCode = ['ts', 'tsx', 'js', 'jsx', 'json', 'css', 'scss', 'html', 'yml', 'yaml'].includes(ext);
+
+  return (
+    <div className="p-4 h-full">
+      <pre
+        className={`text-sm font-mono overflow-auto h-full p-4 rounded-lg ${
+          isCode
+            ? 'bg-gray-100 dark:bg-gray-800'
+            : 'bg-white dark:bg-gray-900'
+        }`}
+      >
+        <code>{file.content}</code>
+      </pre>
+    </div>
   );
 }
 

@@ -10,6 +10,19 @@ export interface PermissionsResult {
   networkAccess: PermissionStatus;
 }
 
+export interface FileNode {
+  name: string;
+  path: string;
+  type: 'file' | 'directory';
+  children?: FileNode[];
+}
+
+export interface FileContent {
+  path: string;
+  content: string;
+  encoding: string;
+}
+
 // Expose protected methods to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
   // Permissions
@@ -22,6 +35,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getPlatform: (): string => process.platform,
   getAppVersion: (): Promise<string> =>
     ipcRenderer.invoke('app:getVersion'),
+
+  // File system
+  selectDirectory: (): Promise<string | null> =>
+    ipcRenderer.invoke('fs:selectDirectory'),
+  readDirectory: (dirPath: string): Promise<FileNode[]> =>
+    ipcRenderer.invoke('fs:readDirectory', dirPath),
+  readFile: (filePath: string): Promise<FileContent> =>
+    ipcRenderer.invoke('fs:readFile', filePath),
 });
 
 // Type declaration for the renderer
@@ -32,6 +53,9 @@ declare global {
       openSystemPreferences: (pane: 'files' | 'network') => Promise<void>;
       getPlatform: () => string;
       getAppVersion: () => Promise<string>;
+      selectDirectory: () => Promise<string | null>;
+      readDirectory: (dirPath: string) => Promise<FileNode[]>;
+      readFile: (filePath: string) => Promise<FileContent>;
     };
   }
 }

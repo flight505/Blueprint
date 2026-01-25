@@ -1,7 +1,8 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import { checkAllPermissions, openSystemPreferences } from './main/permissions';
+import { readDirectory, readFileContent, FileNode, FileContent } from './main/services/FileSystemService';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -22,6 +23,22 @@ function registerIpcHandlers() {
   // App info
   ipcMain.handle('app:getVersion', () => {
     return app.getVersion();
+  });
+
+  // File system
+  ipcMain.handle('fs:selectDirectory', async (): Promise<string | null> => {
+    const result = await dialog.showOpenDialog({
+      properties: ['openDirectory'],
+    });
+    return result.canceled ? null : result.filePaths[0];
+  });
+
+  ipcMain.handle('fs:readDirectory', async (_, dirPath: string): Promise<FileNode[]> => {
+    return await readDirectory(dirPath);
+  });
+
+  ipcMain.handle('fs:readFile', async (_, filePath: string): Promise<FileContent> => {
+    return await readFileContent(filePath);
   });
 }
 
