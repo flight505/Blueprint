@@ -18,6 +18,7 @@ import { useDiffPreview } from './hooks/useDiffPreview';
 import { useDiagramEdit } from './hooks/useDiagramEdit';
 import { ChatContainer, ChatMessageData, AskUserQuestionData } from './components/chat';
 import { SearchPanel } from './components/search';
+import { ExportModal, ExportSection } from './components/export';
 
 const DEFAULT_LEFT_WIDTH_PERCENT = 40;
 const MIN_PANE_WIDTH = 300;
@@ -135,6 +136,10 @@ function MainApp() {
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [agentSessionId, setAgentSessionId] = useState<string | null>(null);
   const [activeQuestion, setActiveQuestion] = useState<AskUserQuestionData | null>(null);
+
+  // Export modal state
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportSections, setExportSections] = useState<ExportSection[]>([]);
 
   // Streaming hook for real-time AI responses
   const {
@@ -616,6 +621,7 @@ function MainApp() {
           agentSessionId={agentSessionId}
           projectPath={projectPath}
           onProjectPathChange={setProjectPath}
+          onOpenExportModal={() => setIsExportModalOpen(true)}
         />
       </div>
 
@@ -742,6 +748,15 @@ function MainApp() {
         onSave={saveDiagramEdit}
         onClose={closeDiagramEdit}
       />
+
+      {/* Export Modal for generating PDF, DOCX, PPTX */}
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        sections={exportSections}
+        projectPath={projectPath}
+        projectTitle="Blueprint Project"
+      />
     </div>
   );
 }
@@ -759,6 +774,7 @@ interface LeftPaneContentProps {
   agentSessionId?: string | null;
   projectPath?: string | null;
   onProjectPathChange?: (path: string | null) => void;
+  onOpenExportModal?: () => void;
 }
 
 function LeftPaneContent({
@@ -774,6 +790,7 @@ function LeftPaneContent({
   agentSessionId,
   projectPath,
   onProjectPathChange,
+  onOpenExportModal,
 }: LeftPaneContentProps) {
   switch (section) {
     case 'chat':
@@ -823,9 +840,53 @@ function LeftPaneContent({
     case 'export':
       return (
         <div className="flex-1 overflow-y-auto p-4">
-          <div className="text-gray-500 dark:text-gray-400">
-            <p className="text-sm font-medium mb-2">Export Documents</p>
-            <p className="text-xs">Generate PDF, DOCX, or PPTX from your project</p>
+          <div className="space-y-4">
+            <div className="text-gray-500 dark:text-gray-400">
+              <p className="text-sm font-medium mb-2">Export Documents</p>
+              <p className="text-xs mb-4">Generate PDF, DOCX, or PPTX from your project</p>
+            </div>
+
+            {/* Export format options */}
+            <div className="grid grid-cols-1 gap-3">
+              <button
+                onClick={onOpenExportModal}
+                className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-500 dark:hover:border-blue-500 transition-colors text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">📄</span>
+                  <div>
+                    <p className="font-medium text-sm text-gray-900 dark:text-gray-100">PDF Document</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Professional format with precise layout</p>
+                  </div>
+                </div>
+              </button>
+
+              <button
+                onClick={onOpenExportModal}
+                className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-500 dark:hover:border-blue-500 transition-colors text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">📝</span>
+                  <div>
+                    <p className="font-medium text-sm text-gray-900 dark:text-gray-100">Word Document</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Editable DOCX for collaboration</p>
+                  </div>
+                </div>
+              </button>
+
+              <button
+                onClick={onOpenExportModal}
+                className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-500 dark:hover:border-blue-500 transition-colors text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">📊</span>
+                  <div>
+                    <p className="font-medium text-sm text-gray-900 dark:text-gray-100">PowerPoint</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Presentation slides for meetings</p>
+                  </div>
+                </div>
+              </button>
+            </div>
           </div>
         </div>
       );
