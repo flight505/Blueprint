@@ -246,6 +246,40 @@ export interface PromptInput {
   isBuiltIn: boolean;
 }
 
+// OpenRouter/Perplexity types
+export interface Citation {
+  url: string;
+  title?: string;
+  snippet?: string;
+  domain?: string;
+}
+
+export interface ResearchResponse {
+  id: string;
+  content: string;
+  citations: Citation[];
+  model: string;
+  usage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+  finishReason: string | null;
+}
+
+export interface ResearchOptions {
+  maxTokens?: number;
+  temperature?: number;
+  systemPrompt?: string;
+  timeout?: number;
+}
+
+export interface OpenRouterStreamChunk {
+  type: 'text' | 'citation' | 'error' | 'done';
+  content: string;
+  citation?: Citation;
+}
+
 // Expose protected methods to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
   // Permissions
@@ -410,6 +444,27 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('prompt:listAll'),
   promptDelete: (promptId: string): Promise<boolean> =>
     ipcRenderer.invoke('prompt:delete', promptId),
+
+  // OpenRouter/Perplexity research
+  openRouterInitialize: (apiKey: string): Promise<boolean> =>
+    ipcRenderer.invoke('openRouter:initialize', apiKey),
+  openRouterIsInitialized: (): Promise<boolean> =>
+    ipcRenderer.invoke('openRouter:isInitialized'),
+  openRouterValidateApiKey: (apiKey: string): Promise<boolean> =>
+    ipcRenderer.invoke('openRouter:validateApiKey', apiKey),
+  openRouterResearch: (query: string, options?: ResearchOptions): Promise<ResearchResponse> =>
+    ipcRenderer.invoke('openRouter:research', query, options),
+  openRouterResearchStream: (query: string, options?: ResearchOptions): Promise<void> =>
+    ipcRenderer.invoke('openRouter:researchStream', query, options),
+  openRouterGetModel: (): Promise<string> =>
+    ipcRenderer.invoke('openRouter:getModel'),
+  onOpenRouterStreamChunk: (callback: (chunk: OpenRouterStreamChunk) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, chunk: OpenRouterStreamChunk) => {
+      callback(chunk);
+    };
+    ipcRenderer.on('openRouter:streamChunk', handler);
+    return () => ipcRenderer.removeListener('openRouter:streamChunk', handler);
+  },
 });
 
 // Type declaration for the renderer
@@ -501,6 +556,15 @@ declare global {
       promptGet: (promptId: string) => Promise<StoredPrompt | null>;
       promptListAll: () => Promise<StoredPrompt[]>;
       promptDelete: (promptId: string) => Promise<boolean>;
+
+      // OpenRouter/Perplexity research
+      openRouterInitialize: (apiKey: string) => Promise<boolean>;
+      openRouterIsInitialized: () => Promise<boolean>;
+      openRouterValidateApiKey: (apiKey: string) => Promise<boolean>;
+      openRouterResearch: (query: string, options?: ResearchOptions) => Promise<ResearchResponse>;
+      openRouterResearchStream: (query: string, options?: ResearchOptions) => Promise<void>;
+      openRouterGetModel: () => Promise<string>;
+      onOpenRouterStreamChunk: (callback: (chunk: OpenRouterStreamChunk) => void) => () => void;
     };
   }
 }

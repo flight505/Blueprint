@@ -9,6 +9,7 @@ import type { SessionInput, DocumentInput, StoredSession, StoredDocument, Prompt
 import { secureStorageService, type ApiKeyType } from './main/services/SecureStorageService';
 import { modelRouter, type TaskClassification, type TaskType, type ModelId, CLAUDE_MODELS } from './main/services/ModelRouter';
 import { contextManager, type ContextEvent, type CompactionResult, type ContextStats, type CompactionSummary } from './main/services/ContextManager';
+import { openRouterService, type ResearchResponse, type ResearchOptions, type StreamChunk as OpenRouterStreamChunk } from './main/services/OpenRouterService';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -316,6 +317,39 @@ function registerIpcHandlers() {
   ipcMain.handle('prompt:delete', (_, promptId: string): boolean => {
     return databaseService.deletePrompt(promptId);
   });
+
+  // OpenRouter service handlers (Perplexity via OpenRouter)
+  ipcMain.handle('openRouter:initialize', async (_, apiKey: string): Promise<boolean> => {
+    return await openRouterService.initialize(apiKey);
+  });
+
+  ipcMain.handle('openRouter:isInitialized', (): boolean => {
+    return openRouterService.isInitialized();
+  });
+
+  ipcMain.handle('openRouter:validateApiKey', async (_, apiKey: string): Promise<boolean> => {
+    return await openRouterService.validateApiKey(apiKey);
+  });
+
+  ipcMain.handle('openRouter:research', async (_, query: string, options?: ResearchOptions): Promise<ResearchResponse> => {
+    return await openRouterService.research(query, options);
+  });
+
+  ipcMain.handle('openRouter:researchStream', async (event, query: string, options?: ResearchOptions): Promise<void> => {
+    const webContents = event.sender;
+
+    await openRouterService.researchStream(
+      query,
+      (chunk: OpenRouterStreamChunk) => {
+        webContents.send('openRouter:streamChunk', chunk);
+      },
+      options
+    );
+  });
+
+  ipcMain.handle('openRouter:getModel', (): string => {
+    return openRouterService.getModel();
+  });
 }
 
 const createWindow = async () => {
@@ -374,6 +408,12 @@ app.on('ready', async () => {
   const anthropicKey = await secureStorageService.getApiKey('anthropic');
   if (anthropicKey) {
     contextManager.initialize(anthropicKey);
+  }
+
+  // Initialize OpenRouter service with API key if available
+  const openRouterKey = await secureStorageService.getApiKey('openrouter');
+  if (openRouterKey) {
+    openRouterService.initialize(openRouterKey);
   }
 
   registerIpcHandlers();
