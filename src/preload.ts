@@ -518,6 +518,57 @@ export interface DOCXSection {
   order: number;
 }
 
+// PPTX generation types
+export interface PPTXTheme {
+  primary: string;
+  secondary: string;
+  background: string;
+  text: string;
+  accent: string;
+}
+
+export interface PPTXGenerationOptions {
+  theme?: string | PPTXTheme;
+  includeTitleSlide?: boolean;
+  titleSlide?: PPTXTitleSlideMetadata;
+  includeCitations?: boolean;
+  citationFormat?: 'ieee' | 'apa' | 'mla' | 'chicago';
+  outputDir?: string;
+  outputFilename?: string;
+  metadata?: PPTXMetadata;
+  slideSize?: '16:9' | '4:3';
+  maxBulletsPerSlide?: number;
+}
+
+export interface PPTXTitleSlideMetadata {
+  title: string;
+  subtitle?: string;
+  author?: string;
+  date?: string;
+  organization?: string;
+}
+
+export interface PPTXMetadata {
+  title?: string;
+  author?: string;
+  subject?: string;
+  company?: string;
+  keywords?: string[];
+}
+
+export interface PPTXGenerationResult {
+  success: boolean;
+  outputPath?: string;
+  error?: string;
+  slideCount?: number;
+}
+
+export interface PPTXSection {
+  title: string;
+  content: string;
+  order: number;
+}
+
 // Expose protected methods to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
   // Permissions
@@ -831,6 +882,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('docx:generateDOCXFromDocument', documentPath, options),
   docxGenerateDOCXFromSections: (sections: DOCXSection[], outputPath: string, options?: DOCXGenerationOptions): Promise<DOCXGenerationResult> =>
     ipcRenderer.invoke('docx:generateDOCXFromSections', sections, outputPath, options),
+
+  // PPTX generation
+  pptxGeneratePPTX: (markdownContent: string, outputPath: string, options?: PPTXGenerationOptions): Promise<PPTXGenerationResult> =>
+    ipcRenderer.invoke('pptx:generatePPTX', markdownContent, outputPath, options),
+  pptxGeneratePPTXFromDocument: (documentPath: string, options?: PPTXGenerationOptions): Promise<PPTXGenerationResult> =>
+    ipcRenderer.invoke('pptx:generatePPTXFromDocument', documentPath, options),
+  pptxGeneratePPTXFromSections: (sections: PPTXSection[], outputPath: string, options?: PPTXGenerationOptions): Promise<PPTXGenerationResult> =>
+    ipcRenderer.invoke('pptx:generatePPTXFromSections', sections, outputPath, options),
+  pptxGetAvailableThemes: (): Promise<string[]> =>
+    ipcRenderer.invoke('pptx:getAvailableThemes'),
+  pptxGetTheme: (themeName: string): Promise<PPTXTheme | null> =>
+    ipcRenderer.invoke('pptx:getTheme', themeName),
 });
 
 // Type declaration for the renderer
@@ -993,6 +1056,13 @@ declare global {
       docxGenerateDOCX: (markdownContent: string, outputPath: string, options?: DOCXGenerationOptions) => Promise<DOCXGenerationResult>;
       docxGenerateDOCXFromDocument: (documentPath: string, options?: DOCXGenerationOptions) => Promise<DOCXGenerationResult>;
       docxGenerateDOCXFromSections: (sections: DOCXSection[], outputPath: string, options?: DOCXGenerationOptions) => Promise<DOCXGenerationResult>;
+
+      // PPTX generation
+      pptxGeneratePPTX: (markdownContent: string, outputPath: string, options?: PPTXGenerationOptions) => Promise<PPTXGenerationResult>;
+      pptxGeneratePPTXFromDocument: (documentPath: string, options?: PPTXGenerationOptions) => Promise<PPTXGenerationResult>;
+      pptxGeneratePPTXFromSections: (sections: PPTXSection[], outputPath: string, options?: PPTXGenerationOptions) => Promise<PPTXGenerationResult>;
+      pptxGetAvailableThemes: () => Promise<string[]>;
+      pptxGetTheme: (themeName: string) => Promise<PPTXTheme | null>;
     };
   }
 }

@@ -15,6 +15,7 @@ import { researchRouter, type ResearchMode, type ProjectPhase, type ResearchProv
 import { citationManager, type Citation, type CitationFile, type AddCitationInput, type ReferenceListOptions, type FormattedReference } from './main/services/CitationManager';
 import { pdfGenerator, type PDFGenerationOptions, type PDFGenerationResult, type PDFSection } from './main/services/PDFGenerator';
 import { docxGenerator, type DOCXGenerationOptions, type DOCXGenerationResult, type DOCXSection } from './main/services/DOCXGenerator';
+import { pptxGenerator, type PPTXGenerationOptions, type PPTXGenerationResult, type PPTXSection, PPTX_THEMES } from './main/services/PPTXGenerator';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -611,6 +612,41 @@ function registerIpcHandlers() {
     options?: DOCXGenerationOptions
   ): Promise<DOCXGenerationResult> => {
     return await docxGenerator.generateDOCXFromSections(sections, outputPath, options);
+  });
+
+  // PPTX generation
+  ipcMain.handle('pptx:generatePPTX', async (
+    _,
+    markdownContent: string,
+    outputPath: string,
+    options?: PPTXGenerationOptions
+  ): Promise<PPTXGenerationResult> => {
+    return await pptxGenerator.generatePPTX(markdownContent, outputPath, options);
+  });
+
+  ipcMain.handle('pptx:generatePPTXFromDocument', async (
+    _,
+    documentPath: string,
+    options?: PPTXGenerationOptions
+  ): Promise<PPTXGenerationResult> => {
+    return await pptxGenerator.generatePPTXFromDocument(documentPath, options);
+  });
+
+  ipcMain.handle('pptx:generatePPTXFromSections', async (
+    _,
+    sections: PPTXSection[],
+    outputPath: string,
+    options?: PPTXGenerationOptions
+  ): Promise<PPTXGenerationResult> => {
+    return await pptxGenerator.generatePPTXFromSections(sections, outputPath, options);
+  });
+
+  ipcMain.handle('pptx:getAvailableThemes', async (): Promise<string[]> => {
+    return pptxGenerator.getAvailableThemes();
+  });
+
+  ipcMain.handle('pptx:getTheme', async (_, themeName: string): Promise<typeof PPTX_THEMES[keyof typeof PPTX_THEMES] | null> => {
+    return PPTX_THEMES[themeName] || null;
   });
 }
 
