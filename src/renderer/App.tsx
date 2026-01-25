@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import PermissionsCheck from './components/PermissionsCheck';
 import FileBrowser from './components/explorer/FileBrowser';
 import ThemeToggle from './components/settings/ThemeToggle';
+import { ContextPanel } from './components/context';
 import { useThemeEffect } from './hooks/useTheme';
 import { useStreaming } from './hooks/useStreaming';
 import { ChatContainer, ChatMessageData, AskUserQuestionData } from './components/chat';
@@ -9,15 +10,16 @@ import { ChatContainer, ChatMessageData, AskUserQuestionData } from './component
 const DEFAULT_LEFT_WIDTH_PERCENT = 40;
 const MIN_PANE_WIDTH = 300;
 
-type Section = 'chat' | 'explorer' | 'search' | 'planning' | 'export' | 'history' | 'settings' | 'help';
+type Section = 'chat' | 'explorer' | 'search' | 'context' | 'planning' | 'export' | 'history' | 'settings' | 'help';
 
 const SECTION_CONFIG: Record<Section, { icon: string; label: string; shortcut?: string }> = {
   chat: { icon: '💬', label: 'Chat', shortcut: 'Cmd+1' },
   explorer: { icon: '📁', label: 'Explorer', shortcut: 'Cmd+2' },
   search: { icon: '🔍', label: 'Search', shortcut: 'Cmd+3' },
-  planning: { icon: '📋', label: 'Planning', shortcut: 'Cmd+4' },
-  export: { icon: '📥', label: 'Export', shortcut: 'Cmd+5' },
-  history: { icon: '🕐', label: 'History', shortcut: 'Cmd+6' },
+  context: { icon: '📊', label: 'Context', shortcut: 'Cmd+4' },
+  planning: { icon: '📋', label: 'Planning', shortcut: 'Cmd+5' },
+  export: { icon: '📥', label: 'Export', shortcut: 'Cmd+6' },
+  history: { icon: '🕐', label: 'History', shortcut: 'Cmd+7' },
   settings: { icon: '⚙️', label: 'Settings', shortcut: 'Cmd+,' },
   help: { icon: '❓', label: 'Help', shortcut: 'Cmd+?' },
 };
@@ -271,9 +273,10 @@ function MainApp() {
         '1': 'chat',
         '2': 'explorer',
         '3': 'search',
-        '4': 'planning',
-        '5': 'export',
-        '6': 'history',
+        '4': 'context',
+        '5': 'planning',
+        '6': 'export',
+        '7': 'history',
       };
 
       if (e.key in sectionByNumber) {
@@ -309,7 +312,7 @@ function MainApp() {
       {/* Activity Bar */}
       <aside className="w-12 flex-shrink-0 flex flex-col bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
         <div className="flex-1 flex flex-col items-center pt-4 gap-2">
-          {(['chat', 'explorer', 'search', 'planning', 'export', 'history'] as const).map((section) => (
+          {(['chat', 'explorer', 'search', 'context', 'planning', 'export', 'history'] as const).map((section) => (
             <ActivityBarButton
               key={section}
               icon={SECTION_CONFIG[section].icon}
@@ -352,6 +355,7 @@ function MainApp() {
           isStreaming={isStreaming}
           activeQuestion={activeQuestion}
           onAnswerQuestion={handleAnswerQuestion}
+          agentSessionId={agentSessionId}
         />
       </div>
 
@@ -444,6 +448,7 @@ interface LeftPaneContentProps {
   isStreaming?: boolean;
   activeQuestion?: AskUserQuestionData | null;
   onAnswerQuestion?: (questionId: string, answer: string | string[]) => void;
+  agentSessionId?: string | null;
 }
 
 function LeftPaneContent({
@@ -456,6 +461,7 @@ function LeftPaneContent({
   isStreaming,
   activeQuestion,
   onAnswerQuestion,
+  agentSessionId,
 }: LeftPaneContentProps) {
   switch (section) {
     case 'chat':
@@ -483,6 +489,13 @@ function LeftPaneContent({
           />
           <p className="text-sm text-gray-500 dark:text-gray-400">Enter a search term to find content across all files</p>
         </div>
+      );
+    case 'context':
+      return (
+        <ContextPanel
+          sessionId={agentSessionId}
+          maxTokens={200000}
+        />
       );
     case 'planning':
       return (
@@ -530,7 +543,7 @@ function LeftPaneContent({
             <div>
               <p className="text-sm font-medium mb-2">Keyboard Shortcuts</p>
               <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
-                <p>Cmd+1-6 - Switch sections</p>
+                <p>Cmd+1-7 - Switch sections</p>
                 <p>Cmd+Shift+P - Command palette</p>
                 <p>Cmd+P - Quick open file</p>
                 <p>Cmd+K - Inline edit</p>
