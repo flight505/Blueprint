@@ -36,6 +36,25 @@ export interface SessionInput {
   model: string;
 }
 
+// Prompt types for prompt library
+export interface StoredPrompt {
+  id: string;
+  name: string;
+  template: string;
+  description: string | null;
+  isBuiltIn: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PromptInput {
+  id: string;
+  name: string;
+  template: string;
+  description?: string;
+  isBuiltIn: boolean;
+}
+
 export interface DocumentInput {
   id: string;
   sessionId: string;
@@ -98,11 +117,25 @@ export class DatabaseService {
       )
     `);
 
+    // Create prompts table for prompt library
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS prompts (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        template TEXT NOT NULL,
+        description TEXT,
+        is_built_in INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      )
+    `);
+
     // Create indexes for common queries
     this.db.exec(`
       CREATE INDEX IF NOT EXISTS idx_sessions_project_path ON sessions(project_path);
       CREATE INDEX IF NOT EXISTS idx_documents_session_id ON documents(session_id);
       CREATE INDEX IF NOT EXISTS idx_documents_file_path ON documents(file_path);
+      CREATE INDEX IF NOT EXISTS idx_prompts_name ON prompts(name);
     `);
 
     console.log(`DatabaseService initialized at ${this.dbPath}`);
@@ -341,6 +374,86 @@ export class DatabaseService {
     return results
       .sort((a, b) => b.similarity - a.similarity)
       .slice(0, limit);
+  }
+
+  // ========== Prompt Operations ==========
+
+  /**
+   * Save or update a prompt
+   */
+  savePrompt(prompt: PromptInput): void {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare(`
+      INSERT INTO prompts (id, name, template, description, is_built_in, updated_at)
+      VALUES (?, ?, ?, ?, ?, datetime('now'))
+      ON CONFLICT(id) DO UPDATE SET
+        name = excluded.name,
+        template = excluded.template,
+        description = excluded.description,
+        is_built_in = excluded.is_built_in,
+        updated_at = datetime('now')
+    `);
+
+    stmt.run(
+      prompt.id,
+      prompt.name,
+      prompt.template,
+      prompt.description || null,
+      prompt.isBuiltIn ? 1 : 0
+    );
+  }
+
+  /**
+   * Get a prompt by ID
+   */
+  getPrompt(promptId: string): StoredPrompt | null {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare(`
+      SELECT id, name, template, description, is_built_in as isBuiltIn,
+             created_at as createdAt, updated_at as updatedAt
+      FROM prompts WHERE id = ?
+    `);
+
+    const result = stmt.get(promptId) as (Omit<StoredPrompt, 'isBuiltIn'> & { isBuiltIn: number }) | undefined;
+    if (!result) return null;
+
+    return {
+      ...result,
+      isBuiltIn: result.isBuiltIn === 1,
+    };
+  }
+
+  /**
+   * List all custom prompts (not built-in)
+   */
+  listPrompts(): StoredPrompt[] {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare(`
+      SELECT id, name, template, description, is_built_in as isBuiltIn,
+             created_at as createdAt, updated_at as updatedAt
+      FROM prompts WHERE is_built_in = 0
+      ORDER BY name ASC
+    `);
+
+    const results = stmt.all() as Array<Omit<StoredPrompt, 'isBuiltIn'> & { isBuiltIn: number }>;
+    return results.map((r) => ({
+      ...r,
+      isBuiltIn: r.isBuiltIn === 1,
+    }));
+  }
+
+  /**
+   * Delete a prompt
+   */
+  deletePrompt(promptId: string): boolean {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare('DELETE FROM prompts WHERE id = ? AND is_built_in = 0');
+    const result = stmt.run(promptId);
+    return result.changes > 0;
   }
 
   /**

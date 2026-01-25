@@ -227,6 +227,25 @@ export interface ContextConfiguration {
   recentEventsToKeep: number;
 }
 
+// Prompt library types
+export interface StoredPrompt {
+  id: string;
+  name: string;
+  template: string;
+  description: string | null;
+  isBuiltIn: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PromptInput {
+  id: string;
+  name: string;
+  template: string;
+  description?: string;
+  isBuiltIn: boolean;
+}
+
 // Expose protected methods to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
   // Permissions
@@ -381,6 +400,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('contextManager:getConfiguration'),
   contextManagerGetSummaries: (sessionId: string): Promise<CompactionSummary[]> =>
     ipcRenderer.invoke('contextManager:getSummaries', sessionId),
+
+  // Prompt library
+  promptSave: (prompt: PromptInput): Promise<void> =>
+    ipcRenderer.invoke('prompt:save', prompt),
+  promptGet: (promptId: string): Promise<StoredPrompt | null> =>
+    ipcRenderer.invoke('prompt:get', promptId),
+  promptListAll: (): Promise<StoredPrompt[]> =>
+    ipcRenderer.invoke('prompt:listAll'),
+  promptDelete: (promptId: string): Promise<boolean> =>
+    ipcRenderer.invoke('prompt:delete', promptId),
 });
 
 // Type declaration for the renderer
@@ -466,6 +495,12 @@ declare global {
       }) => Promise<void>;
       contextManagerGetConfiguration: () => Promise<ContextConfiguration>;
       contextManagerGetSummaries: (sessionId: string) => Promise<CompactionSummary[]>;
+
+      // Prompt library
+      promptSave: (prompt: PromptInput) => Promise<void>;
+      promptGet: (promptId: string) => Promise<StoredPrompt | null>;
+      promptListAll: () => Promise<StoredPrompt[]>;
+      promptDelete: (promptId: string) => Promise<boolean>;
     };
   }
 }

@@ -5,7 +5,7 @@ import { checkAllPermissions, openSystemPreferences } from './main/permissions';
 import { readDirectory, readFileContent, listAllFiles, searchInFiles, FileNode, FileContent, QuickOpenFile, SearchResult } from './main/services/FileSystemService';
 import { agentService, type AgentSession, type StreamChunk, type CreateSessionOptions, type SendMessageOptions, type MessageParam } from './main/services/AgentService';
 import { databaseService } from './main/services/DatabaseService';
-import type { SessionInput, DocumentInput, StoredSession, StoredDocument } from './main/services/DatabaseService';
+import type { SessionInput, DocumentInput, StoredSession, StoredDocument, PromptInput, StoredPrompt } from './main/services/DatabaseService';
 import { secureStorageService, type ApiKeyType } from './main/services/SecureStorageService';
 import { modelRouter, type TaskClassification, type TaskType, type ModelId, CLAUDE_MODELS } from './main/services/ModelRouter';
 import { contextManager, type ContextEvent, type CompactionResult, type ContextStats, type CompactionSummary } from './main/services/ContextManager';
@@ -298,6 +298,23 @@ function registerIpcHandlers() {
   ipcMain.handle('contextManager:getSummaries', (_, sessionId: string): CompactionSummary[] => {
     const context = contextManager.getOrCreateSession(sessionId);
     return context.summaries;
+  });
+
+  // Prompt library handlers
+  ipcMain.handle('prompt:save', (_, prompt: PromptInput): void => {
+    databaseService.savePrompt(prompt);
+  });
+
+  ipcMain.handle('prompt:get', (_, promptId: string): StoredPrompt | null => {
+    return databaseService.getPrompt(promptId);
+  });
+
+  ipcMain.handle('prompt:listAll', (): StoredPrompt[] => {
+    return databaseService.listPrompts();
+  });
+
+  ipcMain.handle('prompt:delete', (_, promptId: string): boolean => {
+    return databaseService.deletePrompt(promptId);
   });
 }
 

@@ -5,9 +5,11 @@
  * - Input field for edit instructions
  * - Model selector dropdown (auto-selects Sonnet for inline edits, allows override)
  * - Generate button to send request to AI
+ * - Prompt library for reusable prompts
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { ModelSelector, TaskClassification } from '../models';
+import { PromptLibrary, Prompt } from '../prompt-library';
 
 export interface InlineEditOverlayProps {
   /** Whether the overlay is visible */
@@ -38,6 +40,7 @@ export function InlineEditOverlay({
   const [instruction, setInstruction] = useState('');
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const [classification, setClassification] = useState<TaskClassification | null>(null);
+  const [showPromptLibrary, setShowPromptLibrary] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
 
@@ -45,6 +48,7 @@ export function InlineEditOverlay({
   useEffect(() => {
     if (isOpen) {
       setInstruction('');
+      setShowPromptLibrary(false);
       // Auto-classify for inline edit task type (defaults to Sonnet)
       window.electronAPI.modelRouterClassifyTask('', { taskType: 'inline_edit' }).then((result) => {
         setClassification(result);
@@ -54,6 +58,17 @@ export function InlineEditOverlay({
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [isOpen]);
+
+  // Handle prompt library selection
+  const handlePromptSelect = useCallback(
+    (processedPrompt: string, _originalPrompt: Prompt) => {
+      setInstruction(processedPrompt);
+      setShowPromptLibrary(false);
+      // Focus the input after selecting
+      setTimeout(() => inputRef.current?.focus(), 50);
+    },
+    []
+  );
 
   // Re-classify when instruction changes significantly
   useEffect(() => {
@@ -202,11 +217,38 @@ export function InlineEditOverlay({
         </div>
       </div>
 
-      {/* Instruction input */}
+      {/* Instruction input with prompt library toggle */}
       <div className="mb-3">
-        <label htmlFor="edit-instruction" className="text-xs text-gray-500 dark:text-gray-400 block mb-1">
-          How should this be edited?
-        </label>
+        <div className="flex items-center justify-between mb-1">
+          <label htmlFor="edit-instruction" className="text-xs text-gray-500 dark:text-gray-400">
+            How should this be edited?
+          </label>
+          <button
+            onClick={() => setShowPromptLibrary(!showPromptLibrary)}
+            className={`text-xs px-2 py-0.5 rounded flex items-center gap-1 transition-colors ${
+              showPromptLibrary
+                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+            }`}
+            aria-label={showPromptLibrary ? 'Hide prompt library' : 'Show prompt library'}
+            aria-expanded={showPromptLibrary}
+          >
+            <span role="img" aria-hidden="true">📚</span>
+            Prompts
+          </button>
+        </div>
+
+        {/* Prompt Library Panel */}
+        {showPromptLibrary && (
+          <div className="mb-2 border border-gray-200 dark:border-gray-700 rounded-lg p-2 bg-gray-50/50 dark:bg-gray-900/50">
+            <PromptLibrary
+              selectedText={selectedText}
+              onSelect={handlePromptSelect}
+              onClose={() => setShowPromptLibrary(false)}
+            />
+          </div>
+        )}
+
         <textarea
           ref={inputRef}
           id="edit-instruction"
