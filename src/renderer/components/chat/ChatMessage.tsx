@@ -1,4 +1,6 @@
 import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
 
 export interface ChatMessageData {
   id: string;
@@ -32,13 +34,14 @@ export function ChatMessage({ message }: ChatMessageProps) {
         ) : (
           <div className="prose prose-sm dark:prose-invert max-w-none">
             <Markdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeHighlight]}
               components={{
-                // Custom rendering for code blocks
+                // Custom rendering for inline code (rehype-highlight handles code blocks)
                 code: ({ className, children, ...props }) => {
-                  const match = /language-(\w+)/.exec(className || '');
-                  const isInline = !match && !className;
-
-                  if (isInline) {
+                  // If no className, it's inline code - style it manually
+                  // If className exists (from rehype-highlight), use it as-is
+                  if (!className) {
                     return (
                       <code
                         className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-sm"
@@ -55,7 +58,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
                     </code>
                   );
                 },
-                // Style pre blocks
+                // Style pre blocks for code
                 pre: ({ children }) => (
                   <pre className="bg-gray-900 dark:bg-gray-950 text-gray-100 p-3 rounded-lg overflow-x-auto text-sm">
                     {children}
@@ -71,6 +74,39 @@ export function ChatMessage({ message }: ChatMessageProps) {
                   >
                     {children}
                   </a>
+                ),
+                // Style tables (GFM feature)
+                table: ({ children }) => (
+                  <div className="overflow-x-auto my-4">
+                    <table className="min-w-full border-collapse border border-gray-300 dark:border-gray-600">
+                      {children}
+                    </table>
+                  </div>
+                ),
+                thead: ({ children }) => (
+                  <thead className="bg-gray-100 dark:bg-gray-700">{children}</thead>
+                ),
+                th: ({ children }) => (
+                  <th className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left font-semibold">
+                    {children}
+                  </th>
+                ),
+                td: ({ children }) => (
+                  <td className="border border-gray-300 dark:border-gray-600 px-3 py-2">
+                    {children}
+                  </td>
+                ),
+                // Style task lists (GFM feature)
+                input: (props) => (
+                  <input
+                    {...props}
+                    className="mr-2 h-4 w-4 rounded border-gray-300 dark:border-gray-600"
+                    disabled
+                  />
+                ),
+                // Style strikethrough (GFM feature)
+                del: ({ children }) => (
+                  <del className="text-gray-500 dark:text-gray-400 line-through">{children}</del>
                 ),
               }}
             >
