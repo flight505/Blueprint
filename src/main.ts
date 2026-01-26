@@ -17,6 +17,7 @@ import { docxGenerator, type DOCXGenerationOptions, type DOCXGenerationResult, t
 import { pptxGenerator, type PPTXGenerationOptions, type PPTXGenerationResult, type PPTXSection, PPTX_THEMES } from './main/services/PPTXGenerator';
 import { phaseOrchestrator, type PhaseOrchestratorConfig, type ProjectExecutionState, type PhaseState } from './main/services/PhaseOrchestrator';
 import { updateService, type UpdateStatus, type UpdateInfo } from './main/services/UpdateService';
+import { citationVerificationService, type CitationQuery, type VerificationResult } from './main/services/CitationVerificationService';
 
 // Register IPC handlers
 function registerIpcHandlers() {
@@ -564,6 +565,23 @@ function registerIpcHandlers() {
     return citationManager.getCitationFilePath(documentPath);
   });
 
+  // Citation verification handlers (OpenAlex + Crossref APIs)
+  ipcMain.handle('citationVerification:verifyCitation', async (_, query: CitationQuery): Promise<VerificationResult> => {
+    return await citationVerificationService.verifyCitation(query);
+  });
+
+  ipcMain.handle('citationVerification:verifyCitations', async (_, queries: CitationQuery[]): Promise<Map<number, VerificationResult>> => {
+    return await citationVerificationService.verifyCitations(queries);
+  });
+
+  ipcMain.handle('citationVerification:clearCache', (): number => {
+    return citationVerificationService.clearCache();
+  });
+
+  ipcMain.handle('citationVerification:getCacheStats', (): { totalEntries: number; expiredEntries: number; cacheSize: number } => {
+    return citationVerificationService.getCacheStats();
+  });
+
   // PDF Generator handlers
   ipcMain.handle('pdf:isPandocAvailable', async (): Promise<boolean> => {
     return await pdfGenerator.isPandocAvailable();
@@ -930,6 +948,7 @@ app.on('ready', async () => {
   // Initialize services
   databaseService.initialize();
   secureStorageService.initialize();
+  citationVerificationService.initialize();
 
   // Initialize context manager with API key if available
   const anthropicKey = await secureStorageService.getApiKey('anthropic');
@@ -974,6 +993,7 @@ app.on('window-all-closed', () => {
 // Clean up database on quit
 app.on('will-quit', () => {
   databaseService.close();
+  citationVerificationService.close();
 });
 
 app.on('activate', () => {

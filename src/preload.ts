@@ -440,6 +440,44 @@ export interface AddCitationInput {
   offset?: number;
 }
 
+// Citation verification types
+export interface CitationVerificationResult {
+  status: 'verified' | 'partial' | 'unverified' | 'error';
+  confidence: number;
+  source: 'openalex' | 'crossref' | 'cache' | null;
+  matchedData?: VerifiedCitationData;
+  error?: string;
+  fromCache: boolean;
+}
+
+export interface VerifiedCitationData {
+  doi?: string;
+  title?: string;
+  authors?: string[];
+  year?: number;
+  publicationDate?: string;
+  venue?: string;
+  publisher?: string;
+  openAlexId?: string;
+  citedByCount?: number;
+  abstract?: string;
+  type?: string;
+}
+
+export interface CitationVerificationQuery {
+  title?: string;
+  authors?: string[];
+  doi?: string;
+  year?: number;
+  url?: string;
+}
+
+export interface CitationVerificationCacheStats {
+  totalEntries: number;
+  expiredEntries: number;
+  cacheSize: number;
+}
+
 // PDF generation types
 export interface PDFGenerationOptions {
   includeToc?: boolean;
@@ -983,6 +1021,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
   citationGetCitationFilePath: (documentPath: string): Promise<string> =>
     ipcRenderer.invoke('citation:getCitationFilePath', documentPath),
 
+  // Citation verification (OpenAlex + Crossref APIs)
+  citationVerifyCitation: (query: CitationVerificationQuery): Promise<CitationVerificationResult> =>
+    ipcRenderer.invoke('citationVerification:verifyCitation', query),
+  citationVerifyCitations: (queries: CitationVerificationQuery[]): Promise<Map<number, CitationVerificationResult>> =>
+    ipcRenderer.invoke('citationVerification:verifyCitations', queries),
+  citationVerificationClearCache: (): Promise<number> =>
+    ipcRenderer.invoke('citationVerification:clearCache'),
+  citationVerificationGetCacheStats: (): Promise<CitationVerificationCacheStats> =>
+    ipcRenderer.invoke('citationVerification:getCacheStats'),
+
   // PDF generation
   pdfIsPandocAvailable: (): Promise<boolean> =>
     ipcRenderer.invoke('pdf:isPandocAvailable'),
@@ -1346,6 +1394,12 @@ declare global {
       citationGetCitationCount: (documentPath: string) => Promise<number>;
       citationDeleteCitationFile: (documentPath: string) => Promise<boolean>;
       citationGetCitationFilePath: (documentPath: string) => Promise<string>;
+
+      // Citation verification
+      citationVerifyCitation: (query: CitationVerificationQuery) => Promise<CitationVerificationResult>;
+      citationVerifyCitations: (queries: CitationVerificationQuery[]) => Promise<Map<number, CitationVerificationResult>>;
+      citationVerificationClearCache: () => Promise<number>;
+      citationVerificationGetCacheStats: () => Promise<CitationVerificationCacheStats>;
 
       // PDF generation
       pdfIsPandocAvailable: () => Promise<boolean>;
