@@ -35,6 +35,20 @@ Started: Sun Jan 25 21:44:33 CET 2026
 - Auto-update: electron-updater with GitHub Releases provider; UpdateService singleton in main process; check delayed 3s after app ready; autoDownload=false for user control; UpdateNotification component with useUpdate hook for UI
 - Confidence Scoring: ConfidenceScoringService uses heuristic-based scoring (hedging words, assertions, factual indicators, citations); default threshold 0.6; Anthropic API doesn't support logprobs so service is extensible for future integration; streaming support via `processStreamingText()` with callback for updates
 - Confidence Indicators: ConfidenceIndicator Tiptap extension with ProseMirror Decoration.inline for underlines; ConfidenceTooltip uses CustomEvent listeners for hover; useConfidenceIndicators hook maps paragraph indices to document positions; CSS uses `text-decoration-style: wavy` for low confidence
+- Citation Verification Panel: CitationVerificationPanel component at src/renderer/components/citation/; uses citationLoadCitations and citationVerifyCitation from preload API; integrated as tab in Context section; shows status badges (Verified/Partial/Unverified/Pending) with source (OpenAlex/Crossref); Verify All button for batch verification
+
+## 2026-01-26 - US-060
+- Implemented Citation Verification Panel
+- Files changed:
+  - src/renderer/components/citation/CitationVerificationPanel.tsx (new) - Main panel component
+  - src/renderer/components/citation/index.ts (new) - Component exports
+  - src/renderer/App.tsx - Integrated panel as tab in Context section, added props for document path and scroll callback
+- **Learnings:**
+  - Use useState with tab state inside LeftPaneContent for section sub-tabs since component function can't be easily extracted
+  - CitationVerificationService already has full IPC handlers exposed via preload (citationVerifyCitation, etc.)
+  - Status badges use color-coded backgrounds: green (verified), yellow (partial), red (unverified), gray (pending/error)
+  - Batch verification should be sequential to respect API rate limits
+---
 
 ## 2026-01-26 - US-059
 - Implemented Inline Confidence Indicators
@@ -3568,3 +3582,35 @@ I implemented a comprehensive confidence scoring system for the Blueprint Electr
 - ✅ Configurable threshold for low-confidence alerts (default: 0.6)
 - ✅ Typecheck passes
 - ✅ All 107 tests pass
+
+=== Iteration 59 Mon Jan 26 02:31:17 CET 2026 ===
+There are still 3 stories with `passes: false`. US-059 is complete and another iteration will pick up the next story (US-060).
+
+**Summary of US-059 Implementation:**
+
+Implemented inline confidence indicators for the Tiptap editor:
+
+1. **ConfidenceIndicator Extension** (`src/renderer/components/editor/extensions/ConfidenceIndicator.ts`):
+   - Tiptap extension using ProseMirror `Decoration.inline` for color-coded underlines
+   - Green for high confidence (>0.8), amber for medium (0.6-0.8), red wavy for low (<0.6)
+   - Module-level storage pattern for cross-component data sharing
+   - DOM event handlers dispatch CustomEvents for tooltip positioning
+
+2. **ConfidenceTooltip Component** (`src/renderer/components/confidence/ConfidenceTooltip.tsx`):
+   - Shows confidence percentage, progress bar, and human-readable reasoning
+   - Positioned dynamically based on DOMRect from hover events
+   - Accessible with ARIA attributes and screen reader content
+
+3. **useConfidenceIndicators Hook** (`src/renderer/hooks/useConfidenceIndicators.ts`):
+   - Integrates with ConfidenceScoringService via IPC
+   - Maps paragraph indices to ProseMirror positions for decorations
+   - Supports auto-compute on content change with debouncing
+
+4. **CSS Styles** (`src/renderer/index.css`):
+   - Color-coded underlines with hover background highlight
+   - Dark mode and high-contrast mode support
+   - Wavy underline for low confidence (visual distinction)
+
+5. **View Menu Toggle**:
+   - Added `view:toggle-confidence` command to command palette
+   - Persisted in store's UIPreferences (localStorage)
