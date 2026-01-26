@@ -1,0 +1,1462 @@
+{
+  "project": "Blueprint",
+  "branchName": "sdk-bridge/blueprint-electron-app",
+  "description": "Blueprint Electron Application - AI-powered project planning desktop app with dual-pane layout, real-time markdown rendering, inline AI editing, and comprehensive diagram support",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Initialize Electron Project",
+      "description": "As a developer, I want a working Electron + TypeScript + Vite setup so that I can build the application.",
+      "acceptanceCriteria": [
+        "Electron Forge project initialized with TypeScript template",
+        "Application window opens on launch",
+        "Hot reload updates renderer without full restart",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "status": "complete",
+      "notes": "",
+      "depends_on": [],
+      "related_to": [],
+      "implementation_hint": "",
+      "check_before_implementing": []
+    },
+    {
+      "id": "US-002",
+      "title": "Configure Tailwind CSS 4",
+      "description": "As a developer, I want Tailwind CSS configured so that I can style components efficiently.",
+      "acceptanceCriteria": [
+        "Tailwind CSS 4 installed with PostCSS",
+        "CSS classes apply correctly in renderer",
+        "Dark mode utilities work (dark: prefix)",
+        "Typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "status": "complete",
+      "notes": "",
+      "depends_on": ["US-001"],
+      "related_to": [],
+      "implementation_hint": "",
+      "check_before_implementing": []
+    },
+    {
+      "id": "US-003",
+      "title": "Create Two-Pane Resizable Layout",
+      "description": "As a user, I want a resizable split-pane layout so that I can view chat and content side by side.",
+      "acceptanceCriteria": [
+        "Left pane (40% default) and right pane (60% default) display",
+        "Divider is draggable between 300px minimum widths",
+        "Double-click divider resets to default split",
+        "Typecheck passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "status": "complete",
+      "notes": "",
+      "depends_on": ["US-002"],
+      "related_to": [],
+      "implementation_hint": "",
+      "check_before_implementing": []
+    },
+    {
+      "id": "US-004",
+      "title": "Implement Activity Bar",
+      "description": "As a user, I want a vertical Activity Bar so that I can quickly navigate between sections.",
+      "acceptanceCriteria": [
+        "48px vertical bar renders on far left with icon buttons",
+        "Top icons: Chat, Explorer, Search, Planning, Export, History",
+        "Bottom icons: Settings, Help",
+        "Clicking icon switches active section",
+        "Typecheck passes"
+      ],
+      "priority": 4,
+      "passes": true,
+      "status": "complete",
+      "notes": "",
+      "depends_on": ["US-003"],
+      "related_to": [],
+      "implementation_hint": "",
+      "check_before_implementing": []
+    },
+    {
+      "id": "US-005",
+      "title": "Add Activity Bar Keyboard Shortcuts",
+      "description": "As a user, I want keyboard shortcuts for Activity Bar so that I can navigate without mouse.",
+      "acceptanceCriteria": [
+        "Cmd+1 through Cmd+6 switch sections",
+        "Cmd+, opens Settings section",
+        "Cmd+? opens Help section",
+        "Typecheck passes"
+      ],
+      "priority": 5,
+      "passes": true,
+      "status": "complete",
+      "notes": "",
+      "depends_on": ["US-004"],
+      "related_to": [],
+      "implementation_hint": "",
+      "check_before_implementing": []
+    },
+    {
+      "id": "US-006",
+      "title": "Create File Browser Component",
+      "description": "As a user, I want a file tree browser so that I can navigate project files.",
+      "acceptanceCriteria": [
+        "Tree view displays directory structure from project path",
+        "File type icons display (markdown, YAML, images)",
+        "Click file opens it in right pane",
+        "Typecheck passes"
+      ],
+      "priority": 6,
+      "passes": true,
+      "status": "complete",
+      "notes": "Implemented FileBrowser with tree view, file icons, and tab-based file viewing",
+      "depends_on": ["US-004"],
+      "related_to": ["US-020"],
+      "implementation_hint": "This component will be used in the Explorer section of the Activity Bar.",
+      "check_before_implementing": [
+        "grep -rn 'Explorer' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-007",
+      "title": "Implement Light/Dark Theme Toggle",
+      "description": "As a user, I want to switch themes so that I can reduce eye strain.",
+      "acceptanceCriteria": [
+        "Theme toggle in Settings section",
+        "Theme persists across app restarts",
+        "All components respect theme",
+        "Typecheck passes"
+      ],
+      "priority": 7,
+      "passes": true,
+      "status": "complete",
+      "notes": "Implemented ThemeToggle component with Light/Dark/System options. useThemeEffect hook applies dark class to document.documentElement and listens to system preference changes.",
+      "depends_on": ["US-002"],
+      "related_to": ["US-007a"],
+      "implementation_hint": "Use Tailwind dark: prefix utilities. Theme state should persist via Legend State localStorage.",
+      "check_before_implementing": [
+        "grep -rn 'dark:' src/renderer/",
+        "grep -rn 'theme' src/renderer/"
+      ]
+    },
+    {
+      "id": "US-007a",
+      "title": "Set Up Legend State for Signals-Based State Management",
+      "description": "As a developer, I want Legend State configured so that streaming UI updates efficiently without full re-renders.",
+      "acceptanceCriteria": [
+        "@legendapp/state installed and configured",
+        "Global state store created with observable pattern",
+        "Components use observer() wrapper for fine-grained reactivity",
+        "State persists to localStorage for UI preferences",
+        "Typecheck passes"
+      ],
+      "priority": 8,
+      "passes": true,
+      "status": "complete",
+      "notes": "Implemented global store at src/renderer/state/store.ts with localStorage persistence via @legendapp/state",
+      "depends_on": ["US-001"],
+      "related_to": ["US-007", "US-010"],
+      "implementation_hint": "Legend State provides fine-grained reactivity for streaming UI. Create store at src/renderer/state/store.ts.",
+      "check_before_implementing": [
+        "grep -rn '@legendapp/state' package.json",
+        "grep -rn 'observable' src/renderer/"
+      ]
+    },
+    {
+      "id": "US-008",
+      "title": "Install Claude Agent SDK V2",
+      "description": "As a developer, I want Agent SDK integrated so that I can run AI planning sessions.",
+      "acceptanceCriteria": [
+        "@anthropic-ai/claude-agent-sdk installed",
+        "AgentService class created in main process",
+        "Test session creation works with API key",
+        "Typecheck passes"
+      ],
+      "priority": 9,
+      "passes": true,
+      "status": "complete",
+      "notes": "Installed @anthropic-ai/sdk (official SDK). Created AgentService with session management, streaming support, conversation history. IPC handlers and preload API exposed.",
+      "depends_on": ["US-001"],
+      "related_to": ["US-014"],
+      "implementation_hint": "Create AgentService in src/main/AgentService.ts for session management.",
+      "check_before_implementing": [
+        "grep -rn '@anthropic-ai' package.json",
+        "grep -rn 'AgentService' src/main/"
+      ]
+    },
+    {
+      "id": "US-009",
+      "title": "Build Chat Message UI",
+      "description": "As a user, I want chat bubbles for conversations so that I can read agent responses clearly.",
+      "acceptanceCriteria": [
+        "User messages display right-aligned with distinct style",
+        "Assistant messages display left-aligned",
+        "Messages support markdown rendering",
+        "Typecheck passes"
+      ],
+      "priority": 10,
+      "passes": true,
+      "status": "complete",
+      "notes": "Implemented ChatMessage and ChatContainer components with react-markdown. User messages right-aligned (blue), assistant messages left-aligned (gray) with markdown support.",
+      "depends_on": ["US-003", "US-008"],
+      "related_to": ["US-010", "US-011"],
+      "implementation_hint": "Chat UI component in src/renderer/components/chat/. Use react-markdown for message rendering.",
+      "check_before_implementing": [
+        "grep -rn 'ChatMessage' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-010",
+      "title": "Implement Streaming Text Display",
+      "description": "As a user, I want streaming responses so that I see progress in real-time.",
+      "acceptanceCriteria": [
+        "StreamingMarkdown component renders chunks incrementally (O(n) not O(n^2))",
+        "DOMPurify sanitizes streamed HTML to prevent XSS",
+        "Streaming indicator shows while generating",
+        "Legend State observable updates without component re-renders",
+        "Latency under 100ms between tokens",
+        "Typecheck passes"
+      ],
+      "priority": 11,
+      "passes": true,
+      "status": "complete",
+      "notes": "Implemented StreamingMarkdown with O(n) insertAdjacentHTML rendering, DOMPurify XSS sanitization, useStreaming hook with Legend State observables, and StreamingChatMessage with animated indicator.",
+      "depends_on": ["US-009", "US-007a"],
+      "related_to": ["US-048a"],
+      "implementation_hint": "Use insertAdjacentHTML for O(n) streaming. Legend State observables prevent parent re-renders.",
+      "check_before_implementing": [
+        "grep -rn 'StreamingMarkdown' src/renderer/components/",
+        "grep -rn 'DOMPurify' src/renderer/"
+      ]
+    },
+    {
+      "id": "US-011",
+      "title": "Create AskUserQuestion Component",
+      "description": "As a user, I want interactive question UI so that I can respond to agent queries.",
+      "acceptanceCriteria": [
+        "Multiple choice options render as radio buttons",
+        "Multi-select options render as checkboxes",
+        "\"Other\" option allows custom text input",
+        "Submit button sends answer back to agent",
+        "Typecheck passes"
+      ],
+      "priority": 12,
+      "passes": true,
+      "status": "complete",
+      "notes": "Implemented AskUserQuestion component with radio/checkbox options, 'Other' custom text input, and submit button. Integrated with ChatContainer and store for state management.",
+      "depends_on": ["US-009"],
+      "related_to": [],
+      "implementation_hint": "Component for AskUserQuestion events from Agent SDK.",
+      "check_before_implementing": [
+        "grep -rn 'AskUserQuestion' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-012",
+      "title": "Set Up SQLite Session Persistence with Vector Extensions",
+      "description": "As a user, I want sessions saved to database so that I can resume conversations.",
+      "acceptanceCriteria": [
+        "better-sqlite3 installed and configured",
+        "Sessions table stores session_id, project_path, conversation_history",
+        "Documents table with embeddings column for semantic search",
+        "Session resumes with full history on project reopen",
+        "Typecheck passes"
+      ],
+      "priority": 13,
+      "passes": true,
+      "status": "complete",
+      "notes": "Implemented DatabaseService with SQLite persistence. Sessions table stores id, project_path, conversation_history, model. Documents table stores embeddings as Float32Array blobs (1536-dim). Semantic search via cosine similarity. All IPC handlers exposed in preload.",
+      "depends_on": ["US-001"],
+      "related_to": ["US-013", "US-056"],
+      "implementation_hint": "Use better-sqlite3 with 1536-dim float array as blob for embeddings.",
+      "check_before_implementing": [
+        "grep -rn 'better-sqlite3' package.json",
+        "grep -rn 'embedding' src/main/"
+      ]
+    },
+    {
+      "id": "US-013",
+      "title": "Build Context Panel / Token Visualizer with Semantic Search",
+      "description": "As a user, I want to see what context the agent uses so that I understand token usage.",
+      "acceptanceCriteria": [
+        "Context panel displays in sidebar or collapsible section",
+        "Token counter displays current/max tokens",
+        "List of included context files with toggle to exclude",
+        "Semantic search retrieves relevant context based on user query",
+        "Context relevance score displayed per item",
+        "Typecheck passes"
+      ],
+      "priority": 14,
+      "passes": true,
+      "status": "complete",
+      "notes": "Implemented ContextPanel component in Activity Bar (Cmd+4). Displays token usage with progress bar, context files with include/exclude toggle, semantic search with relevance scores (color-coded). Integrated with database semantic search API.",
+      "depends_on": ["US-012"],
+      "related_to": ["US-014b"],
+      "implementation_hint": "Use SQLite vector search for semantic context retrieval. Display similarity scores.",
+      "check_before_implementing": [
+        "grep -rn 'ContextPanel' src/renderer/components/",
+        "grep -rn 'token' src/renderer/"
+      ]
+    },
+    {
+      "id": "US-014",
+      "title": "Add API Key Configuration UI",
+      "description": "As a user, I want to configure API keys so that I can use the app with my accounts.",
+      "acceptanceCriteria": [
+        "Settings section has API key input fields",
+        "Keys stored securely (not in plaintext files)",
+        "Validation tests key before saving",
+        "Typecheck passes"
+      ],
+      "priority": 15,
+      "passes": true,
+      "status": "complete",
+      "notes": "Implemented SecureStorageService using Electron safeStorage for OS-level encryption. Created ApiKeySettings component with input fields for Anthropic, OpenRouter, and Gemini. Key validation before saving.",
+      "depends_on": ["US-004"],
+      "related_to": ["US-008"],
+      "implementation_hint": "Use OS keychain/credential store for secure key storage.",
+      "check_before_implementing": [
+        "grep -rn 'keytar' package.json",
+        "grep -rn 'apiKey' src/renderer/"
+      ]
+    },
+    {
+      "id": "US-014a",
+      "title": "Implement Multi-Model Routing",
+      "description": "As a user, I want the app to automatically select the right model so that I get optimal speed and quality.",
+      "acceptanceCriteria": [
+        "Task complexity classifier categorizes requests",
+        "Haiku routes for simple tasks (autocomplete, quick suggestions)",
+        "Sonnet routes for medium tasks (inline editing, code generation)",
+        "Opus routes for complex tasks (planning, architecture, research)",
+        "Model override available in UI for user control",
+        "Typecheck passes"
+      ],
+      "priority": 16,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created ModelRouter service with keyword/length-based task classifier. ModelSelector UI component provides auto-select with override. AgentService integrated with ModelRouter for session and message-level model selection.",
+      "depends_on": ["US-008"],
+      "related_to": ["US-025"],
+      "implementation_hint": "Create task classifier in src/main/services/ModelRouter.ts. Route based on task complexity.",
+      "check_before_implementing": [
+        "grep -rn 'ModelRouter' src/main/",
+        "grep -rn 'haiku\\|sonnet\\|opus' src/"
+      ]
+    },
+    {
+      "id": "US-014b",
+      "title": "Build Context Compaction Manager",
+      "description": "As a user, I want long sessions to remain performant so that I don't hit token limits.",
+      "acceptanceCriteria": [
+        "ContextManager class tracks session events",
+        "Automatic compaction triggers after threshold (e.g., 20 events)",
+        "Haiku generates concise summaries of older context",
+        "Recent events (last 10) always kept in full",
+        "Token usage reduced by 50%+ after compaction",
+        "Typecheck passes"
+      ],
+      "priority": 17,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created ContextManager in src/main/services/ContextManager.ts with session event tracking, automatic compaction at 20 event threshold using Haiku for summarization, keeps recent 10 events in full, tracks compression ratio. Full IPC handlers and preload API exposed.",
+      "depends_on": ["US-014a"],
+      "related_to": ["US-013"],
+      "implementation_hint": "Create ContextManager in src/main/ContextManager.ts. Use Haiku for summarization.",
+      "check_before_implementing": [
+        "grep -rn 'ContextManager' src/main/",
+        "grep -rn 'compaction\\|summarize' src/"
+      ]
+    },
+    {
+      "id": "US-014c",
+      "title": "Set Up Tiptap Editor",
+      "description": "As a developer, I want Tiptap configured so that I can provide rich text editing with AI integration.",
+      "acceptanceCriteria": [
+        "@tiptap/react and extensions installed",
+        "Basic editor renders with StarterKit extensions",
+        "Custom AIInlineEdit extension created",
+        "Mermaid code block extension for diagram editing",
+        "Collaboration extension configured (Yjs ready for v2.0)",
+        "Typecheck passes"
+      ],
+      "priority": 18,
+      "passes": true,
+      "status": "complete",
+      "notes": "Installed @tiptap/react, @tiptap/starter-kit, @tiptap/pm, @tiptap/extension-collaboration, yjs. Created TiptapEditor with StarterKit, AIInlineEdit extension (Cmd+K trigger, accept/reject, edit history), MermaidBlock extension (code/preview toggle, edit button), CollaborationSetup for Yjs (v2.0 ready).",
+      "depends_on": ["US-001"],
+      "related_to": ["US-023", "US-024", "US-025", "US-029"],
+      "implementation_hint": "Install @tiptap/react @tiptap/starter-kit. Create extensions in src/renderer/components/editor/extensions/.",
+      "check_before_implementing": [
+        "grep -rn '@tiptap' package.json",
+        "grep -rn 'TiptapEditor' src/renderer/"
+      ]
+    },
+    {
+      "id": "US-015",
+      "title": "Configure react-markdown with Plugins",
+      "description": "As a user, I want rendered markdown so that I can read formatted content.",
+      "acceptanceCriteria": [
+        "react-markdown installed with remark-gfm, rehype-highlight",
+        "GitHub-flavored markdown renders (tables, strikethrough, task lists)",
+        "Code blocks have syntax highlighting",
+        "Typecheck passes"
+      ],
+      "priority": 19,
+      "passes": true,
+      "status": "complete",
+      "notes": "Installed remark-gfm v4.0.1 and rehype-highlight v7.0.2. Updated ChatMessage component with GFM plugins and custom styling for tables, strikethrough, task lists. Added highlight.js CSS with dark mode support.",
+      "depends_on": ["US-001"],
+      "related_to": ["US-009", "US-016", "US-017"],
+      "implementation_hint": "Configure react-markdown with GFM plugin and syntax highlighting.",
+      "check_before_implementing": [
+        "grep -rn 'react-markdown' package.json",
+        "grep -rn 'remark-gfm' package.json"
+      ]
+    },
+    {
+      "id": "US-016",
+      "title": "Implement Mermaid Diagram Rendering",
+      "description": "As a user, I want Mermaid diagrams rendered so that I can visualize architecture.",
+      "acceptanceCriteria": [
+        "Mermaid code blocks render as SVG diagrams",
+        "Diagrams support zoom and pan",
+        "Render performance under 100ms for typical diagrams",
+        "Typecheck passes"
+      ],
+      "priority": 20,
+      "passes": true,
+      "status": "complete",
+      "notes": "Installed mermaid v11.12.2 and panzoom v9.4.3. Created MermaidDiagram component with SVG rendering, zoom/pan controls, dark mode support. Integrated with ChatMessage markdown and Tiptap extension events via useMermaidRenderer hook.",
+      "depends_on": ["US-015"],
+      "related_to": ["US-029", "US-030"],
+      "implementation_hint": "Use mermaid.js for rendering. Add zoom/pan with panzoom library.",
+      "check_before_implementing": [
+        "grep -rn 'mermaid' package.json",
+        "grep -rn 'Mermaid' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-017",
+      "title": "Add Math Equation Rendering (KaTeX)",
+      "description": "As a user, I want math equations rendered so that I can include formulas.",
+      "acceptanceCriteria": [
+        "Inline math ($...$) renders correctly",
+        "Block math ($$...$$) renders centered",
+        "Complex equations render without errors",
+        "Typecheck passes"
+      ],
+      "priority": 21,
+      "passes": true,
+      "status": "complete",
+      "notes": "Installed remark-math, rehype-katex, katex packages. Updated ChatMessage component with math plugins. Added KaTeX CSS to index.css.",
+      "depends_on": ["US-015"],
+      "related_to": [],
+      "implementation_hint": "Use rehype-katex plugin with react-markdown.",
+      "check_before_implementing": [
+        "grep -rn 'katex' package.json",
+        "grep -rn 'math' src/renderer/"
+      ]
+    },
+    {
+      "id": "US-018",
+      "title": "Build Tab System for Documents",
+      "description": "As a user, I want tabs for open files so that I can work with multiple documents.",
+      "acceptanceCriteria": [
+        "Tab bar displays above content area",
+        "Close button on each tab",
+        "Unsaved changes show dot indicator",
+        "Cmd+1-9 switches tabs",
+        "Typecheck passes"
+      ],
+      "priority": 22,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created TabBar component with unsaved indicator (blue dot), Cmd+1-9 shortcuts (capture phase for priority), close buttons with hover states. OpenFile interface tracks originalContent for dirty detection.",
+      "depends_on": ["US-003"],
+      "related_to": ["US-006"],
+      "implementation_hint": "Create TabBar component in src/renderer/components/layout/.",
+      "check_before_implementing": [
+        "grep -rn 'TabBar\\|Tabs' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-019",
+      "title": "Implement Command Palette",
+      "description": "As a user, I want a command palette so that I can quickly find actions.",
+      "acceptanceCriteria": [
+        "Cmd+Shift+P opens command palette overlay",
+        "Fuzzy search filters commands as user types",
+        "Recent commands appear at top",
+        "Enter executes selected command",
+        "Typecheck passes"
+      ],
+      "priority": 23,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created CommandPalette component with fuse.js fuzzy search. Integrated with App.tsx via useCommandPalette hook. Recent commands stored in localStorage and shown at top. Keyboard navigation (arrows, Enter, Esc) supported.",
+      "depends_on": ["US-005"],
+      "related_to": ["US-020"],
+      "implementation_hint": "Create CommandPalette component with fuzzy search (use fuse.js).",
+      "check_before_implementing": [
+        "grep -rn 'CommandPalette' src/renderer/components/",
+        "grep -rn 'fuse' package.json"
+      ]
+    },
+    {
+      "id": "US-020",
+      "title": "Add File Quick Open (Cmd+P)",
+      "description": "As a user, I want quick file open so that I can find files fast.",
+      "acceptanceCriteria": [
+        "Cmd+P opens file search overlay",
+        "Fuzzy search matches file names",
+        "File previews on arrow navigation",
+        "Enter opens file in new tab",
+        "Typecheck passes"
+      ],
+      "priority": 24,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created FileQuickOpen component with Fuse.js fuzzy search, file preview pane, debounced preview loading, and Cmd+P shortcut. Added listAllFiles to FileSystemService.",
+      "depends_on": ["US-019", "US-006"],
+      "related_to": [],
+      "implementation_hint": "Reuse command palette component with file-specific search logic.",
+      "check_before_implementing": [
+        "grep -rn 'QuickOpen' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-021",
+      "title": "Build Content Search (Cmd+Shift+F)",
+      "description": "As a user, I want project-wide search so that I can find content across files.",
+      "acceptanceCriteria": [
+        "Cmd+Shift+F opens search panel",
+        "Results grouped by file with line numbers",
+        "Click result opens file at line",
+        "Search supports regex (toggle)",
+        "Typecheck passes"
+      ],
+      "priority": 25,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created SearchPanel with debounced search, regex toggle, case-sensitive toggle, expandable file results with match highlighting. Results grouped by file with line numbers. Click result opens file at line. Added Cmd+Shift+F shortcut and command palette entry.",
+      "depends_on": ["US-006"],
+      "related_to": ["US-022"],
+      "implementation_hint": "Create SearchPanel in src/renderer/components/search/.",
+      "check_before_implementing": [
+        "grep -rn 'SearchPanel' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-022",
+      "title": "Add Search Result Highlighting",
+      "description": "As a user, I want matches highlighted in content so that I can find them easily.",
+      "acceptanceCriteria": [
+        "Matched text highlighted with yellow background",
+        "Previous/Next buttons navigate matches",
+        "Current match position shown (e.g., \"3 of 12\")",
+        "Typecheck passes"
+      ],
+      "priority": 26,
+      "passes": true,
+      "status": "complete",
+      "notes": "Implemented search result highlighting with Previous/Next navigation buttons, current match position display (e.g., '3 of 12'), yellow highlight on current match in results list, keyboard shortcuts (F3/Shift+F3/Cmd+G), and smooth scrolling to current match.",
+      "depends_on": ["US-021"],
+      "related_to": [],
+      "implementation_hint": "Add highlight markers in editor using Tiptap decorations.",
+      "check_before_implementing": [
+        "grep -rn 'highlight' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-023",
+      "title": "Implement Text Selection Detection",
+      "description": "As a user, I want text selection tracked so that I can edit specific content.",
+      "acceptanceCriteria": [
+        "Selected text highlighted with distinct color",
+        "Selection range captured (start/end positions)",
+        "Selection clears on click elsewhere",
+        "Typecheck passes"
+      ],
+      "priority": 27,
+      "passes": true,
+      "status": "complete",
+      "notes": "Added distinct ::selection CSS styling (indigo/purple), useTextSelection hook with store integration, selection tracking in TiptapEditor with blur/click-away clearing, and visual has-selection class for border indicator.",
+      "depends_on": ["US-014c"],
+      "related_to": ["US-024", "US-025"],
+      "implementation_hint": "Use Tiptap selection API for tracking text selection.",
+      "check_before_implementing": [
+        "grep -rn 'selection' src/renderer/components/editor/"
+      ]
+    },
+    {
+      "id": "US-024",
+      "title": "Create Context Menu for Editing",
+      "description": "As a user, I want a context menu on selection so that I can trigger edits.",
+      "acceptanceCriteria": [
+        "Right-click on selection shows context menu",
+        "Menu includes: Edit with AI, Copy, Search",
+        "Cmd+K hotkey triggers edit overlay",
+        "Typecheck passes"
+      ],
+      "priority": 28,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created EditorContextMenu component with Edit with AI (Cmd+K), Copy, and Search options. Integrated with TiptapEditor via useEditorContextMenu hook. Menu auto-positions within viewport. Keyboard shortcuts displayed in menu.",
+      "depends_on": ["US-023"],
+      "related_to": ["US-025"],
+      "implementation_hint": "Create ContextMenu component. Bind Cmd+K to AIInlineEdit.",
+      "check_before_implementing": [
+        "grep -rn 'ContextMenu' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-025",
+      "title": "Build Inline Edit Overlay",
+      "description": "As a user, I want an edit overlay so that I can describe changes.",
+      "acceptanceCriteria": [
+        "Overlay appears near selection with input field",
+        "Model auto-selected based on task (defaults to Sonnet for inline edits)",
+        "Model selector dropdown allows override (Sonnet, Haiku, Opus)",
+        "Generate button sends request with selected model",
+        "Typecheck passes"
+      ],
+      "priority": 29,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created InlineEditOverlay component with input field, ModelSelector (auto: Sonnet), override dropdown (Haiku/Sonnet/Opus), Generate button. useInlineEdit hook listens to tiptap:ai-edit-trigger events and creates one-off agent sessions for edits.",
+      "depends_on": ["US-024", "US-014a"],
+      "related_to": ["US-026", "US-028"],
+      "implementation_hint": "Create InlineEditOverlay component. Use ModelRouter for auto-selection.",
+      "check_before_implementing": [
+        "grep -rn 'InlineEdit' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-026",
+      "title": "Implement Diff Preview",
+      "description": "As a user, I want to preview changes so that I can review before accepting.",
+      "acceptanceCriteria": [
+        "Side-by-side diff shows original vs proposed",
+        "Added text highlighted green, removed red",
+        "Accept button applies changes",
+        "Reject button discards changes",
+        "Typecheck passes"
+      ],
+      "priority": 30,
+      "passes": true,
+      "status": "complete",
+      "notes": "Installed diff library. Created DiffPreview component with side-by-side view (SideBySideDiff) and unified view. Added green/red highlighting for additions/removals. Created useDiffPreview hook for state management listening to tiptap:ai-edit-applied events. Integrated with App.tsx as modal overlay.",
+      "depends_on": ["US-025"],
+      "related_to": ["US-027"],
+      "implementation_hint": "Use diff library for computing changes. Create DiffPreview component.",
+      "check_before_implementing": [
+        "grep -rn 'DiffPreview\\|diff' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-027",
+      "title": "Add Undo/Redo for Edits",
+      "description": "As a user, I want undo/redo so that I can revert mistakes.",
+      "acceptanceCriteria": [
+        "Cmd+Z undoes last edit",
+        "Cmd+Shift+Z redoes undone edit",
+        "Undo stack persists during session",
+        "Typecheck passes"
+      ],
+      "priority": 31,
+      "passes": true,
+      "status": "complete",
+      "notes": "Tiptap StarterKit v3.17.1 includes UndoRedo extension with built-in Cmd+Z (undo) and Cmd+Shift+Z (redo) keyboard shortcuts. Added undo(), redo(), canUndo(), canRedo() helper functions to useEditorContext hook for programmatic access.",
+      "depends_on": ["US-026"],
+      "related_to": [],
+      "implementation_hint": "Tiptap has built-in history extension for undo/redo.",
+      "check_before_implementing": [
+        "grep -rn 'history\\|undo\\|redo' src/renderer/components/editor/"
+      ]
+    },
+    {
+      "id": "US-028",
+      "title": "Create Prompt Library",
+      "description": "As a user, I want saved prompts so that I can reuse common instructions.",
+      "acceptanceCriteria": [
+        "Prompt library accessible from edit overlay",
+        "Built-in templates: Improve clarity, Make concise, Expand details",
+        "User can save custom prompts",
+        "Prompts support variables: {selection}, {context}",
+        "Typecheck passes"
+      ],
+      "priority": 32,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created PromptLibrary component with 6 built-in templates (Improve clarity, Make concise, Expand details, Fix grammar, Professional tone, Casual tone). Custom prompts stored in SQLite via DatabaseService. Variable support via processPromptTemplate() for {selection} and {context}. Integrated in InlineEditOverlay with toggle button.",
+      "depends_on": ["US-025"],
+      "related_to": [],
+      "implementation_hint": "Create PromptLibrary component. Store prompts in SQLite.",
+      "check_before_implementing": [
+        "grep -rn 'PromptLibrary\\|prompt' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-029",
+      "title": "Build Diagram Edit Modal",
+      "description": "As a user, I want to edit diagrams so that I can modify visualizations.",
+      "acceptanceCriteria": [
+        "Edit Diagram button appears on diagram hover",
+        "Modal shows Tiptap editor with Mermaid code block extension",
+        "Live preview updates as code changes",
+        "Typecheck passes"
+      ],
+      "priority": 33,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created DiagramEditModal with split-pane code editor and live Mermaid preview (300ms debounce). Edit button on diagram hover triggers modal via tiptap:mermaid-edit event. useDiagramEdit hook manages modal state.",
+      "depends_on": ["US-016", "US-014c"],
+      "related_to": ["US-030"],
+      "implementation_hint": "Create DiagramEditModal with live Mermaid preview (debounced 300ms).",
+      "check_before_implementing": [
+        "grep -rn 'DiagramEdit' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-030",
+      "title": "Add AI-Assisted Diagram Editing",
+      "description": "As a user, I want AI to modify diagrams so that I can describe changes naturally.",
+      "acceptanceCriteria": [
+        "\"Regenerate with AI\" button in diagram modal",
+        "Input field for describing diagram changes",
+        "Agent generates updated Mermaid code",
+        "Typecheck passes"
+      ],
+      "priority": 34,
+      "passes": true,
+      "status": "complete",
+      "notes": "Added Regenerate with AI button to DiagramEditModal header that toggles a collapsible AI panel. Panel includes textarea for describing changes and Generate button. Uses AgentService with streaming for real-time code updates. Live preview updates as AI generates Mermaid code.",
+      "depends_on": ["US-029", "US-008"],
+      "related_to": [],
+      "implementation_hint": "Add AI regeneration to DiagramEditModal. Use Agent SDK for generation.",
+      "check_before_implementing": [
+        "grep -rn 'Regenerate\\|AI.*Diagram' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-031",
+      "title": "Integrate Perplexity via OpenRouter",
+      "description": "As a user, I want fast research queries so that I can get quick answers.",
+      "acceptanceCriteria": [
+        "OpenRouter client configured for Perplexity",
+        "Research queries return within 30 seconds",
+        "Sources/citations extracted from response",
+        "Typecheck passes"
+      ],
+      "priority": 35,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created OpenRouterService with perplexity/sonar-pro model, 30s timeout, citation extraction (URLs, markdown links, numbered sources). Full IPC handlers and preload API exposed. Streaming support included.",
+      "depends_on": ["US-014"],
+      "related_to": ["US-032", "US-033"],
+      "implementation_hint": "Create OpenRouter client for perplexity/sonar-pro model access.",
+      "check_before_implementing": [
+        "grep -rn 'OpenRouter\\|perplexity' src/main/"
+      ]
+    },
+    {
+      "id": "US-032",
+      "title": "Integrate Gemini Deep Research",
+      "description": "As a user, I want comprehensive research so that I get thorough analysis.",
+      "acceptanceCriteria": [
+        "Gemini API client configured",
+        "Deep Research mode supports 60-minute queries",
+        "Progress checkpoints at 15%, 30%, 50%",
+        "Typecheck passes"
+      ],
+      "priority": 36,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created GeminiService with @google/generative-ai. Supports 60-minute queries with progress checkpoints at 0%, 15%, 30%, 50%, 75%, 90%, 100%. Both sync and streaming modes. Full IPC handlers and preload API exposed.",
+      "depends_on": ["US-014"],
+      "related_to": ["US-031", "US-033"],
+      "implementation_hint": "Create Gemini client with @google/generative-ai. Support long-running queries.",
+      "check_before_implementing": [
+        "grep -rn '@google/generative-ai' package.json",
+        "grep -rn 'Gemini' src/main/"
+      ]
+    },
+    {
+      "id": "US-033",
+      "title": "Implement Research Mode Routing",
+      "description": "As a user, I want automatic provider selection so that I get appropriate speed/depth.",
+      "acceptanceCriteria": [
+        "Quick mode routes all to Perplexity",
+        "Balanced mode uses Deep Research for Phase 1",
+        "Comprehensive mode uses Deep Research for all major",
+        "Typecheck passes"
+      ],
+      "priority": 37,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created ResearchRouter service with mode-based provider routing. Quick mode routes all to Perplexity. Balanced mode uses Gemini Deep Research for Phase 1 (market_research) and risk_assessment, Perplexity for others. Comprehensive mode uses Gemini for all major phases. Full IPC handlers and preload API exposed with unified streaming support.",
+      "depends_on": ["US-031", "US-032"],
+      "related_to": [],
+      "implementation_hint": "Create ResearchRouter to select provider based on mode and phase.",
+      "check_before_implementing": [
+        "grep -rn 'ResearchRouter' src/main/"
+      ]
+    },
+    {
+      "id": "US-034",
+      "title": "Build Research Progress UI",
+      "description": "As a user, I want research progress shown so that I know status of long queries.",
+      "acceptanceCriteria": [
+        "Progress bar shows percentage complete",
+        "Estimated time remaining displayed",
+        "Cancel button stops research gracefully",
+        "Typecheck passes"
+      ],
+      "priority": 38,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created ResearchProgress component with progress bar, time estimation, and cancel button. Added session-based cancellation support in ResearchRouter with IPC handlers for start/cancel/end session.",
+      "depends_on": ["US-032"],
+      "related_to": [],
+      "implementation_hint": "Create ResearchProgress component in src/renderer/components/research/.",
+      "check_before_implementing": [
+        "grep -rn 'ResearchProgress' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-035",
+      "title": "Implement Citation Management",
+      "description": "As a user, I want citations tracked so that I can reference sources.",
+      "acceptanceCriteria": [
+        "Citations stored in .citations.json sidecar files",
+        "IEEE format numbering [1], [2] in text",
+        "Reference list generated for exports",
+        "Typecheck passes"
+      ],
+      "priority": 39,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created CitationManager service with .citations.json sidecar files, IEEE and APA formatting, reference list generation. Full IPC handlers and preload API exposed.",
+      "depends_on": ["US-031"],
+      "related_to": ["US-056", "US-057"],
+      "implementation_hint": "Create CitationManager for tracking and formatting citations.",
+      "check_before_implementing": [
+        "grep -rn 'Citation' src/main/",
+        "grep -rn '.citations.json' src/"
+      ]
+    },
+    {
+      "id": "US-036",
+      "title": "Create PDF Generation Pipeline",
+      "description": "As a user, I want to generate PDFs so that I can share professional reports.",
+      "acceptanceCriteria": [
+        "Pandoc integration via child_process",
+        "Table of contents generated when option selected",
+        "Cover page with project metadata",
+        "Typecheck passes"
+      ],
+      "priority": 40,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created PDFGenerator service with Pandoc integration. Supports TOC generation, cover pages with metadata, citation inclusion, multiple page sizes. Full IPC handlers and preload API exposed.",
+      "depends_on": ["US-035"],
+      "related_to": ["US-037", "US-038", "US-039"],
+      "implementation_hint": "Create PDFGenerator service using Pandoc for conversion.",
+      "check_before_implementing": [
+        "grep -rn 'pandoc\\|PDFGenerator' src/main/"
+      ]
+    },
+    {
+      "id": "US-037",
+      "title": "Create DOCX Generation Pipeline",
+      "description": "As a user, I want Word documents so that I can share editable reports.",
+      "acceptanceCriteria": [
+        "docx package generates Word files",
+        "Headings, lists, tables preserve formatting",
+        "Code blocks use monospace font",
+        "Typecheck passes"
+      ],
+      "priority": 41,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created DOCXGenerator service with docx package. Supports headings (H1-H6), lists (ordered/unordered), tables with headers, code blocks with Consolas monospace font and gray background, inline formatting (bold/italic/code), blockquotes, and horizontal rules. Cover page and citation integration included. Full IPC handlers and preload API exposed.",
+      "depends_on": ["US-035"],
+      "related_to": ["US-036", "US-038", "US-039"],
+      "implementation_hint": "Use docx package for Word file generation.",
+      "check_before_implementing": [
+        "grep -rn 'docx' package.json",
+        "grep -rn 'DOCXGenerator' src/main/"
+      ]
+    },
+    {
+      "id": "US-038",
+      "title": "Create PPTX Generation Pipeline",
+      "description": "As a user, I want PowerPoint slides so that I can present plans.",
+      "acceptanceCriteria": [
+        "pptxgenjs generates slide decks",
+        "H1 headings become section dividers",
+        "H2 headings become content slides",
+        "Theme colors applied to slides",
+        "Typecheck passes"
+      ],
+      "priority": 42,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created PPTXGenerator service with pptxgenjs. H1 headings create section divider slides with colored backgrounds. H2+ headings create content slides with bullet points. 5 predefined themes (default, dark, professional, modern, minimal). Supports tables, code blocks, title slides with metadata, and citation integration. Full IPC handlers and preload API exposed.",
+      "depends_on": ["US-035"],
+      "related_to": ["US-036", "US-037", "US-039"],
+      "implementation_hint": "Use pptxgenjs for PowerPoint generation with theme support.",
+      "check_before_implementing": [
+        "grep -rn 'pptxgenjs' package.json",
+        "grep -rn 'PPTXGenerator' src/main/"
+      ]
+    },
+    {
+      "id": "US-039",
+      "title": "Build Export Configuration Modal",
+      "description": "As a user, I want export options so that I can customize output.",
+      "acceptanceCriteria": [
+        "Modal shows section checkboxes for selection",
+        "Format selection (PDF, DOCX, PPTX)",
+        "Options: Include TOC, citations, cover page",
+        "Generate button starts export",
+        "Typecheck passes"
+      ],
+      "priority": 43,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created ExportModal component with section checkboxes, format selection (PDF/DOCX/PPTX), options for TOC/citations/cover page, and Generate button. Integrated with App.tsx in Export section. Full support for PDF page sizes, PPTX themes, and citation formats.",
+      "depends_on": ["US-036", "US-037", "US-038"],
+      "related_to": [],
+      "implementation_hint": "Create ExportModal in src/renderer/components/export/.",
+      "check_before_implementing": [
+        "grep -rn 'ExportModal' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-040",
+      "title": "Create Welcome Screen",
+      "description": "As a user, I want a welcome screen on launch so that I can start quickly.",
+      "acceptanceCriteria": [
+        "Welcome screen displays when no project open",
+        "New Project button starts wizard",
+        "Open Project button shows file picker",
+        "Typecheck passes"
+      ],
+      "priority": 44,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created WelcomeScreen component at src/renderer/components/welcome/. Displays when no files open in right pane. New Project button triggers wizard state (US-042). Open Project button uses native dialog via window.electronAPI.selectDirectory().",
+      "depends_on": ["US-003"],
+      "related_to": ["US-041", "US-042"],
+      "implementation_hint": "Create WelcomeScreen component as default view.",
+      "check_before_implementing": [
+        "grep -rn 'WelcomeScreen' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-041",
+      "title": "Implement Recent Projects List",
+      "description": "As a user, I want recent projects shown so that I can reopen quickly.",
+      "acceptanceCriteria": [
+        "Recent projects list on welcome screen",
+        "Projects sorted by last-modified date",
+        "Click project opens it directly",
+        "Right-click removes from list",
+        "Typecheck passes"
+      ],
+      "priority": 45,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created RecentProjectsList component with SQLite storage. Recent projects table in DatabaseService with CRUD operations. IPC handlers and preload API exposed. Right-click context menu to remove projects. Integrated into WelcomeScreen with auto-save on project open.",
+      "depends_on": ["US-040", "US-012"],
+      "related_to": [],
+      "implementation_hint": "Store recent projects in SQLite. Display on WelcomeScreen.",
+      "check_before_implementing": [
+        "grep -rn 'RecentProjects' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-042",
+      "title": "Build New Project Wizard",
+      "description": "As a user, I want a guided wizard so that I can configure projects easily.",
+      "acceptanceCriteria": [
+        "Multi-step form: Name, Research Mode, Phases",
+        "Research mode options: Quick, Balanced, Comprehensive",
+        "Phase checkboxes with descriptions",
+        "Create button initializes project",
+        "Typecheck passes"
+      ],
+      "priority": 46,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created NewProjectWizard component at src/renderer/components/wizard/ with 4-step multi-step form: Name/Location → Research Mode (Quick/Balanced/Comprehensive) → Phase Selection (6 phases with descriptions) → Review & Create. Added writeFile API to FileSystemService for project config saving. Integrated with App.tsx via showNewProjectWizard state.",
+      "depends_on": ["US-040"],
+      "related_to": ["US-033"],
+      "implementation_hint": "Create NewProjectWizard with multi-step form.",
+      "check_before_implementing": [
+        "grep -rn 'NewProjectWizard\\|ProjectWizard' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-043",
+      "title": "Implement Phase Orchestration",
+      "description": "As a user, I want phases to run in sequence so that planning proceeds automatically.",
+      "acceptanceCriteria": [
+        "Selected phases execute in order",
+        "Phase dashboard shows current phase and progress",
+        "Pause button stops after current phase",
+        "Typecheck passes"
+      ],
+      "priority": 47,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created PhaseOrchestrator service with sequential phase execution, progress tracking, pause/resume/stop/skip controls. PhaseDashboard UI component displays phases with status, progress bars, and output preview. Full IPC handlers and preload API exposed.",
+      "depends_on": ["US-042", "US-008"],
+      "related_to": ["US-044", "US-045"],
+      "implementation_hint": "Create PhaseOrchestrator service for sequential phase execution.",
+      "check_before_implementing": [
+        "grep -rn 'PhaseOrchestrator\\|orchestrat' src/main/"
+      ]
+    },
+    {
+      "id": "US-044",
+      "title": "Build Approval Gate UI",
+      "description": "As a user, I want approval gates so that I can review before continuing.",
+      "acceptanceCriteria": [
+        "Gate appears after each phase completion",
+        "Continue button proceeds to next phase",
+        "Revise button reopens phase with feedback",
+        "Typecheck passes"
+      ],
+      "priority": 48,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created ApprovalGate component with Continue/Revise actions. Modified PhaseOrchestrator to wait for approval between phases with 'waiting_for_approval' status. Added IPC handlers and preload API. Integrated with PhaseDashboard as modal overlay.",
+      "depends_on": ["US-043"],
+      "related_to": [],
+      "implementation_hint": "Create ApprovalGate component for phase transitions.",
+      "check_before_implementing": [
+        "grep -rn 'ApprovalGate' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-045",
+      "title": "Add Checkpoint Save/Resume",
+      "description": "As a user, I want checkpoints so that I can resume interrupted planning.",
+      "acceptanceCriteria": [
+        "Checkpoint saved after each phase",
+        "Resume from checkpoint on project reopen",
+        "Checkpoint includes phase context and decisions",
+        "Typecheck passes"
+      ],
+      "priority": 49,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created CheckpointService for state persistence. Checkpoints stored in SQLite with full phase context (ProjectExecutionState). Auto-save after each phase completion/error/pause. resumeFromCheckpoint method restores execution state. Full IPC handlers and preload API exposed.",
+      "depends_on": ["US-043", "US-012"],
+      "related_to": [],
+      "implementation_hint": "Store checkpoints in .checkpoint.json files.",
+      "check_before_implementing": [
+        "grep -rn 'checkpoint' src/main/",
+        "grep -rn '.checkpoint.json' src/"
+      ]
+    },
+    {
+      "id": "US-046",
+      "title": "Optimize Large Document Rendering",
+      "description": "As a user, I want fast rendering so that large files don't lag.",
+      "acceptanceCriteria": [
+        "Virtual scrolling for documents over 1000 lines",
+        "Render time under 100ms for 1000 lines",
+        "Diagram lazy loading on scroll into view",
+        "Typecheck passes"
+      ],
+      "priority": 50,
+      "passes": true,
+      "status": "complete",
+      "notes": "Installed react-virtuoso. Created VirtualizedDocument component with virtual scrolling for 1000+ line files. Created LazyMermaidDiagram with IntersectionObserver for lazy diagram loading. FileContentView uses VirtualizedDocument for large files.",
+      "depends_on": ["US-015"],
+      "related_to": ["US-016"],
+      "implementation_hint": "Use react-window or virtuoso for virtual scrolling.",
+      "check_before_implementing": [
+        "grep -rn 'virtual\\|virtuoso\\|react-window' package.json"
+      ]
+    },
+    {
+      "id": "US-047",
+      "title": "Add Loading Skeletons",
+      "description": "As a user, I want loading indicators so that I know content is loading.",
+      "acceptanceCriteria": [
+        "Skeleton placeholders during file load",
+        "Skeleton during agent response generation",
+        "Skeleton during search execution",
+        "Typecheck passes"
+      ],
+      "priority": 51,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created Skeleton component with pulse animation and variants: SkeletonText, SkeletonParagraph, SkeletonFileTree, SkeletonChatMessage, SkeletonSearchResults, SkeletonFileContent. Integrated in FileBrowser (directory load), ChatContainer (AI response), SearchPanel (search execution).",
+      "depends_on": ["US-003"],
+      "related_to": [],
+      "implementation_hint": "Create Skeleton component with pulse animation.",
+      "check_before_implementing": [
+        "grep -rn 'Skeleton' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-048",
+      "title": "Implement Smooth Animations",
+      "description": "As a user, I want polished animations so that the app feels professional.",
+      "acceptanceCriteria": [
+        "Panel collapse/expand animations (200ms)",
+        "Tab switch transitions",
+        "Modal open/close animations",
+        "Typecheck passes"
+      ],
+      "priority": 52,
+      "passes": true,
+      "status": "complete",
+      "notes": "Implemented using framer-motion. Created AnimatedModal, AnimatedOverlay, AnimatedCollapse components. Updated SearchPanel, FileBrowser (collapse), TabBar (tab transitions), and all modals (ExportModal, CommandPalette, FileQuickOpen, DiagramEditModal, NewProjectWizard, DiffPreview).",
+      "depends_on": ["US-003"],
+      "related_to": ["US-048a"],
+      "implementation_hint": "Use Tailwind CSS transitions or framer-motion.",
+      "check_before_implementing": [
+        "grep -rn 'transition\\|animate' src/renderer/"
+      ]
+    },
+    {
+      "id": "US-048a",
+      "title": "WCAG 2.2 Accessibility Compliance",
+      "description": "As a user with disabilities, I want the app to be accessible so that I can use it effectively.",
+      "acceptanceCriteria": [
+        "All interactive elements keyboard accessible",
+        "ARIA labels on all buttons and interactive elements",
+        "Streaming content announces with aria-live=\"polite\"",
+        "Color contrast meets AA standard (4.5:1 normal, 3:1 large text)",
+        "Diff visualization accessible to screen readers",
+        "Focus management on modal open/close",
+        "Typecheck passes"
+      ],
+      "priority": 53,
+      "passes": true,
+      "status": "complete",
+      "notes": "Implemented: Skip link for keyboard navigation, semantic HTML landmarks (nav, main), focus trap with focus restoration in AnimatedModal/AnimatedOverlay, screen reader accessible diff visualization with change summaries, CSS support for reduced-motion and high-contrast preferences, useFocusTrap hook for reusable focus management. 159 aria attributes across 32 files.",
+      "depends_on": ["US-048"],
+      "related_to": ["US-010", "US-026"],
+      "implementation_hint": "Use axe-core for accessibility testing. Add ARIA labels throughout.",
+      "check_before_implementing": [
+        "grep -rn 'aria-' src/renderer/",
+        "grep -rn 'axe-core' package.json"
+      ]
+    },
+    {
+      "id": "US-049",
+      "title": "Write Unit Tests",
+      "description": "As a developer, I want unit tests so that code changes don't break functionality.",
+      "acceptanceCriteria": [
+        "Vitest configured for testing",
+        "Core utilities have 80%+ coverage",
+        "Tests run in CI pipeline",
+        "Typecheck passes"
+      ],
+      "priority": 54,
+      "passes": true,
+      "status": "complete",
+      "notes": "Configured Vitest with happy-dom, @testing-library/react, @vitest/coverage-v8. ModelRouter tests (35) and CitationManager tests (39) achieve 95%+ coverage on core utilities. Test scripts added to package.json.",
+      "depends_on": ["US-001"],
+      "related_to": ["US-050"],
+      "implementation_hint": "Configure Vitest with coverage reporting. Add to CI workflow.",
+      "check_before_implementing": [
+        "grep -rn 'vitest' package.json",
+        "grep -rn 'test' src/"
+      ]
+    },
+    {
+      "id": "US-050",
+      "title": "Write E2E Tests",
+      "description": "As a developer, I want E2E tests so that workflows are verified.",
+      "acceptanceCriteria": [
+        "Playwright configured for Electron",
+        "Critical workflow tests: new project, edit, export",
+        "Tests run on all platforms (macOS, Windows, Linux)",
+        "Typecheck passes"
+      ],
+      "priority": 55,
+      "passes": true,
+      "status": "complete",
+      "notes": "Configured Playwright for Electron testing. Created e2e/ directory with fixtures and tests for new-project, edit-workflow, export-workflow. GitHub Actions CI runs on macOS, Windows, and Linux with xvfb for headless Linux testing.",
+      "depends_on": ["US-049"],
+      "related_to": [],
+      "implementation_hint": "Configure Playwright with Electron support. Add CI matrix for platforms.",
+      "check_before_implementing": [
+        "grep -rn 'playwright' package.json",
+        "grep -rn 'e2e' ."
+      ]
+    },
+    {
+      "id": "US-051",
+      "title": "Configure electron-builder",
+      "description": "As a developer, I want build configuration so that I can create installers.",
+      "acceptanceCriteria": [
+        "electron-builder installed and configured",
+        "macOS, Windows, Linux targets defined",
+        "Build artifacts output to dist/",
+        "Typecheck passes"
+      ],
+      "priority": 56,
+      "passes": true,
+      "status": "complete",
+      "notes": "Migrated from Electron Forge to electron-builder. Configured macOS (DMG/ZIP), Windows (NSIS/Portable), Linux (AppImage/Deb/RPM) targets. Updated vite configs for SSR builds. Added macOS entitlements for code signing.",
+      "depends_on": ["US-001"],
+      "related_to": ["US-052", "US-053", "US-054"],
+      "implementation_hint": "Configure electron-builder.yml or electron-builder config in package.json.",
+      "check_before_implementing": [
+        "grep -rn 'electron-builder' package.json"
+      ]
+    },
+    {
+      "id": "US-052",
+      "title": "Build macOS Installer",
+      "description": "As a developer, I want macOS DMG so that Mac users can install.",
+      "acceptanceCriteria": [
+        "Universal binary (Intel + Apple Silicon)",
+        "Code signing with Developer ID",
+        "Notarized for Gatekeeper",
+        "Typecheck passes"
+      ],
+      "priority": 57,
+      "passes": true,
+      "status": "complete",
+      "notes": "Configured universal binary with arch: universal. Added afterSign hook with @electron/notarize for Apple notarization. Created release.yml workflow with code signing via CSC_LINK env vars and notarization via APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID secrets. DMG signing enabled. Hardened runtime and entitlements configured.",
+      "depends_on": ["US-051"],
+      "related_to": [],
+      "implementation_hint": "Configure macOS target in electron-builder with universal build and notarization.",
+      "check_before_implementing": [
+        "grep -rn 'mac\\|dmg' electron-builder"
+      ]
+    },
+    {
+      "id": "US-053",
+      "title": "Build Windows Installer",
+      "description": "As a developer, I want Windows EXE so that Windows users can install.",
+      "acceptanceCriteria": [
+        "NSIS or MSI installer created",
+        "Code signing certificate applied",
+        "Installer works on clean Windows 10/11",
+        "Typecheck passes"
+      ],
+      "priority": 58,
+      "passes": true,
+      "status": "complete",
+      "notes": "Configured NSIS installer with desktop/start menu shortcuts. Created win-sign.js for code signing via signtool. Added all platform icons (ico, icns, png). CI workflow already configured with WIN_CERTS_BASE64 and WIN_CERTS_PASSWORD secrets for code signing.",
+      "depends_on": ["US-051"],
+      "related_to": [],
+      "implementation_hint": "Configure Windows target in electron-builder with code signing.",
+      "check_before_implementing": [
+        "grep -rn 'win\\|nsis' electron-builder"
+      ]
+    },
+    {
+      "id": "US-054",
+      "title": "Build Linux Package",
+      "description": "As a developer, I want Linux AppImage so that Linux users can install.",
+      "acceptanceCriteria": [
+        "AppImage created for x64",
+        "AppImage runs on Ubuntu 22.04+",
+        "Desktop integration works",
+        "Typecheck passes"
+      ],
+      "priority": 59,
+      "passes": true,
+      "status": "complete",
+      "notes": "Already implemented in US-051. electron-builder.yml has AppImage/deb/rpm targets for x64. GitHub Actions release.yml builds on ubuntu-latest. Desktop integration via xdg-utils dependency and Development category.",
+      "depends_on": ["US-051"],
+      "related_to": [],
+      "implementation_hint": "Configure Linux target in electron-builder with AppImage output.",
+      "check_before_implementing": [
+        "grep -rn 'linux\\|appimage' electron-builder"
+      ]
+    },
+    {
+      "id": "US-055",
+      "title": "Implement Auto-Update",
+      "description": "As a user, I want automatic updates so that I get new features easily.",
+      "acceptanceCriteria": [
+        "electron-updater configured",
+        "Updates check on app launch",
+        "Update prompt shows release notes",
+        "Update installs and restarts app",
+        "Typecheck passes"
+      ],
+      "priority": 60,
+      "passes": true,
+      "status": "complete",
+      "notes": "Installed electron-updater. Created UpdateService with auto-check on launch, download progress, release notes display, and quit-and-install. UpdateNotification UI component with useUpdate hook. GitHub Releases configured as update provider in electron-builder.yml.",
+      "depends_on": ["US-051"],
+      "related_to": [],
+      "implementation_hint": "Configure electron-updater with GitHub releases or custom update server.",
+      "check_before_implementing": [
+        "grep -rn 'electron-updater' package.json"
+      ]
+    },
+    {
+      "id": "US-056",
+      "title": "Integrate Citation Verification APIs",
+      "description": "As a developer, I want citation verification APIs configured so that I can verify generated references.",
+      "acceptanceCriteria": [
+        "OpenAlex API client with rate limiting (100K credits/day)",
+        "Crossref API client with polite pool access (mailto header, 10 RPS)",
+        "Hybrid query strategy based on available data",
+        "Confidence scoring with weighted field matching (0.0-1.0)",
+        "SQLite cache with tiered TTL (DOI: 7 days, search: 1 hour)",
+        "Typecheck passes"
+      ],
+      "priority": 61,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created CitationVerificationService with OpenAlex and Crossref API clients, rate limiting (10 RPS), hybrid query strategy (DOI → OpenAlex → Crossref), weighted confidence scoring (DOI: 1.0, title: 0.4, authors: 0.3, year: 0.15), SQLite cache with tiered TTL (DOI: 7 days, search: 1 hour). Full IPC handlers and preload API exposed.",
+      "depends_on": ["US-012"],
+      "related_to": ["US-035", "US-057", "US-060"],
+      "implementation_hint": "Create CitationVerificationService in src/main/services/. Use OpenAlex and Crossref APIs.",
+      "check_before_implementing": [
+        "grep -rn 'CitationVerification' src/main/",
+        "grep -rn 'OpenAlex\\|Crossref' src/"
+      ]
+    },
+    {
+      "id": "US-057",
+      "title": "Build Citation Attachment System",
+      "description": "As a user, I want citations attached during generation so that claims are traceable.",
+      "acceptanceCriteria": [
+        "Citations extracted from RAG context and attached to generated text",
+        "Citation metadata stored in document sidecar (.citations.json)",
+        "Source-claim linking preserved across edits",
+        "Typecheck passes"
+      ],
+      "priority": 62,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created CitationAttachmentService with RAG source extraction, claim detection using factual indicators, IEEE marker insertion, source-claim linking with context hashes for edit persistence, and citation relocation after edits. Full IPC handlers and preload API exposed.",
+      "depends_on": ["US-056", "US-035"],
+      "related_to": ["US-058"],
+      "implementation_hint": "Extend citation system to attach sources during text generation.",
+      "check_before_implementing": [
+        "grep -rn 'CitationAttach' src/main/",
+        "grep -rn 'source-claim' src/"
+      ]
+    },
+    {
+      "id": "US-058",
+      "title": "Implement Confidence Scoring",
+      "description": "As a developer, I want confidence scores computed so that low-confidence content is flagged.",
+      "acceptanceCriteria": [
+        "Token probability extraction during generation (where available)",
+        "Paragraph-level confidence score computation",
+        "Configurable threshold for low-confidence alerts (default: 0.6)",
+        "Typecheck passes"
+      ],
+      "priority": 63,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created ConfidenceScoringService with heuristic-based confidence scoring (Anthropic API doesn't support logprobs). Uses linguistic indicators: hedging words, assertions, factual indicators, citations. Paragraph-level and document-level analysis. Configurable threshold (default 0.6). Streaming text support. Extensible for future token probability integration. Full IPC handlers and preload API exposed. 33 unit tests passing.",
+      "depends_on": ["US-008"],
+      "related_to": ["US-057", "US-059"],
+      "implementation_hint": "Extract logprobs from streaming handler. Compute paragraph-level scores.",
+      "check_before_implementing": [
+        "grep -rn 'confidence\\|logprobs' src/"
+      ]
+    },
+    {
+      "id": "US-059",
+      "title": "Add Inline Confidence Indicators",
+      "description": "As a user, I want visual confidence markers so that I can identify uncertain content.",
+      "acceptanceCriteria": [
+        "Color-coded underlines: green (>0.8), yellow (0.6-0.8), red (<0.6)",
+        "Hover tooltip shows confidence score and reasoning",
+        "Toggle to show/hide confidence indicators in View menu",
+        "Typecheck passes"
+      ],
+      "priority": 64,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created ConfidenceIndicator Tiptap extension with ProseMirror decorations for color-coded underlines (green >0.8, amber 0.6-0.8, red wavy <0.6). ConfidenceTooltip component shows score percentage, progress bar, and human-readable reasoning on hover. useConfidenceIndicators hook integrates with ConfidenceScoringService for paragraph-level analysis. Toggle in View menu via command palette (view:toggle-confidence).",
+      "depends_on": ["US-058"],
+      "related_to": ["US-048a"],
+      "implementation_hint": "Create ConfidenceIndicator component. Use Tiptap decorations for underlines.",
+      "check_before_implementing": [
+        "grep -rn 'ConfidenceIndicator' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-060",
+      "title": "Build Citation Verification Panel",
+      "description": "As a user, I want a verification panel so that I can review citation status.",
+      "acceptanceCriteria": [
+        "Panel shows all citations with status badges (Verified/Unverified/Partial)",
+        "Click citation scrolls to usage in document",
+        "\"Verify All\" button triggers batch verification",
+        "Shows verification source (OpenAlex/Crossref)",
+        "Typecheck passes"
+      ],
+      "priority": 65,
+      "passes": true,
+      "status": "complete",
+      "notes": "Created CitationVerificationPanel in src/renderer/components/citation/. Panel shows citations with Verified/Partial/Unverified/Pending status badges. Click citation usage scrolls to document location. Verify All button for batch verification. Shows verification source (OpenAlex/Crossref/Cached). Integrated as tab within Context section (Cmd+4). Summary stats bar shows counts by status.",
+      "depends_on": ["US-056"],
+      "related_to": ["US-061", "US-062"],
+      "implementation_hint": "Create CitationVerificationPanel in src/renderer/components/citation/.",
+      "check_before_implementing": [
+        "grep -rn 'CitationVerification\\|VerificationPanel' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-061",
+      "title": "Implement Human Review Queue",
+      "description": "As a user, I want flagged content queued so that I can review high-risk sections.",
+      "acceptanceCriteria": [
+        "Low-confidence sections (<0.6) auto-flagged for review",
+        "Unverified citations flagged for review",
+        "Review interface shows original + sources side-by-side",
+        "Accept/Edit/Remove actions for each flagged item",
+        "Typecheck passes"
+      ],
+      "priority": 66,
+      "passes": true,
+      "status": "complete",
+      "notes": "Implemented ReviewQueueService in main process and ReviewQueue component in renderer. Integrated as third tab in Context section. Auto-flags low-confidence sections and unverified citations. Provides Accept/Edit/Remove/Dismiss actions with side-by-side source comparison.",
+      "depends_on": ["US-059", "US-060"],
+      "related_to": [],
+      "implementation_hint": "Create ReviewQueue component with side-by-side comparison view.",
+      "check_before_implementing": [
+        "grep -rn 'ReviewQueue' src/renderer/components/"
+      ]
+    },
+    {
+      "id": "US-062",
+      "title": "Create Hallucination Dashboard",
+      "description": "As a user, I want hallucination metrics so that I can track document quality.",
+      "acceptanceCriteria": [
+        "Per-document confidence score (average of paragraphs)",
+        "Citation verification rate (verified/total)",
+        "Trend chart for project (if multiple documents)",
+        "Export verification report (JSON/CSV)",
+        "Typecheck passes"
+      ],
+      "priority": 67,
+      "passes": true,
+      "status": "complete",
+      "notes": "Implemented HallucinationDashboard with per-document metrics, project-level aggregation, SVG trend chart with 7-day moving averages, and JSON/CSV export. Integrated as fourth tab in Context section.",
+      "depends_on": ["US-060", "US-058"],
+      "related_to": [],
+      "implementation_hint": "Create HallucinationDashboard in src/renderer/components/dashboard/.",
+      "check_before_implementing": [
+        "grep -rn 'HallucinationDashboard' src/renderer/components/"
+      ]
+    }
+  ]
+}

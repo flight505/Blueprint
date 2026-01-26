@@ -1,0 +1,174 @@
+# electron-builder configuration
+# https://www.electron.build/configuration/configuration
+
+appId: com.flight505.blueprint
+productName: Blueprint
+copyright: Copyright © 2026 Jesper Vang
+
+# Publish configuration for auto-updates via GitHub Releases
+# electron-updater will check for updates from GitHub Releases
+publish:
+  provider: github
+  owner: flight505
+  repo: Blueprint
+  releaseType: release
+
+# Build output directory
+directories:
+  output: dist
+  buildResources: assets
+
+# After code signing hook for notarization
+afterSign: scripts/notarize.js
+
+# Files to include in the app
+files:
+  - "!**/.git"
+  - "!**/node_modules/*/{CHANGELOG.md,README.md,readme.md,LICENSE,license,NOTICE}"
+  - "!**/node_modules/.cache"
+  - "!**/.vscode"
+  - "!**/.idea"
+  - "!**/e2e"
+  - "!**/*.{md,txt}"
+  - "!forge.config.ts"
+  - "!vite.*.config.ts"
+  - "!tsconfig*.json"
+  - "!playwright.config.ts"
+  - .vite/build/**/*
+  - package.json
+
+# Use ASAR archive for faster loading and security
+asar: true
+asarUnpack:
+  # Native modules need to be unpacked
+  - "node_modules/better-sqlite3/**/*"
+
+# macOS configuration
+# Creates universal binary (Intel + Apple Silicon) with code signing and notarization
+mac:
+  category: public.app-category.developer-tools
+  target:
+    # DMG for distribution
+    - target: dmg
+      arch:
+        - universal
+    # ZIP for auto-update
+    - target: zip
+      arch:
+        - universal
+  icon: assets/icon.icns
+  # Hardened runtime required for notarization
+  hardenedRuntime: true
+  # Don't assess Gatekeeper (we handle notarization manually)
+  gatekeeperAssess: false
+  # Entitlements for code signing
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  # Signing identity - uses Developer ID Application certificate from keychain
+  # Set CSC_IDENTITY_AUTO_DISCOVERY=true or CSC_NAME to specify certificate
+  # For CI: use CSC_LINK (base64 p12) and CSC_KEY_PASSWORD environment variables
+  signIgnore:
+    # Don't sign native modules - they're already signed or need special handling
+    - "node_modules/better-sqlite3/**/*.node"
+
+# DMG configuration
+dmg:
+  # Sign the DMG (required for notarization to work properly)
+  sign: true
+  # DMG window appearance
+  window:
+    width: 540
+    height: 400
+  # Icon positions in DMG window
+  contents:
+    - x: 130
+      y: 220
+    - x: 410
+      y: 220
+      type: link
+      path: /Applications
+  # Use a background image if available
+  # background: assets/dmg-background.png
+
+# Windows configuration
+# Code signing: set CSC_LINK (base64 .pfx) and CSC_KEY_PASSWORD environment variables
+# For EV certificates, use Windows SignTool directly via afterSign hook
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+  icon: assets/icon.ico
+  publisherName: Jesper Vang
+  # Sign the main executable
+  sign: scripts/win-sign.js
+  # Verification is disabled because we handle signing ourselves
+  verifyUpdateCodeSignature: false
+  # Request UAC elevation for installer
+  requestedExecutionLevel: requireAdministrator
+
+# NSIS installer configuration
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: true
+  installerIcon: assets/icon.ico
+  uninstallerIcon: assets/icon.ico
+  installerHeaderIcon: assets/icon.ico
+  # Create desktop shortcut
+  createDesktopShortcut: true
+  # Create start menu shortcut
+  createStartMenuShortcut: true
+  # Shortcut name
+  shortcutName: Blueprint
+  # Include uninstaller
+  include: build/installer.nsh
+
+# Linux configuration
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+    - target: deb
+      arch:
+        - x64
+    - target: rpm
+      arch:
+        - x64
+  category: Development
+  icon: assets/icon.png
+  maintainer: jesper_vang@me.com
+  vendor: Jesper Vang
+
+# AppImage configuration
+appImage:
+  artifactName: "${productName}-${version}-${arch}.AppImage"
+
+# Deb configuration
+deb:
+  depends:
+    - libgtk-3-0
+    - libnotify4
+    - libnss3
+    - libxss1
+    - libxtst6
+    - xdg-utils
+    - libatspi2.0-0
+    - libuuid1
+
+# RPM configuration
+rpm:
+  depends:
+    - gtk3
+    - libnotify
+    - nss
+    - libXScrnSaver
+    - libXtst
+    - xdg-utils
+    - at-spi2-atk
+    - libuuid

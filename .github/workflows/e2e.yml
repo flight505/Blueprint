@@ -1,0 +1,87 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    timeout-minutes: 30
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      # Linux needs xvfb for Electron to run headlessly
+      - name: Install xvfb (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+
+      - name: Build Electron app
+        run: pnpm start &
+        env:
+          CI: true
+          # Give the app time to build before tests run
+          # The electron-forge start command builds and launches
+
+      - name: Wait for app build
+        run: sleep 30
+
+      - name: Kill the running app
+        if: runner.os != 'Windows'
+        run: pkill -f electron || true
+
+      - name: Kill the running app (Windows)
+        if: runner.os == 'Windows'
+        run: taskkill /F /IM electron.exe || exit 0
+        shell: cmd
+
+      # Run E2E tests
+      - name: Run E2E tests (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run --auto-servernum -- pnpm exec playwright test --reporter=github
+        env:
+          CI: true
+          ELECTRON_DISABLE_GPU: 1
+
+      - name: Run E2E tests (macOS/Windows)
+        if: runner.os != 'Linux'
+        run: pnpm exec playwright test --reporter=github
+        env:
+          CI: true
+          ELECTRON_DISABLE_GPU: 1
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ matrix.os }}
+          path: |
+            playwright-report/
+            e2e-results/
+          retention-days: 14

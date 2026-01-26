@@ -1,8 +1,70 @@
 @import "tailwindcss";
 
+/* Import highlight.js CSS for syntax highlighting (github themes) */
+@import "highlight.js/styles/github.css";
+
+/* Import KaTeX CSS for math equation rendering */
+@import "katex/dist/katex.min.css";
+
 /* Custom scrollbar for dark mode */
 :root {
   color-scheme: light dark;
+}
+
+/* Override highlight.js colors for dark mode */
+.dark .hljs {
+  color: #e6edf3;
+  background: transparent;
+}
+
+.dark .hljs-comment,
+.dark .hljs-quote {
+  color: #8b949e;
+}
+
+.dark .hljs-keyword,
+.dark .hljs-selector-tag,
+.dark .hljs-addition {
+  color: #ff7b72;
+}
+
+.dark .hljs-string,
+.dark .hljs-attribute,
+.dark .hljs-meta .hljs-string {
+  color: #a5d6ff;
+}
+
+.dark .hljs-title,
+.dark .hljs-section,
+.dark .hljs-name,
+.dark .hljs-selector-id,
+.dark .hljs-selector-class {
+  color: #d2a8ff;
+}
+
+.dark .hljs-number,
+.dark .hljs-literal,
+.dark .hljs-variable,
+.dark .hljs-template-variable,
+.dark .hljs-tag .hljs-attr {
+  color: #79c0ff;
+}
+
+.dark .hljs-built_in,
+.dark .hljs-builtin-name,
+.dark .hljs-symbol,
+.dark .hljs-link {
+  color: #ffa657;
+}
+
+.dark .hljs-deletion {
+  color: #ffa198;
+  background-color: rgba(255, 129, 130, 0.15);
+}
+
+.dark .hljs-addition {
+  color: #7ee787;
+  background-color: rgba(63, 185, 80, 0.15);
 }
 
 /* Smooth scrolling */
@@ -21,8 +83,180 @@ body {
   user-select: none;
 }
 
+/* macOS title bar draggable region */
+.title-bar-drag-region {
+  -webkit-app-region: drag;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Interactive elements within title bar should not be draggable */
+.title-bar-drag-region button,
+.title-bar-drag-region a,
+.title-bar-drag-region input,
+.title-bar-drag-region [role="button"] {
+  -webkit-app-region: no-drag;
+}
+
 /* Custom focus styles */
 *:focus-visible {
   outline: 2px solid theme('colors.blue.500');
   outline-offset: 2px;
+}
+
+/* Text selection highlighting - distinct color for editor selections */
+.tiptap-editor-container ::selection {
+  background-color: rgba(99, 102, 241, 0.35);
+  color: inherit;
+}
+
+.dark .tiptap-editor-container ::selection {
+  background-color: rgba(129, 140, 248, 0.4);
+  color: inherit;
+}
+
+/* AI pending edit highlight */
+.ai-pending-edit {
+  background-color: rgba(250, 204, 21, 0.3);
+  border-bottom: 2px solid rgb(250, 204, 21);
+}
+
+.dark .ai-pending-edit {
+  background-color: rgba(250, 204, 21, 0.25);
+  border-bottom: 2px solid rgb(234, 179, 8);
+}
+
+/* Selection active state indicator */
+.tiptap-editor-container.has-selection {
+  border-color: rgb(99, 102, 241);
+}
+
+.dark .tiptap-editor-container.has-selection {
+  border-color: rgb(129, 140, 248);
+}
+
+/* Screen reader only - WCAG 2.2 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only:focus,
+.not-sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: initial;
+  margin: initial;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* High contrast focus indicators for accessibility */
+@media (prefers-contrast: high) {
+  *:focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 3px;
+  }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Confidence Indicator Styles */
+/* Color-coded underlines for paragraph confidence levels */
+.confidence-indicator {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  cursor: help;
+  transition: background-color 0.15s ease-out;
+}
+
+/* High confidence (>0.8) - Green */
+.confidence-high {
+  text-decoration-color: rgb(34, 197, 94);
+}
+
+.confidence-high:hover {
+  background-color: rgba(34, 197, 94, 0.1);
+}
+
+.dark .confidence-high {
+  text-decoration-color: rgb(74, 222, 128);
+}
+
+.dark .confidence-high:hover {
+  background-color: rgba(74, 222, 128, 0.15);
+}
+
+/* Medium confidence (0.6-0.8) - Amber/Yellow */
+.confidence-medium {
+  text-decoration-color: rgb(245, 158, 11);
+}
+
+.confidence-medium:hover {
+  background-color: rgba(245, 158, 11, 0.1);
+}
+
+.dark .confidence-medium {
+  text-decoration-color: rgb(251, 191, 36);
+}
+
+.dark .confidence-medium:hover {
+  background-color: rgba(251, 191, 36, 0.15);
+}
+
+/* Low confidence (<0.6) - Red */
+.confidence-low {
+  text-decoration-color: rgb(239, 68, 68);
+  text-decoration-style: wavy;
+}
+
+.confidence-low:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.dark .confidence-low {
+  text-decoration-color: rgb(248, 113, 113);
+}
+
+.dark .confidence-low:hover {
+  background-color: rgba(248, 113, 113, 0.15);
+}
+
+/* High contrast mode adjustments for confidence indicators */
+@media (prefers-contrast: high) {
+  .confidence-indicator {
+    text-decoration-thickness: 3px;
+  }
+
+  .confidence-high {
+    text-decoration-color: green;
+  }
+
+  .confidence-medium {
+    text-decoration-color: orange;
+  }
+
+  .confidence-low {
+    text-decoration-color: red;
+  }
 }

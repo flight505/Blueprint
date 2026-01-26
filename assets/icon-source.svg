@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Blueprint icon: stylized architecture blueprint with layers -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e40af;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="shineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.3" />
+      <stop offset="50%" style="stop-color:#ffffff;stop-opacity:0" />
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect x="64" y="64" width="896" height="896" rx="180" ry="180" fill="url(#bgGradient)"/>
+
+  <!-- Shine overlay -->
+  <rect x="64" y="64" width="896" height="448" rx="180" ry="180" fill="url(#shineGradient)"/>
+
+  <!-- Blueprint grid lines (horizontal) -->
+  <g stroke="#ffffff" stroke-opacity="0.15" stroke-width="2">
+    <line x1="180" y1="300" x2="844" y2="300"/>
+    <line x1="180" y1="400" x2="844" y2="400"/>
+    <line x1="180" y1="500" x2="844" y2="500"/>
+    <line x1="180" y1="600" x2="844" y2="600"/>
+    <line x1="180" y1="700" x2="844" y2="700"/>
+  </g>
+
+  <!-- Blueprint grid lines (vertical) -->
+  <g stroke="#ffffff" stroke-opacity="0.15" stroke-width="2">
+    <line x1="300" y1="200" x2="300" y2="824"/>
+    <line x1="400" y1="200" x2="400" y2="824"/>
+    <line x1="500" y1="200" x2="500" y2="824"/>
+    <line x1="600" y1="200" x2="600" y2="824"/>
+    <line x1="700" y1="200" x2="700" y2="824"/>
+  </g>
+
+  <!-- Main "B" letter stylized as blueprint layers -->
+  <g fill="none" stroke="#ffffff" stroke-width="48" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Vertical line of B -->
+    <path d="M 320 280 L 320 744"/>
+
+    <!-- Top curve of B -->
+    <path d="M 320 280 L 520 280 Q 680 280 680 400 Q 680 480 520 480 L 320 480"/>
+
+    <!-- Bottom curve of B -->
+    <path d="M 320 480 L 560 480 Q 720 480 720 620 Q 720 744 560 744 L 320 744"/>
+  </g>
+
+  <!-- Small accent dots (like blueprint markers) -->
+  <g fill="#ffffff" fill-opacity="0.6">
+    <circle cx="320" cy="280" r="12"/>
+    <circle cx="320" cy="480" r="12"/>
+    <circle cx="320" cy="744" r="12"/>
+    <circle cx="680" cy="400" r="12"/>
+    <circle cx="720" cy="620" r="12"/>
+  </g>
+</svg>

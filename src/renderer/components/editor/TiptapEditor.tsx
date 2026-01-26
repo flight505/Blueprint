@@ -1,0 +1,294 @@
+import { useEditor, EditorContent, Editor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import { useCallback, useEffect, useState, useRef } from 'react';
+import { store$ } from '../../state/store';
+import { EditorContextMenu, useEditorContextMenu } from '../contextmenu';
+
+export interface TiptapEditorProps {
+  /** Initial content (HTML or plain text) */
+  content?: string;
+  /** Callback when content changes */
+  onChange?: (html: string, text: string) => void;
+  /** Callback when editor is ready */
+  onEditorReady?: (editor: Editor) => void;
+  /** Whether the editor is editable */
+  editable?: boolean;
+  /** Placeholder text when editor is empty */
+  placeholder?: string;
+  /** Additional CSS classes for the editor container */
+  className?: string;
+  /** Auto-focus the editor on mount */
+  autoFocus?: boolean;
+  /** Callback when "Edit with AI" is triggered (via context menu or Cmd+K) */
+  onEditWithAI?: () => void;
+  /** Callback when "Search" is triggered from context menu */
+  onSearch?: (text: string) => void;
+}
+
+/**
+ * TiptapEditor - Rich text editor component built on Tiptap
+ *
+ * Features:
+ * - Markdown-like formatting (bold, italic, strikethrough)
+ * - Headings (H1-H6)
+ * - Lists (bullet, ordered, task)
+ * - Code blocks with syntax highlighting
+ * - Blockquotes
+ * - Horizontal rules
+ * - History (undo/redo)
+ */
+export function TiptapEditor({
+  content = '',
+  onChange,
+  onEditorReady,
+  editable = true,
+  placeholder = 'Start typing...',
+  className = '',
+  autoFocus = false,
+  onEditWithAI,
+  onSearch,
+}: TiptapEditorProps) {
+  // Context menu hook
+  const {
+    isOpen: isContextMenuOpen,
+    position: contextMenuPosition,
+    close: closeContextMenu,
+    handleContextMenu,
+  } = useEditorContextMenu();
+
+  // Container ref for context menu positioning
+  const containerRef = useRef<HTMLDivElement>(null);
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        // Configure StarterKit extensions
+        heading: {
+          levels: [1, 2, 3, 4, 5, 6],
+        },
+        codeBlock: {
+          // Code blocks will be enhanced with Mermaid extension
+          HTMLAttributes: {
+            class: 'code-block',
+          },
+        },
+        code: {
+          HTMLAttributes: {
+            class: 'inline-code',
+          },
+        },
+        blockquote: {
+          HTMLAttributes: {
+            class: 'blockquote',
+          },
+        },
+      }),
+    ],
+    content,
+    editable,
+    autofocus: autoFocus,
+    editorProps: {
+      attributes: {
+        class: 'tiptap-editor prose dark:prose-invert max-w-none focus:outline-none',
+        'aria-label': 'Rich text editor',
+        role: 'textbox',
+        'aria-multiline': 'true',
+      },
+    },
+    onUpdate: ({ editor }) => {
+      if (onChange) {
+        onChange(editor.getHTML(), editor.getText());
+      }
+    },
+  });
+
+  // Notify when editor is ready
+  useEffect(() => {
+    if (editor && onEditorReady) {
+      onEditorReady(editor);
+    }
+  }, [editor, onEditorReady]);
+
+  // Update content if prop changes externally
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content);
+    }
+  }, [content, editor]);
+
+  // Track selection state for visual indicator
+  const [hasSelection, setHasSelection] = useState(false);
+
+  // Listen for selection changes to update visual indicator and store
+  useEffect(() => {
+    if (!editor) return;
+
+    const handleSelectionUpdate = () => {
+      const { from, to } = editor.state.selection;
+      const text = editor.state.doc.textBetween(from, to, ' ');
+      const hasValidSelection = to - from >= 1 && text.trim().length > 0;
+
+      setHasSelection(hasValidSelection);
+
+      // Update store with selection state
+      if (hasValidSelection) {
+        store$.session.textSelection.set({
+          text,
+          from,
+          to,
+          hasSelection: true,
+          length: to - from,
+        });
+      } else {
+        store$.session.textSelection.set(null);
+      }
+    };
+
+    const handleBlur = () => {
+      // Clear selection on blur (click elsewhere)
+      setTimeout(() => {
+        if (!editor.isFocused) {
+          setHasSelection(false);
+          store$.session.textSelection.set(null);
+        }
+      }, 100);
+    };
+
+    editor.on('selectionUpdate', handleSelectionUpdate);
+    editor.on('blur', handleBlur);
+
+    // Initial check
+    handleSelectionUpdate();
+
+    return () => {
+      editor.off('selectionUpdate', handleSelectionUpdate);
+      editor.off('blur', handleBlur);
+    };
+  }, [editor]);
+
+  // Keyboard shortcuts handler
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!editor) return;
+
+      // Cmd/Ctrl+B for bold
+      if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
+        e.preventDefault();
+        editor.chain().focus().toggleBold().run();
+      }
+      // Cmd/Ctrl+I for italic
+      if ((e.metaKey || e.ctrlKey) && e.key === 'i') {
+        e.preventDefault();
+        editor.chain().focus().toggleItalic().run();
+      }
+      // Cmd/Ctrl+` for inline code
+      if ((e.metaKey || e.ctrlKey) && e.key === '`') {
+        e.preventDefault();
+        editor.chain().focus().toggleCode().run();
+      }
+      // Cmd/Ctrl+K for AI edit
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        // Check if there's a selection
+        const selection = store$.session.textSelection.get();
+        if (selection?.hasSelection && selection.text.trim().length > 0 && onEditWithAI) {
+          e.preventDefault();
+          onEditWithAI();
+        }
+      }
+    },
+    [editor, onEditWithAI]
+  );
+
+  if (!editor) {
+    return (
+      <div className={`tiptap-editor-loading ${className}`}>
+        <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-32 rounded" />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className={`tiptap-editor-container relative ${className} ${hasSelection ? 'has-selection' : ''}`}
+      onKeyDown={handleKeyDown}
+      onContextMenu={handleContextMenu}
+    >
+      {/* Editor content */}
+      <EditorContent
+        editor={editor}
+        className="min-h-[200px] p-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
+      />
+
+      {/* Placeholder when empty */}
+      {editor.isEmpty && (
+        <div className="absolute top-4 left-4 text-gray-400 dark:text-gray-500 pointer-events-none">
+          {placeholder}
+        </div>
+      )}
+
+      {/* Character count */}
+      <div className="absolute bottom-2 right-2 text-xs text-gray-400 dark:text-gray-500">
+        {editor.storage.characterCount?.characters?.() ?? editor.getText().length} chars
+      </div>
+
+      {/* Context Menu */}
+      <EditorContextMenu
+        isOpen={isContextMenuOpen}
+        position={contextMenuPosition}
+        onClose={closeContextMenu}
+        onEditWithAI={onEditWithAI}
+        onSearch={onSearch}
+        containerRef={containerRef}
+      />
+    </div>
+  );
+}
+
+/**
+ * Hook to access the editor instance from child components
+ */
+export function useEditorContext(editor: Editor | null) {
+  return {
+    editor,
+    isReady: editor !== null,
+    isEmpty: editor?.isEmpty ?? true,
+    isFocused: editor?.isFocused ?? false,
+    // Format commands
+    toggleBold: () => editor?.chain().focus().toggleBold().run(),
+    toggleItalic: () => editor?.chain().focus().toggleItalic().run(),
+    toggleStrike: () => editor?.chain().focus().toggleStrike().run(),
+    toggleCode: () => editor?.chain().focus().toggleCode().run(),
+    toggleCodeBlock: () => editor?.chain().focus().toggleCodeBlock().run(),
+    toggleBulletList: () => editor?.chain().focus().toggleBulletList().run(),
+    toggleOrderedList: () => editor?.chain().focus().toggleOrderedList().run(),
+    toggleBlockquote: () => editor?.chain().focus().toggleBlockquote().run(),
+    setHeading: (level: 1 | 2 | 3 | 4 | 5 | 6) =>
+      editor?.chain().focus().toggleHeading({ level }).run(),
+    // Selection
+    getSelectedText: () => {
+      if (!editor) return '';
+      const { from, to } = editor.state.selection;
+      return editor.state.doc.textBetween(from, to, ' ');
+    },
+    getSelectionRange: () => {
+      if (!editor) return { from: 0, to: 0 };
+      const { from, to } = editor.state.selection;
+      return { from, to };
+    },
+    // Content
+    getHTML: () => editor?.getHTML() ?? '',
+    getText: () => editor?.getText() ?? '',
+    setContent: (content: string) => editor?.commands.setContent(content),
+    // Focus
+    focus: () => editor?.commands.focus(),
+    blur: () => editor?.commands.blur(),
+    // History (undo/redo) - Tiptap StarterKit includes UndoRedo extension
+    // Cmd+Z and Cmd+Shift+Z keyboard shortcuts are built-in
+    undo: () => editor?.chain().focus().undo().run(),
+    redo: () => editor?.chain().focus().redo().run(),
+    canUndo: () => editor?.can().undo() ?? false,
+    canRedo: () => editor?.can().redo() ?? false,
+  };
+}
+
+export default TiptapEditor;
