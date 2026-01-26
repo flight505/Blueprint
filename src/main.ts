@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, session } from 'electron';
 import path from 'node:path';
 import { checkAllPermissions, openSystemPreferences } from './main/permissions';
 import { readDirectory, readFileContent, listAllFiles, searchInFiles, writeFile, FileNode, FileContent, QuickOpenFile, SearchResult, addAllowedBasePath, clearAllowedBasePaths, isPathAllowed } from './main/services/FileSystemService';
@@ -1234,7 +1234,7 @@ const createWindow = async () => {
     minWidth: 1024,
     minHeight: 768,
     titleBarStyle: 'hiddenInset',
-    trafficLightPosition: { x: 16, y: 16 },
+    trafficLightPosition: { x: 16, y: 12 },
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -1274,6 +1274,35 @@ const createWindow = async () => {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 app.on('ready', async () => {
+  // Set Content Security Policy for production
+  // In dev mode, Vite HMR requires 'unsafe-eval', so we use a more permissive policy
+  const isDev = !!MAIN_WINDOW_VITE_DEV_SERVER_URL;
+
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    const csp = isDev
+      ? // Dev: Allow Vite HMR and local dev server
+        "default-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+        "style-src 'self' 'unsafe-inline'; " +
+        "img-src 'self' data: https:; " +
+        "connect-src 'self' ws://localhost:* http://localhost:* https://api.anthropic.com https://openrouter.ai https://generativelanguage.googleapis.com; " +
+        "font-src 'self' data:;"
+      : // Production: Strict CSP
+        "default-src 'self'; " +
+        "script-src 'self'; " +
+        "style-src 'self' 'unsafe-inline'; " + // Inline styles needed for some UI libraries
+        "img-src 'self' data: https:; " +
+        "connect-src 'self' https://api.anthropic.com https://openrouter.ai https://generativelanguage.googleapis.com; " +
+        "font-src 'self' data:;";
+
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [csp],
+      },
+    });
+  });
+
   // Initialize services
   databaseService.initialize();
   secureStorageService.initialize();

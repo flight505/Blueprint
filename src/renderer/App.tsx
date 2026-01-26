@@ -644,21 +644,35 @@ function MainApp() {
   return (
     <div
       ref={containerRef}
-      className="flex h-screen w-screen overflow-hidden bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+      className="flex flex-col h-screen w-screen overflow-hidden bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100"
     >
-      {/* Skip link for keyboard navigation - WCAG 2.2 */}
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:shadow-lg"
-      >
-        Skip to main content
-      </a>
+      {/* macOS Title Bar - Draggable region for window movement */}
+      <div className="title-bar-drag-region h-9 flex-shrink-0 flex items-center bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        {/* Left spacing for traffic lights (macOS) - approximately 72px */}
+        <div className="w-[72px] flex-shrink-0" />
+        {/* Optional: App title or window controls could go here */}
+        <div className="flex-1 text-center text-xs text-gray-500 dark:text-gray-400 font-medium">
+          Blueprint
+        </div>
+        {/* Right spacing for balance */}
+        <div className="w-[72px] flex-shrink-0" />
+      </div>
 
-      {/* Activity Bar */}
-      <nav
-        aria-label="Main navigation"
-        className="w-12 flex-shrink-0 flex flex-col bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700"
-      >
+      {/* Main content area below title bar */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Skip link for keyboard navigation - WCAG 2.2 */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:shadow-lg"
+        >
+          Skip to main content
+        </a>
+
+        {/* Activity Bar */}
+        <nav
+          aria-label="Main navigation"
+          className="w-12 flex-shrink-0 flex flex-col bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700"
+        >
         <div className="flex-1 flex flex-col items-center pt-4 gap-2">
           {(['chat', 'explorer', 'search', 'context', 'planning', 'export', 'history'] as const).map((section) => (
             <ActivityBarButton
@@ -822,15 +836,16 @@ function MainApp() {
         projectTitle="Blueprint Project"
       />
 
-      {/* New Project Wizard */}
-      <NewProjectWizard
-        isOpen={showNewProjectWizard}
-        onClose={() => setShowNewProjectWizard(false)}
-        onCreateProject={handleCreateProject}
-      />
+        {/* New Project Wizard */}
+        <NewProjectWizard
+          isOpen={showNewProjectWizard}
+          onClose={() => setShowNewProjectWizard(false)}
+          onCreateProject={handleCreateProject}
+        />
 
-      {/* Confidence Indicator Tooltip (global, positioned via events) */}
-      <ConfidenceTooltip />
+        {/* Confidence Indicator Tooltip (global, positioned via events) */}
+        <ConfidenceTooltip />
+      </div>
     </div>
   );
 }

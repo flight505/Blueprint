@@ -83,6 +83,21 @@ body {
   user-select: none;
 }
 
+/* macOS title bar draggable region */
+.title-bar-drag-region {
+  -webkit-app-region: drag;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Interactive elements within title bar should not be draggable */
+.title-bar-drag-region button,
+.title-bar-drag-region a,
+.title-bar-drag-region input,
+.title-bar-drag-region [role="button"] {
+  -webkit-app-region: no-drag;
+}
+
 /* Custom focus styles */
 *:focus-visible {
   outline: 2px solid theme('colors.blue.500');
