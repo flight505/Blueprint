@@ -478,6 +478,51 @@ export interface CitationVerificationCacheStats {
   cacheSize: number;
 }
 
+// Citation attachment types
+export interface RAGSource {
+  id: string;
+  url: string;
+  title: string;
+  authors?: string[];
+  date?: string;
+  publisher?: string;
+  content: string;
+  relevanceScore?: number;
+  provider: 'perplexity' | 'gemini' | 'manual' | 'imported';
+}
+
+export interface ExtractedClaim {
+  text: string;
+  startOffset: number;
+  endOffset: number;
+  line?: number;
+  sourceIds: string[];
+  confidence?: number;
+}
+
+export interface AttachmentResult {
+  annotatedText: string;
+  claims: ExtractedClaim[];
+  addedCitations: ManagedCitation[];
+  totalCitations: number;
+}
+
+export interface AttachmentOptions {
+  insertMarkers?: boolean;
+  minRelevance?: number;
+  maxCitationsPerClaim?: number;
+}
+
+export interface SourceClaimLink {
+  citationId: string;
+  citationNumber: number;
+  claimText: string;
+  originalOffset: number;
+  originalLine?: number;
+  contextHash: string;
+  confidence?: number;
+}
+
 // PDF generation types
 export interface PDFGenerationOptions {
   includeToc?: boolean;
@@ -1031,6 +1076,29 @@ contextBridge.exposeInMainWorld('electronAPI', {
   citationVerificationGetCacheStats: (): Promise<CitationVerificationCacheStats> =>
     ipcRenderer.invoke('citationVerification:getCacheStats'),
 
+  // Citation attachment (attaching citations during AI generation)
+  citationAttachCitations: (
+    documentPath: string,
+    generatedText: string,
+    sources: RAGSource[],
+    options?: AttachmentOptions
+  ): Promise<AttachmentResult> =>
+    ipcRenderer.invoke('citationAttachment:attachCitations', documentPath, generatedText, sources, options),
+  citationRelocateCitations: (
+    documentPath: string,
+    newText: string
+  ): Promise<{ relocated: number; lost: number }> =>
+    ipcRenderer.invoke('citationAttachment:relocateCitations', documentPath, newText),
+  citationGetSourceClaimLinks: (documentPath: string): Promise<SourceClaimLink[]> =>
+    ipcRenderer.invoke('citationAttachment:getSourceClaimLinks', documentPath),
+  citationCleanupOrphanedLinks: (documentPath: string): Promise<number> =>
+    ipcRenderer.invoke('citationAttachment:cleanupOrphanedLinks', documentPath),
+  citationConvertResearchCitations: (
+    citations: Array<{ url: string; title?: string; snippet?: string; domain?: string }>,
+    provider: 'perplexity' | 'gemini'
+  ): Promise<RAGSource[]> =>
+    ipcRenderer.invoke('citationAttachment:convertResearchCitations', citations, provider),
+
   // PDF generation
   pdfIsPandocAvailable: (): Promise<boolean> =>
     ipcRenderer.invoke('pdf:isPandocAvailable'),
@@ -1400,6 +1468,24 @@ declare global {
       citationVerifyCitations: (queries: CitationVerificationQuery[]) => Promise<Map<number, CitationVerificationResult>>;
       citationVerificationClearCache: () => Promise<number>;
       citationVerificationGetCacheStats: () => Promise<CitationVerificationCacheStats>;
+
+      // Citation attachment
+      citationAttachCitations: (
+        documentPath: string,
+        generatedText: string,
+        sources: RAGSource[],
+        options?: AttachmentOptions
+      ) => Promise<AttachmentResult>;
+      citationRelocateCitations: (
+        documentPath: string,
+        newText: string
+      ) => Promise<{ relocated: number; lost: number }>;
+      citationGetSourceClaimLinks: (documentPath: string) => Promise<SourceClaimLink[]>;
+      citationCleanupOrphanedLinks: (documentPath: string) => Promise<number>;
+      citationConvertResearchCitations: (
+        citations: Array<{ url: string; title?: string; snippet?: string; domain?: string }>,
+        provider: 'perplexity' | 'gemini'
+      ) => Promise<RAGSource[]>;
 
       // PDF generation
       pdfIsPandocAvailable: () => Promise<boolean>;

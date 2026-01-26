@@ -18,6 +18,7 @@ import { pptxGenerator, type PPTXGenerationOptions, type PPTXGenerationResult, t
 import { phaseOrchestrator, type PhaseOrchestratorConfig, type ProjectExecutionState, type PhaseState } from './main/services/PhaseOrchestrator';
 import { updateService, type UpdateStatus, type UpdateInfo } from './main/services/UpdateService';
 import { citationVerificationService, type CitationQuery, type VerificationResult } from './main/services/CitationVerificationService';
+import { citationAttachmentService, type RAGSource, type AttachmentResult, type AttachmentOptions, type SourceClaimLink } from './main/services/CitationAttachmentService';
 
 // Register IPC handlers
 function registerIpcHandlers() {
@@ -580,6 +581,47 @@ function registerIpcHandlers() {
 
   ipcMain.handle('citationVerification:getCacheStats', (): { totalEntries: number; expiredEntries: number; cacheSize: number } => {
     return citationVerificationService.getCacheStats();
+  });
+
+  // Citation Attachment handlers
+  ipcMain.handle('citationAttachment:attachCitations', async (
+    _,
+    documentPath: string,
+    generatedText: string,
+    sources: RAGSource[],
+    options?: AttachmentOptions
+  ): Promise<AttachmentResult> => {
+    return await citationAttachmentService.attachCitations(documentPath, generatedText, sources, options);
+  });
+
+  ipcMain.handle('citationAttachment:relocateCitations', async (
+    _,
+    documentPath: string,
+    newText: string
+  ): Promise<{ relocated: number; lost: number }> => {
+    return await citationAttachmentService.relocateCitationsAfterEdit(documentPath, newText);
+  });
+
+  ipcMain.handle('citationAttachment:getSourceClaimLinks', async (
+    _,
+    documentPath: string
+  ): Promise<SourceClaimLink[]> => {
+    return await citationAttachmentService.getSourceClaimLinks(documentPath);
+  });
+
+  ipcMain.handle('citationAttachment:cleanupOrphanedLinks', async (
+    _,
+    documentPath: string
+  ): Promise<number> => {
+    return await citationAttachmentService.cleanupOrphanedLinks(documentPath);
+  });
+
+  ipcMain.handle('citationAttachment:convertResearchCitations', (
+    _,
+    citations: Array<{ url: string; title?: string; snippet?: string; domain?: string }>,
+    provider: 'perplexity' | 'gemini'
+  ): RAGSource[] => {
+    return citationAttachmentService.convertResearchCitations(citations, provider);
   });
 
   // PDF Generator handlers
