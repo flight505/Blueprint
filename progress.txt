@@ -33,6 +33,22 @@ Started: Sun Jan 25 21:44:33 CET 2026
 - Testing: Vitest with happy-dom env; mock fs with `vi.mock('node:fs', ...)` before import; test files at `src/main/services/*.test.ts`; run `pnpm test` or `pnpm test:coverage`
 - electron-builder: Config in electron-builder.yml; Vite builds to .vite/, electron-builder outputs to dist/; use `pnpm dist` for full build or `pnpm dist:mac|win|linux` for platform-specific
 - Auto-update: electron-updater with GitHub Releases provider; UpdateService singleton in main process; check delayed 3s after app ready; autoDownload=false for user control; UpdateNotification component with useUpdate hook for UI
+- Confidence Scoring: ConfidenceScoringService uses heuristic-based scoring (hedging words, assertions, factual indicators, citations); default threshold 0.6; Anthropic API doesn't support logprobs so service is extensible for future integration; streaming support via `processStreamingText()` with callback for updates
+
+## 2026-01-26 - US-058
+- Implemented Confidence Scoring with heuristic-based analysis
+- Files changed:
+  - src/main/services/ConfidenceScoringService.ts (new) - Paragraph and document-level confidence scoring
+  - src/main/services/ConfidenceScoringService.test.ts (new) - 33 unit tests
+  - src/main.ts - Added IPC handlers for confidence scoring
+  - src/preload.ts - Added types and API exposure for confidence scoring
+- **Learnings:**
+  - Anthropic SDK does not support logprobs (token probabilities) - designed extensible system for future integration
+  - Linguistic indicator-based scoring: hedging words (might, maybe, perhaps), assertions (definitely, clearly), factual indicators (according to, research shows)
+  - Citation patterns (\[\d+\], URLs, et al.) boost confidence
+  - Default threshold of 0.6 matches acceptance criteria; configurable via setLowConfidenceThreshold()
+  - Streaming updates use IPC events via webContents.send() similar to agent streaming pattern
+---
 
 ## 2026-01-25 - US-006
 - Implemented File Browser Component with tree view navigation
@@ -3404,3 +3420,81 @@ Successfully implemented automatic updates for the Blueprint Electron applicatio
   - SQLite cache: separate database file (citation-cache.db) to avoid bloating main database; tiered TTL with DOI lookups cached 7 days, search results 1 hour
   - Author matching: normalize names, check last name match first (most discriminative), then check common parts
 ---
+
+=== Iteration 56 Mon Jan 26 02:09:41 CET 2026 ===
+**US-056 is complete.** 
+
+## Summary of US-056 Implementation
+
+Created `CitationVerificationService` at `src/main/services/CitationVerificationService.ts` with:
+
+1. **OpenAlex API client** with rate limiting (10 RPS)
+2. **Crossref API client** with polite pool access (mailto header, 10 RPS)  
+3. **Hybrid query strategy**: DOI direct lookup → OpenAlex search → Crossref fallback
+4. **Confidence scoring** with weighted field matching:
+   - DOI match: 1.0 (definitive)
+   - Title: 0.4 (fuzzy Jaccard similarity)
+   - Authors: 0.3 (last name matching)
+   - Year: 0.15 (exact match)
+5. **SQLite cache** with tiered TTL:
+   - DOI lookups: 7 days
+   - Search results: 1 hour
+6. **Full IPC handlers and preload API** exposed
+
+All acceptance criteria met and typecheck passes.
+
+There are still 6 stories with `passes: false` remaining. Since this iteration is complete (one story per iteration), ending here.
+
+## 2026-01-26 - US-057
+- Implemented Citation Attachment System for attaching citations during AI text generation
+- Files changed:
+  - src/main/services/CitationAttachmentService.ts (new) - Citation extraction, claim detection, source-claim linking
+  - src/main.ts - Added IPC handlers for citationAttachment:* operations
+  - src/preload.ts - Exposed citation attachment API with types
+- **Learnings:**
+  - Use factual claim indicators (statistics, definitive statements, causal claims) to identify sentences needing citations
+  - Jaccard similarity + key term bonus for matching claims to sources
+  - Context hashes (first word:last word:length) enable finding claims after document edits
+  - sourceClaimLinks stored in extended CitationFile for persistence
+  - Insert IEEE markers from end of text to beginning to avoid offset drift
+  - Check for existing citation markers before inserting to avoid duplicates
+---
+
+=== Iteration 57 Mon Jan 26 02:16:25 CET 2026 ===
+There are still 5 stories remaining. The iteration is complete for US-057, which has been successfully implemented and committed.
+
+---
+
+## Summary of US-057 Implementation
+
+**US-057: Build Citation Attachment System** is now complete.
+
+### What was implemented:
+
+1. **CitationAttachmentService** (`src/main/services/CitationAttachmentService.ts`) with:
+   - `attachCitations()` - Extracts citations from RAG context and attaches them to generated text
+   - `extractClaims()` - Identifies factual claims in text using heuristic patterns (statistics, definitive statements, comparative claims, causal claims)
+   - `findSupportingSources()` - Matches claims to sources using Jaccard similarity and key term matching
+   - `insertCitationMarkers()` - Inserts IEEE citation markers [n] at appropriate positions
+   - `storeSourceClaimLinks()` - Persists source-claim mappings with context hashes
+   - `relocateCitationsAfterEdit()` - Re-finds claims after document edits using fuzzy matching
+   - `convertResearchCitations()` - Converts research response citations to RAGSource format
+
+2. **IPC handlers** added to `main.ts`:
+   - `citationAttachment:attachCitations`
+   - `citationAttachment:relocateCitations`
+   - `citationAttachment:getSourceClaimLinks`
+   - `citationAttachment:cleanupOrphanedLinks`
+   - `citationAttachment:convertResearchCitations`
+
+3. **Preload API** exposed with full TypeScript types
+
+### Key features:
+- **Claim detection** using factual indicators (numbers, statistics, definitive statements)
+- **Confidence scoring** based on source count and relevance
+- **Edit persistence** using context hashes (first word:last word:length)
+- **Fuzzy relocation** to find moved claims after edits
+- **Deduplication** to avoid inserting duplicate citation markers
+
+### Committed as:
+`feat: [US-057] - Build Citation Attachment System`

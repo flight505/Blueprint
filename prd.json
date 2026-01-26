@@ -1361,9 +1361,9 @@
         "Typecheck passes"
       ],
       "priority": 63,
-      "passes": false,
-      "status": "pending",
-      "notes": "",
+      "passes": true,
+      "status": "complete",
+      "notes": "Created ConfidenceScoringService with heuristic-based confidence scoring (Anthropic API doesn't support logprobs). Uses linguistic indicators: hedging words, assertions, factual indicators, citations. Paragraph-level and document-level analysis. Configurable threshold (default 0.6). Streaming text support. Extensible for future token probability integration. Full IPC handlers and preload API exposed. 33 unit tests passing.",
       "depends_on": ["US-008"],
       "related_to": ["US-057", "US-059"],
       "implementation_hint": "Extract logprobs from streaming handler. Compute paragraph-level scores.",
