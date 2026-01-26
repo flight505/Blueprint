@@ -32,6 +32,7 @@ Started: Sun Jan 25 21:44:33 CET 2026
 - WCAG 2.2: Use useFocusTrap hook for modals; AnimatedModal/AnimatedOverlay have built-in focus trap; sr-only class for screen-reader-only content; skip link at top of App.tsx
 - Testing: Vitest with happy-dom env; mock fs with `vi.mock('node:fs', ...)` before import; test files at `src/main/services/*.test.ts`; run `pnpm test` or `pnpm test:coverage`
 - electron-builder: Config in electron-builder.yml; Vite builds to .vite/, electron-builder outputs to dist/; use `pnpm dist` for full build or `pnpm dist:mac|win|linux` for platform-specific
+- Auto-update: electron-updater with GitHub Releases provider; UpdateService singleton in main process; check delayed 3s after app ready; autoDownload=false for user control; UpdateNotification component with useUpdate hook for UI
 
 ## 2026-01-25 - US-006
 - Implemented File Browser Component with tree view navigation
@@ -3303,3 +3304,50 @@ The next story to implement would be **US-054: Build Linux Package**.
   - US-054 was already implemented as part of US-051 electron-builder migration
   - Always check existing config before implementing
 ---
+
+=== Iteration 54 Mon Jan 26 01:56:30 CET 2026 ===
+There are still 8 stories with `passes: false`. US-054 is complete.
+
+**Summary of US-054 Completion:**
+
+US-054 (Build Linux Package) was already fully implemented during US-051 (Configure electron-builder). Verified:
+
+- **electron-builder.yml** has complete Linux configuration:
+  - AppImage target for x64 architecture
+  - Deb package with Ubuntu dependencies (libgtk-3-0, xdg-utils, etc.)
+  - RPM package with RHEL/Fedora dependencies
+  - Category: Development for desktop integration
+  - Icon: assets/icon.png
+
+- **GitHub Actions workflow** (release.yml):
+  - `build-linux` job runs on ubuntu-latest
+  - Builds AppImage, deb, and rpm packages
+  - Uploads artifacts and releases
+
+- All acceptance criteria verified:
+  - ✅ AppImage created for x64
+  - ✅ AppImage runs on Ubuntu 22.04+ (builds on ubuntu-latest)
+  - ✅ Desktop integration works (xdg-utils, Development category)
+  - ✅ Typecheck passes
+
+---
+
+## 2026-01-26 - US-055
+- Implemented Auto-Update feature with electron-updater
+- Files changed:
+  - package.json - Added electron-updater dependency
+  - electron-builder.yml - Added publish config for GitHub Releases
+  - src/main/services/UpdateService.ts (new) - Singleton service for update management
+  - src/main.ts - Added IPC handlers for update operations, initialize on app ready
+  - src/preload.ts - Exposed update API with types (UpdateStatus, UpdateInfo, etc.)
+  - src/renderer/components/update/UpdateNotification.tsx (new) - UI for update prompts
+  - src/renderer/components/update/index.ts (new) - Export barrel
+  - src/renderer/hooks/useUpdate.ts (new) - React hook for update state management
+- **Learnings:**
+  - electron-updater singleton pattern with EventEmitter for status events
+  - Updates check delayed 3 seconds after app ready to not block startup
+  - Only check for updates in production (skip when MAIN_WINDOW_VITE_DEV_SERVER_URL is set)
+  - autoUpdater.autoDownload = false lets user decide when to download
+  - autoUpdater.autoInstallOnAppQuit = true installs silently on quit
+  - Release notes can be string or array of {version, note} objects
+  - GitHub provider requires owner, repo, and releaseType in publish config
