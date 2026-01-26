@@ -3140,3 +3140,76 @@ All checks pass. US-051 is complete:
 **Committed as:** `feat: [US-051] - Configure electron-builder`
 
 There are still 11 stories remaining with `passes: false`. The next story is US-052 (Build macOS Installer).
+
+=== Iteration 51 Mon Jan 26 01:46:19 CET 2026 ===
+There are still 11 stories with `passes: false`. The iteration is complete for US-051. 
+
+---
+
+## Summary of US-051 Implementation:
+
+**Migrated from Electron Forge to electron-builder for production builds:**
+
+1. **Installed electron-builder v26.4.0** and removed all Electron Forge dependencies
+2. **Created electron-builder.yml** with targets for:
+   - macOS: DMG + ZIP (x64 + arm64 universal)
+   - Windows: NSIS + Portable (x64)
+   - Linux: AppImage + Deb + RPM (x64)
+3. **Updated Vite configs** for proper Node.js SSR builds:
+   - `vite.main.config.ts`: SSR mode, externalized builtinModules, defined MAIN_WINDOW variables
+   - `vite.preload.config.ts`: SSR mode, `emptyOutDir: false` to preserve main.js
+   - `vite.renderer.config.ts`: Fixed entry point and output directory
+4. **Added macOS entitlements** (build/entitlements.mac.plist) for code signing
+5. **Updated package.json scripts**: dist, dist:mac, dist:win, dist:linux
+6. **Build artifacts output to dist/ directory** as configured
+
+**Committed as:** `feat: [US-051] - Configure electron-builder`
+
+The next story to implement is **US-052: Build macOS Installer**.
+
+---
+
+## 2026-01-26 - US-052
+- Implemented macOS Installer with code signing and notarization
+- Files changed:
+  - electron-builder.yml - Updated mac target to use `arch: universal`, added afterSign hook, enabled DMG signing, added signIgnore for native modules
+  - scripts/notarize.js (new) - afterSign hook script for Apple notarization using @electron/notarize
+  - .github/workflows/release.yml (new) - CI/CD workflow for building and releasing all platforms with code signing
+  - package.json - Added @electron/notarize devDependency
+- **Learnings:**
+  - Use `arch: universal` instead of separate x64/arm64 for proper universal binary
+  - afterSign hook requires path relative to project root (scripts/notarize.js)
+  - @electron/notarize uses `tool: 'notarytool'` for modern macOS notarization
+  - DMG must have `sign: true` for notarization to work properly
+  - signIgnore is needed for better-sqlite3 native modules to avoid signing conflicts
+  - Code signing in CI requires CSC_LINK (base64 p12) and CSC_KEY_PASSWORD
+  - Notarization requires APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID secrets
+  - macos-14 runner provides M1 for universal builds
+
+=== Iteration Sun Jan 26 02:XX:XX CET 2026 ===
+All checks pass. US-052 is complete:
+
+**Summary of US-052 Implementation:**
+- Configured universal binary with `arch: universal` (builds for both Intel and Apple Silicon)
+- Added afterSign hook (`scripts/notarize.js`) using @electron/notarize for Apple notarization
+- Created `.github/workflows/release.yml` for release builds:
+  - macOS: Code signing with Developer ID + notarization
+  - Windows: NSIS installer with optional code signing
+  - Linux: AppImage, Deb, RPM packages
+  - Triggered on git tags (v*) or manual dispatch
+  - Uploads artifacts and creates draft releases
+- Enabled DMG signing (required for notarization)
+- Configured signIgnore for better-sqlite3 native modules
+- Hardened runtime already configured in US-051
+- Typecheck passes
+
+**Environment Variables Required for macOS Code Signing:**
+- `CSC_LINK`: Base64-encoded .p12 certificate
+- `CSC_KEY_PASSWORD`: Certificate password
+- `APPLE_ID`: Apple Developer account email
+- `APPLE_APP_SPECIFIC_PASSWORD`: App-specific password
+- `APPLE_TEAM_ID`: Developer Team ID
+
+**Committed as:** `feat: [US-052] - Build macOS Installer`
+
+There are still 10 stories remaining with `passes: false`. The next story is US-053 (Build Windows Installer).
