@@ -10,6 +10,9 @@ directories:
   output: dist
   buildResources: assets
 
+# After code signing hook for notarization
+afterSign: scripts/notarize.js
+
 # Files to include in the app
 files:
   - "!**/.git"
@@ -33,26 +36,42 @@ asarUnpack:
   - "node_modules/better-sqlite3/**/*"
 
 # macOS configuration
+# Creates universal binary (Intel + Apple Silicon) with code signing and notarization
 mac:
   category: public.app-category.developer-tools
   target:
+    # DMG for distribution
     - target: dmg
       arch:
-        - x64
-        - arm64
+        - universal
+    # ZIP for auto-update
     - target: zip
       arch:
-        - x64
-        - arm64
+        - universal
   icon: assets/icon.icns
+  # Hardened runtime required for notarization
   hardenedRuntime: true
+  # Don't assess Gatekeeper (we handle notarization manually)
   gatekeeperAssess: false
+  # Entitlements for code signing
   entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
+  # Signing identity - uses Developer ID Application certificate from keychain
+  # Set CSC_IDENTITY_AUTO_DISCOVERY=true or CSC_NAME to specify certificate
+  # For CI: use CSC_LINK (base64 p12) and CSC_KEY_PASSWORD environment variables
+  signIgnore:
+    # Don't sign native modules - they're already signed or need special handling
+    - "node_modules/better-sqlite3/**/*.node"
 
 # DMG configuration
 dmg:
-  sign: false
+  # Sign the DMG (required for notarization to work properly)
+  sign: true
+  # DMG window appearance
+  window:
+    width: 540
+    height: 400
+  # Icon positions in DMG window
   contents:
     - x: 130
       y: 220
@@ -60,6 +79,8 @@ dmg:
       y: 220
       type: link
       path: /Applications
+  # Use a background image if available
+  # background: assets/dmg-background.png
 
 # Windows configuration
 win:
