@@ -1382,9 +1382,9 @@
         "Typecheck passes"
       ],
       "priority": 64,
-      "passes": false,
-      "status": "pending",
-      "notes": "",
+      "passes": true,
+      "status": "complete",
+      "notes": "Created ConfidenceIndicator Tiptap extension with ProseMirror decorations for color-coded underlines (green >0.8, amber 0.6-0.8, red wavy <0.6). ConfidenceTooltip component shows score percentage, progress bar, and human-readable reasoning on hover. useConfidenceIndicators hook integrates with ConfidenceScoringService for paragraph-level analysis. Toggle in View menu via command palette (view:toggle-confidence).",
       "depends_on": ["US-058"],
       "related_to": ["US-048a"],
       "implementation_hint": "Create ConfidenceIndicator component. Use Tiptap decorations for underlines.",
