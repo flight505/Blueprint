@@ -523,6 +523,59 @@ export interface SourceClaimLink {
   confidence?: number;
 }
 
+// Confidence Scoring types
+export interface ConfidenceBreakdown {
+  hedgingScore: number;
+  assertionScore: number;
+  factualScore: number;
+  citationScore: number;
+  lengthScore: number;
+  questionPenalty: number;
+}
+
+export interface ParagraphConfidence {
+  paragraphIndex: number;
+  text: string;
+  confidence: number;
+  breakdown: ConfidenceBreakdown;
+  isLowConfidence: boolean;
+  indicators: string[];
+}
+
+export interface DocumentConfidence {
+  documentPath?: string;
+  overallConfidence: number;
+  paragraphs: ParagraphConfidence[];
+  lowConfidenceParagraphs: ParagraphConfidence[];
+  summary: {
+    totalParagraphs: number;
+    lowConfidenceCount: number;
+    averageConfidence: number;
+    lowestConfidence: number;
+    highestConfidence: number;
+  };
+}
+
+export interface ConfidenceScoringConfig {
+  lowConfidenceThreshold: number;
+  enableTokenProbabilities: boolean;
+  weights: {
+    hedging: number;
+    assertion: number;
+    factual: number;
+    citation: number;
+    length: number;
+    question: number;
+  };
+}
+
+export interface ConfidenceStreamUpdate {
+  type: 'paragraph' | 'document';
+  paragraphIndex?: number;
+  confidence: number;
+  isLowConfidence: boolean;
+}
+
 // PDF generation types
 export interface PDFGenerationOptions {
   includeToc?: boolean;
@@ -1099,6 +1152,31 @@ contextBridge.exposeInMainWorld('electronAPI', {
   ): Promise<RAGSource[]> =>
     ipcRenderer.invoke('citationAttachment:convertResearchCitations', citations, provider),
 
+  // Confidence Scoring
+  confidenceComputeParagraph: (text: string, paragraphIndex?: number): Promise<ParagraphConfidence> =>
+    ipcRenderer.invoke('confidence:computeParagraph', text, paragraphIndex),
+  confidenceComputeDocument: (content: string, documentPath?: string): Promise<DocumentConfidence> =>
+    ipcRenderer.invoke('confidence:computeDocument', content, documentPath),
+  confidenceGetCached: (documentPath: string): Promise<DocumentConfidence | undefined> =>
+    ipcRenderer.invoke('confidence:getCached', documentPath),
+  confidenceClearCache: (documentPath?: string): Promise<void> =>
+    ipcRenderer.invoke('confidence:clearCache', documentPath),
+  confidenceGetThreshold: (): Promise<number> =>
+    ipcRenderer.invoke('confidence:getThreshold'),
+  confidenceSetThreshold: (threshold: number): Promise<void> =>
+    ipcRenderer.invoke('confidence:setThreshold', threshold),
+  confidenceGetConfig: (): Promise<ConfidenceScoringConfig> =>
+    ipcRenderer.invoke('confidence:getConfig'),
+  confidenceUpdateConfig: (config: Partial<ConfidenceScoringConfig>): Promise<void> =>
+    ipcRenderer.invoke('confidence:updateConfig', config),
+  confidenceProcessStreaming: (sessionId: string, newText: string, fullText: string): Promise<void> =>
+    ipcRenderer.invoke('confidence:processStreaming', sessionId, newText, fullText),
+  onConfidenceStreamUpdate: (callback: (update: ConfidenceStreamUpdate) => void): (() => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, update: ConfidenceStreamUpdate) => callback(update);
+    ipcRenderer.on('confidence:streamUpdate', listener);
+    return () => ipcRenderer.removeListener('confidence:streamUpdate', listener);
+  },
+
   // PDF generation
   pdfIsPandocAvailable: (): Promise<boolean> =>
     ipcRenderer.invoke('pdf:isPandocAvailable'),
@@ -1486,6 +1564,18 @@ declare global {
         citations: Array<{ url: string; title?: string; snippet?: string; domain?: string }>,
         provider: 'perplexity' | 'gemini'
       ) => Promise<RAGSource[]>;
+
+      // Confidence Scoring
+      confidenceComputeParagraph: (text: string, paragraphIndex?: number) => Promise<ParagraphConfidence>;
+      confidenceComputeDocument: (content: string, documentPath?: string) => Promise<DocumentConfidence>;
+      confidenceGetCached: (documentPath: string) => Promise<DocumentConfidence | undefined>;
+      confidenceClearCache: (documentPath?: string) => Promise<void>;
+      confidenceGetThreshold: () => Promise<number>;
+      confidenceSetThreshold: (threshold: number) => Promise<void>;
+      confidenceGetConfig: () => Promise<ConfidenceScoringConfig>;
+      confidenceUpdateConfig: (config: Partial<ConfidenceScoringConfig>) => Promise<void>;
+      confidenceProcessStreaming: (sessionId: string, newText: string, fullText: string) => Promise<void>;
+      onConfidenceStreamUpdate: (callback: (update: ConfidenceStreamUpdate) => void) => () => void;
 
       // PDF generation
       pdfIsPandocAvailable: () => Promise<boolean>;

@@ -19,6 +19,7 @@ import { phaseOrchestrator, type PhaseOrchestratorConfig, type ProjectExecutionS
 import { updateService, type UpdateStatus, type UpdateInfo } from './main/services/UpdateService';
 import { citationVerificationService, type CitationQuery, type VerificationResult } from './main/services/CitationVerificationService';
 import { citationAttachmentService, type RAGSource, type AttachmentResult, type AttachmentOptions, type SourceClaimLink } from './main/services/CitationAttachmentService';
+import { confidenceScoringService, type ParagraphConfidence, type DocumentConfidence, type ConfidenceScoringConfig, type ConfidenceStreamUpdate } from './main/services/ConfidenceScoringService';
 
 // Register IPC handlers
 function registerIpcHandlers() {
@@ -936,6 +937,75 @@ function registerIpcHandlers() {
 
   ipcMain.handle('update:resetStatus', (): void => {
     updateService.resetStatus();
+  });
+
+  // Confidence Scoring handlers
+  ipcMain.handle('confidence:computeParagraph', (
+    _,
+    text: string,
+    paragraphIndex?: number
+  ): ParagraphConfidence => {
+    return confidenceScoringService.computeParagraphConfidence(text, paragraphIndex);
+  });
+
+  ipcMain.handle('confidence:computeDocument', (
+    _,
+    content: string,
+    documentPath?: string
+  ): DocumentConfidence => {
+    return confidenceScoringService.computeDocumentConfidence(content, documentPath);
+  });
+
+  ipcMain.handle('confidence:getCached', (
+    _,
+    documentPath: string
+  ): DocumentConfidence | undefined => {
+    return confidenceScoringService.getCachedDocumentConfidence(documentPath);
+  });
+
+  ipcMain.handle('confidence:clearCache', (
+    _,
+    documentPath?: string
+  ): void => {
+    confidenceScoringService.clearCache(documentPath);
+  });
+
+  ipcMain.handle('confidence:getThreshold', (): number => {
+    return confidenceScoringService.getLowConfidenceThreshold();
+  });
+
+  ipcMain.handle('confidence:setThreshold', (
+    _,
+    threshold: number
+  ): void => {
+    confidenceScoringService.setLowConfidenceThreshold(threshold);
+  });
+
+  ipcMain.handle('confidence:getConfig', (): ConfidenceScoringConfig => {
+    return confidenceScoringService.getConfig();
+  });
+
+  ipcMain.handle('confidence:updateConfig', (
+    _,
+    config: Partial<ConfidenceScoringConfig>
+  ): void => {
+    confidenceScoringService.updateConfig(config);
+  });
+
+  ipcMain.handle('confidence:processStreaming', (
+    event,
+    sessionId: string,
+    newText: string,
+    fullText: string
+  ): void => {
+    confidenceScoringService.processStreamingText(
+      sessionId,
+      newText,
+      fullText,
+      (update: ConfidenceStreamUpdate) => {
+        event.sender.send('confidence:streamUpdate', update);
+      }
+    );
   });
 }
 
