@@ -631,6 +631,52 @@ export interface CheckpointData {
   updatedAt: string;
 }
 
+// Update service types
+export interface UpdateStatus {
+  checking: boolean;
+  available: boolean;
+  downloaded: boolean;
+  downloading: boolean;
+  error: string | null;
+  progress: number;
+  updateInfo: UpdateInfo | null;
+}
+
+export interface UpdateInfo {
+  version: string;
+  files: Array<{
+    url: string;
+    sha512: string;
+    size: number;
+  }>;
+  path?: string;
+  sha512?: string;
+  releaseDate: string;
+  releaseName?: string;
+  releaseNotes?: string | Array<{ version: string; note: string }>;
+}
+
+export interface UpdateProgressInfo {
+  total: number;
+  delta: number;
+  transferred: number;
+  percent: number;
+  bytesPerSecond: number;
+}
+
+export type UpdateEventType =
+  | 'checking-for-update'
+  | 'update-available'
+  | 'update-not-available'
+  | 'download-progress'
+  | 'update-downloaded'
+  | 'error';
+
+export interface UpdateEvent {
+  type: UpdateEventType;
+  data?: UpdateInfo | UpdateProgressInfo | Error;
+}
+
 // Expose protected methods to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
   // Permissions
@@ -1114,6 +1160,35 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('checkpoint:resumed', handler);
     return () => ipcRenderer.removeListener('checkpoint:resumed', handler);
   },
+
+  // Update service
+  updateCheckForUpdates: (): Promise<UpdateInfo | null> =>
+    ipcRenderer.invoke('update:checkForUpdates'),
+  updateDownloadUpdate: (): Promise<void> =>
+    ipcRenderer.invoke('update:downloadUpdate'),
+  updateQuitAndInstall: (): Promise<void> =>
+    ipcRenderer.invoke('update:quitAndInstall'),
+  updateGetStatus: (): Promise<UpdateStatus> =>
+    ipcRenderer.invoke('update:getStatus'),
+  updateGetUpdateInfo: (): Promise<UpdateInfo | null> =>
+    ipcRenderer.invoke('update:getUpdateInfo'),
+  updateGetCurrentVersion: (): Promise<string> =>
+    ipcRenderer.invoke('update:getCurrentVersion'),
+  updateGetReleaseNotes: (): Promise<string> =>
+    ipcRenderer.invoke('update:getReleaseNotes'),
+  updateSetAutoDownload: (enabled: boolean): Promise<void> =>
+    ipcRenderer.invoke('update:setAutoDownload', enabled),
+  updateSetAllowPrerelease: (enabled: boolean): Promise<void> =>
+    ipcRenderer.invoke('update:setAllowPrerelease', enabled),
+  updateResetStatus: (): Promise<void> =>
+    ipcRenderer.invoke('update:resetStatus'),
+  onUpdateEvent: (callback: (event: UpdateEvent) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, updateEvent: UpdateEvent) => {
+      callback(updateEvent);
+    };
+    ipcRenderer.on('update:event', handler);
+    return () => ipcRenderer.removeListener('update:event', handler);
+  },
 });
 
 // Type declaration for the renderer
@@ -1332,6 +1407,19 @@ declare global {
       checkpointGetCurrentId: () => Promise<string | null>;
       onCheckpointSaved: (callback: (checkpoint: CheckpointData) => void) => () => void;
       onCheckpointResumed: (callback: (checkpoint: CheckpointData) => void) => () => void;
+
+      // Update service
+      updateCheckForUpdates: () => Promise<UpdateInfo | null>;
+      updateDownloadUpdate: () => Promise<void>;
+      updateQuitAndInstall: () => Promise<void>;
+      updateGetStatus: () => Promise<UpdateStatus>;
+      updateGetUpdateInfo: () => Promise<UpdateInfo | null>;
+      updateGetCurrentVersion: () => Promise<string>;
+      updateGetReleaseNotes: () => Promise<string>;
+      updateSetAutoDownload: (enabled: boolean) => Promise<void>;
+      updateSetAllowPrerelease: (enabled: boolean) => Promise<void>;
+      updateResetStatus: () => Promise<void>;
+      onUpdateEvent: (callback: (event: UpdateEvent) => void) => () => void;
     };
   }
 }

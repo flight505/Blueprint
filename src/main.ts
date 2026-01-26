@@ -16,6 +16,7 @@ import { pdfGenerator, type PDFGenerationOptions, type PDFGenerationResult, type
 import { docxGenerator, type DOCXGenerationOptions, type DOCXGenerationResult, type DOCXSection } from './main/services/DOCXGenerator';
 import { pptxGenerator, type PPTXGenerationOptions, type PPTXGenerationResult, type PPTXSection, PPTX_THEMES } from './main/services/PPTXGenerator';
 import { phaseOrchestrator, type PhaseOrchestratorConfig, type ProjectExecutionState, type PhaseState } from './main/services/PhaseOrchestrator';
+import { updateService, type UpdateStatus, type UpdateInfo } from './main/services/UpdateService';
 
 // Register IPC handlers
 function registerIpcHandlers() {
@@ -835,6 +836,47 @@ function registerIpcHandlers() {
   ipcMain.handle('checkpoint:getCurrentId', (): string | null => {
     return phaseOrchestrator.getCurrentCheckpointId();
   });
+
+  // Update service handlers
+  ipcMain.handle('update:checkForUpdates', async (): Promise<UpdateInfo | null> => {
+    return await updateService.checkForUpdates();
+  });
+
+  ipcMain.handle('update:downloadUpdate', async (): Promise<void> => {
+    return await updateService.downloadUpdate();
+  });
+
+  ipcMain.handle('update:quitAndInstall', (): void => {
+    updateService.quitAndInstall();
+  });
+
+  ipcMain.handle('update:getStatus', (): UpdateStatus => {
+    return updateService.getStatus();
+  });
+
+  ipcMain.handle('update:getUpdateInfo', (): UpdateInfo | null => {
+    return updateService.getUpdateInfo();
+  });
+
+  ipcMain.handle('update:getCurrentVersion', (): string => {
+    return updateService.getCurrentVersion();
+  });
+
+  ipcMain.handle('update:getReleaseNotes', (): string => {
+    return updateService.getReleaseNotes();
+  });
+
+  ipcMain.handle('update:setAutoDownload', (_, enabled: boolean): void => {
+    updateService.setAutoDownload(enabled);
+  });
+
+  ipcMain.handle('update:setAllowPrerelease', (_, enabled: boolean): void => {
+    updateService.setAllowPrerelease(enabled);
+  });
+
+  ipcMain.handle('update:resetStatus', (): void => {
+    updateService.resetStatus();
+  });
 }
 
 const createWindow = async () => {
@@ -909,6 +951,17 @@ app.on('ready', async () => {
 
   registerIpcHandlers();
   createWindow();
+
+  // Initialize update service and check for updates (only in production)
+  if (!MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    updateService.initialize();
+    // Delay check to not interfere with app startup
+    setTimeout(() => {
+      updateService.checkForUpdates().catch((error) => {
+        console.error('Failed to check for updates:', error);
+      });
+    }, 3000);
+  }
 });
 
 // Quit when all windows are closed, except on macOS.

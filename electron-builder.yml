@@ -5,6 +5,14 @@ appId: com.flight505.blueprint
 productName: Blueprint
 copyright: Copyright © 2026 Jesper Vang
 
+# Publish configuration for auto-updates via GitHub Releases
+# electron-updater will check for updates from GitHub Releases
+publish:
+  provider: github
+  owner: flight505
+  repo: Blueprint
+  releaseType: release
+
 # Build output directory
 directories:
   output: dist
