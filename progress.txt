@@ -3351,3 +3351,56 @@ US-054 (Build Linux Package) was already fully implemented during US-051 (Config
   - autoUpdater.autoInstallOnAppQuit = true installs silently on quit
   - Release notes can be string or array of {version, note} objects
   - GitHub provider requires owner, repo, and releaseType in publish config
+
+=== Iteration 55 Mon Jan 26 02:03:13 CET 2026 ===
+There are still 7 stories with `passes: false`. US-055 is now complete. Let me provide a summary.
+
+---
+
+**US-055: Implement Auto-Update - COMPLETE**
+
+Successfully implemented automatic updates for the Blueprint Electron application.
+
+## Summary
+
+**Files Created:**
+- `src/main/services/UpdateService.ts` - Singleton service managing electron-updater with check, download, install capabilities
+- `src/renderer/components/update/UpdateNotification.tsx` - UI component showing update availability, download progress, and install button
+- `src/renderer/components/update/index.ts` - Export barrel
+- `src/renderer/hooks/useUpdate.ts` - React hook for reactive update state
+
+**Files Modified:**
+- `package.json` - Added electron-updater ^6.7.3
+- `electron-builder.yml` - Added GitHub Releases publish configuration
+- `src/main.ts` - Added 10 IPC handlers, initialize service on app ready
+- `src/preload.ts` - Exposed update API with types (UpdateStatus, UpdateInfo, UpdateEvent, etc.)
+
+**Acceptance Criteria Met:**
+1. ✅ electron-updater configured
+2. ✅ Updates check on app launch (3-second delay in production only)
+3. ✅ Update prompt shows release notes (with expand/collapse UI)
+4. ✅ Update installs and restarts app (quitAndInstall)
+5. ✅ Typecheck passes
+
+**Key Features:**
+- Automatic check on launch (production only)
+- User-controlled download (autoDownload=false)
+- Progress bar during download
+- Release notes display with toggle
+- Restart & Install button when update ready
+- Event-based IPC for real-time status updates
+
+## 2026-01-26 - US-056
+- Implemented Citation Verification APIs with OpenAlex and Crossref
+- Files changed:
+  - src/main/services/CitationVerificationService.ts (new) - OpenAlex + Crossref API clients, rate limiting, hybrid query strategy, confidence scoring, SQLite cache
+  - src/main.ts - Added import, IPC handlers, service initialization and cleanup
+  - src/preload.ts - Added verification types and preload API
+- **Learnings:**
+  - OpenAlex API: use `https://api.openalex.org/works` endpoint; search via `?search=` param; DOI lookup via `works/doi:10.xxxx`
+  - Crossref API: use `https://api.crossref.org/works` endpoint; requires `User-Agent` header with mailto for polite pool; DOI lookup at `works/{doi}`
+  - Rate limiting: Simple token bucket with refill rate; Crossref supports 50 RPS for polite pool but we use 10 to be safe
+  - Confidence scoring: weighted field matching with DOI (1.0), title (0.4), authors (0.3), year (0.15); Jaccard similarity for fuzzy title matching
+  - SQLite cache: separate database file (citation-cache.db) to avoid bloating main database; tiered TTL with DOI lookups cached 7 days, search results 1 hour
+  - Author matching: normalize names, check last name match first (most discriminative), then check common parts
+---

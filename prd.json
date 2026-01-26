@@ -1317,9 +1317,9 @@
         "Typecheck passes"
       ],
       "priority": 61,
-      "passes": false,
-      "status": "pending",
-      "notes": "",
+      "passes": true,
+      "status": "complete",
+      "notes": "Created CitationVerificationService with OpenAlex and Crossref API clients, rate limiting (10 RPS), hybrid query strategy (DOI → OpenAlex → Crossref), weighted confidence scoring (DOI: 1.0, title: 0.4, authors: 0.3, year: 0.15), SQLite cache with tiered TTL (DOI: 7 days, search: 1 hour). Full IPC handlers and preload API exposed.",
       "depends_on": ["US-012"],
       "related_to": ["US-035", "US-057", "US-060"],
       "implementation_hint": "Create CitationVerificationService in src/main/services/. Use OpenAlex and Crossref APIs.",
