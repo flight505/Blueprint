@@ -629,8 +629,19 @@ function MainApp() {
       ref={containerRef}
       className="flex h-screen w-screen overflow-hidden bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100"
     >
+      {/* Skip link for keyboard navigation - WCAG 2.2 */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
+
       {/* Activity Bar */}
-      <aside className="w-12 flex-shrink-0 flex flex-col bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+      <nav
+        aria-label="Main navigation"
+        className="w-12 flex-shrink-0 flex flex-col bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700"
+      >
         <div className="flex-1 flex flex-col items-center pt-4 gap-2">
           {(['chat', 'explorer', 'search', 'context', 'planning', 'export', 'history'] as const).map((section) => (
             <ActivityBarButton
@@ -655,7 +666,7 @@ function MainApp() {
             />
           ))}
         </div>
-      </aside>
+      </nav>
 
       {/* Left Pane */}
       <div
@@ -695,9 +706,11 @@ function MainApp() {
       />
 
       {/* Right Pane - Content */}
-      <div
+      <main
+        id="main-content"
         className="flex-1 flex flex-col"
         style={{ minWidth: MIN_PANE_WIDTH }}
+        aria-label="Document content"
       >
         <header className="h-10 flex items-center border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <TabBar
@@ -723,7 +736,7 @@ function MainApp() {
             <FileContentView file={openFiles.find(f => f.id === activeFileId)!} />
           )}
         </div>
-      </div>
+      </main>
 
       {/* Command Palette */}
       <CommandPalette

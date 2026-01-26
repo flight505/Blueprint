@@ -118,6 +118,7 @@ export function DiffPreview({
 
 /**
  * Side-by-side diff view showing original on left, proposed on right
+ * Accessible to screen readers with change annotations
  */
 function SideBySideDiff({
   originalParts,
@@ -126,16 +127,25 @@ function SideBySideDiff({
   originalParts: DiffPart[];
   proposedParts: DiffPart[];
 }) {
+  // Count changes for screen reader summary
+  const removedCount = originalParts.filter(p => p.removed).length;
+  const addedCount = proposedParts.filter(p => p.added).length;
+
   return (
     <div className="grid grid-cols-2 divide-x divide-gray-200 dark:divide-gray-700 max-h-64 overflow-auto">
+      {/* Screen reader summary */}
+      <div className="sr-only" aria-live="polite">
+        Changes summary: {removedCount} removal{removedCount !== 1 ? 's' : ''}, {addedCount} addition{addedCount !== 1 ? 's' : ''}
+      </div>
+
       {/* Original (left) */}
-      <div className="p-4 overflow-x-auto">
-        <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+      <div className="p-4 overflow-x-auto" role="region" aria-label="Original text with removals highlighted">
+        <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide" id="original-label">
           Original
         </div>
         <div
           className="text-sm font-mono whitespace-pre-wrap break-words leading-relaxed"
-          aria-label="Original text"
+          aria-labelledby="original-label"
         >
           {originalParts.map((part, idx) => (
             <span
@@ -145,6 +155,8 @@ function SideBySideDiff({
                   ? 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 line-through'
                   : 'text-gray-800 dark:text-gray-200'
               }
+              aria-label={part.removed ? `Removed: ${part.value}` : undefined}
+              role={part.removed ? 'deletion' : undefined}
             >
               {part.value}
             </span>
@@ -153,13 +165,13 @@ function SideBySideDiff({
       </div>
 
       {/* Proposed (right) */}
-      <div className="p-4 overflow-x-auto bg-gray-25 dark:bg-gray-800/50">
-        <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+      <div className="p-4 overflow-x-auto bg-gray-25 dark:bg-gray-800/50" role="region" aria-label="Proposed text with additions highlighted">
+        <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide" id="proposed-label">
           Proposed
         </div>
         <div
           className="text-sm font-mono whitespace-pre-wrap break-words leading-relaxed"
-          aria-label="Proposed text"
+          aria-labelledby="proposed-label"
         >
           {proposedParts.map((part, idx) => (
             <span
@@ -169,6 +181,8 @@ function SideBySideDiff({
                   ? 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300'
                   : 'text-gray-800 dark:text-gray-200'
               }
+              aria-label={part.added ? `Added: ${part.value}` : undefined}
+              role={part.added ? 'insertion' : undefined}
             >
               {part.value}
             </span>
@@ -181,13 +195,21 @@ function SideBySideDiff({
 
 /**
  * Unified diff view showing all changes inline
+ * Accessible to screen readers with change annotations
  */
 function UnifiedDiff({ diffResult }: { diffResult: DiffPart[] }) {
+  // Count changes for screen reader summary
+  const addedCount = diffResult.filter(p => p.added).length;
+  const removedCount = diffResult.filter(p => p.removed).length;
+
   return (
-    <div className="p-4 max-h-64 overflow-auto">
+    <div className="p-4 max-h-64 overflow-auto" role="region" aria-label="Unified diff view">
+      {/* Screen reader summary */}
+      <div className="sr-only" aria-live="polite">
+        Changes summary: {removedCount} removal{removedCount !== 1 ? 's' : ''}, {addedCount} addition{addedCount !== 1 ? 's' : ''}
+      </div>
       <div
         className="text-sm font-mono whitespace-pre-wrap break-words leading-relaxed"
-        aria-label="Unified diff view"
       >
         {diffResult.map((part, idx) => (
           <span
@@ -199,6 +221,8 @@ function UnifiedDiff({ diffResult }: { diffResult: DiffPart[] }) {
                   ? 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 line-through'
                   : 'text-gray-800 dark:text-gray-200'
             }
+            aria-label={part.added ? `Added: ${part.value}` : part.removed ? `Removed: ${part.value}` : undefined}
+            role={part.added ? 'insertion' : part.removed ? 'deletion' : undefined}
           >
             {part.value}
           </span>
