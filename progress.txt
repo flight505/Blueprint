@@ -37,6 +37,24 @@ Started: Sun Jan 25 21:44:33 CET 2026
 - Confidence Indicators: ConfidenceIndicator Tiptap extension with ProseMirror Decoration.inline for underlines; ConfidenceTooltip uses CustomEvent listeners for hover; useConfidenceIndicators hook maps paragraph indices to document positions; CSS uses `text-decoration-style: wavy` for low confidence
 - Citation Verification Panel: CitationVerificationPanel component at src/renderer/components/citation/; uses citationLoadCitations and citationVerifyCitation from preload API; integrated as tab in Context section; shows status badges (Verified/Partial/Unverified/Pending) with source (OpenAlex/Crossref); Verify All button for batch verification
 - Review Queue: ReviewQueueService in main process aggregates low-confidence (<0.6) content and unverified citations; ReviewQueue component at src/renderer/components/review/; integrated as third tab in Context section; provides Accept/Edit/Remove/Dismiss actions with side-by-side source comparison
+- Hallucination Dashboard: HallucinationDashboardService aggregates metrics; HallucinationDashboard component at src/renderer/components/dashboard/; integrated as fourth tab in Context section (Context/Citations/Review/Dashboard); quality score = 60% confidence + 40% verification rate (0-100 scale); trend chart with 7-day moving averages; JSON/CSV export via download blob
+
+## 2026-01-26 - US-062
+- Implemented Hallucination Dashboard for quality metrics tracking
+- Files changed:
+  - src/main/services/HallucinationDashboardService.ts (new) - Service with SQLite storage for metrics aggregation and trend history
+  - src/renderer/components/dashboard/HallucinationDashboard.tsx (new) - UI component with metrics cards, SVG trend chart, document table
+  - src/renderer/components/dashboard/index.ts (new) - Component exports
+  - src/main.ts - Added IPC handlers for dashboard operations, initialization on app ready
+  - src/preload.ts - Added types and API exposure for dashboard
+  - src/renderer/App.tsx - Integrated as fourth tab in Context section
+- **Learnings:**
+  - Quality score formula: (confidence * 0.6 + verificationRate * 0.4) * 100
+  - SVG trend chart uses simple path rendering with gradient fill and data points
+  - Moving averages computed from last 7 days of trend history
+  - Export uses Blob and download link pattern for client-side file generation
+  - Context section now has 4 tabs: Context, Citations, Review, Dashboard
+---
 
 ## 2026-01-26 - US-061
 - Implemented Human Review Queue for flagged content
@@ -3670,3 +3688,43 @@ There are 2 stories remaining: US-061 (Human Review Queue) and US-062 (Hallucina
 - `src/renderer/components/citation/CitationVerificationPanel.tsx` (new)
 - `src/renderer/components/citation/index.ts` (new)
 - `src/renderer/App.tsx` (updated)
+
+=== Iteration 61 Mon Jan 26 02:46:39 CET 2026 ===
+There's US-062 remaining. I've completed US-061 and there's still one more story. Let me return with the completion status for this iteration:
+
+## Summary
+
+I successfully implemented **US-061: Implement Human Review Queue**. Here's what was done:
+
+### Files Created
+1. **`src/main/services/ReviewQueueService.ts`** - Backend service that:
+   - Aggregates low-confidence sections (<0.6 threshold) for review
+   - Flags unverified/partial citations for human review
+   - Provides Accept/Edit/Remove/Dismiss actions for each item
+   - Calculates queue statistics
+   - Caches review queues per document
+
+2. **`src/renderer/components/review/ReviewQueue.tsx`** - UI component that:
+   - Shows flagged items with side-by-side source comparison
+   - Filter tabs for pending/all/low_confidence/unverified_citation
+   - Expandable item details with confidence indicators
+   - Action buttons for Accept/Edit/Remove/Dismiss
+
+3. **`src/renderer/components/review/index.ts`** - Component exports
+
+### Files Modified
+1. **`src/main.ts`** - Added IPC handlers for review queue operations
+2. **`src/preload.ts`** - Added types and preload API for review queue
+3. **`src/renderer/App.tsx`** - Integrated ReviewQueue as third tab in Context section
+
+### Verification
+- TypeScript typecheck passes
+- Build succeeds
+- All acceptance criteria met:
+  - Low-confidence sections (<0.6) auto-flagged for review
+  - Unverified citations flagged for review
+  - Review interface shows original + sources side-by-side
+  - Accept/Edit/Remove actions for each flagged item (plus Dismiss)
+  - Typecheck passes
+
+There is still **US-062: Create Hallucination Dashboard** remaining with `passes: false`.
