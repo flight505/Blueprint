@@ -36,6 +36,24 @@ Started: Sun Jan 25 21:44:33 CET 2026
 - Confidence Scoring: ConfidenceScoringService uses heuristic-based scoring (hedging words, assertions, factual indicators, citations); default threshold 0.6; Anthropic API doesn't support logprobs so service is extensible for future integration; streaming support via `processStreamingText()` with callback for updates
 - Confidence Indicators: ConfidenceIndicator Tiptap extension with ProseMirror Decoration.inline for underlines; ConfidenceTooltip uses CustomEvent listeners for hover; useConfidenceIndicators hook maps paragraph indices to document positions; CSS uses `text-decoration-style: wavy` for low confidence
 - Citation Verification Panel: CitationVerificationPanel component at src/renderer/components/citation/; uses citationLoadCitations and citationVerifyCitation from preload API; integrated as tab in Context section; shows status badges (Verified/Partial/Unverified/Pending) with source (OpenAlex/Crossref); Verify All button for batch verification
+- Review Queue: ReviewQueueService in main process aggregates low-confidence (<0.6) content and unverified citations; ReviewQueue component at src/renderer/components/review/; integrated as third tab in Context section; provides Accept/Edit/Remove/Dismiss actions with side-by-side source comparison
+
+## 2026-01-26 - US-061
+- Implemented Human Review Queue for flagged content
+- Files changed:
+  - src/main/services/ReviewQueueService.ts (new) - Service to scan documents and manage review items
+  - src/renderer/components/review/ReviewQueue.tsx (new) - UI component with side-by-side comparison
+  - src/renderer/components/review/index.ts (new) - Component exports
+  - src/main.ts - Added IPC handlers for review queue operations
+  - src/preload.ts - Added types and API exposure for review queue
+  - src/renderer/App.tsx - Integrated as third tab in Context section (Context/Citations/Review)
+- **Learnings:**
+  - ReviewQueueService uses ConfidenceScoringService for paragraph scoring and CitationVerificationService for citation status
+  - Side-by-side view shows original content on left, sources on right with truncated previews
+  - Filter tabs allow quick switching between pending/all/low_confidence/unverified_citation views
+  - Actions update item status and recalculate queue stats in real-time
+  - Context section now has 3 tabs: Context, Citations, Review
+---
 
 ## 2026-01-26 - US-060
 - Implemented Citation Verification Panel
@@ -3614,3 +3632,41 @@ Implemented inline confidence indicators for the Tiptap editor:
 5. **View Menu Toggle**:
    - Added `view:toggle-confidence` command to command palette
    - Persisted in store's UIPreferences (localStorage)
+
+=== Iteration 60 Mon Jan 26 02:37:09 CET 2026 ===
+There are 2 stories remaining: US-061 (Human Review Queue) and US-062 (Hallucination Dashboard). Since I've completed one story in this iteration, I'll end here.
+
+---
+
+## Summary of US-060 Implementation
+
+**US-060: Build Citation Verification Panel** is now complete.
+
+### What was implemented:
+1. **Created `CitationVerificationPanel` component** at `src/renderer/components/citation/`
+   - Shows all citations with status badges (Verified/Partial/Unverified/Pending)
+   - Expandable citation details showing matched data (DOI, venue, citation count, type)
+   - Color-coded confidence display
+
+2. **Click-to-scroll functionality**
+   - Citation usages are clickable and trigger `onScrollToCitation` callback
+   - Each usage shows the claim text and line number
+
+3. **"Verify All" button for batch verification**
+   - Verifies citations sequentially to respect API rate limits
+   - Shows progress with individual spinners per citation
+
+4. **Verification source display**
+   - Shows OpenAlex, Crossref, or Cached badges
+   - Displays confidence percentage
+   - Links to DOI when available
+
+5. **Integration**
+   - Added as tab within Context section (Cmd+4)
+   - Tab switcher between "Context" and "Citations" views
+   - Summary stats bar showing verification status counts
+
+### Files changed:
+- `src/renderer/components/citation/CitationVerificationPanel.tsx` (new)
+- `src/renderer/components/citation/index.ts` (new)
+- `src/renderer/App.tsx` (updated)
