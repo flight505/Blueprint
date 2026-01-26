@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { SkeletonSearchResults } from '../skeleton';
 
 interface SearchMatch {
   line: number;
@@ -342,12 +343,19 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
 
       {/* Results list */}
       <div className="flex-1 overflow-y-auto">
-        {results.length === 0 && query.trim().length >= 2 && !isSearching ? (
+        {/* Loading skeleton during search */}
+        {isSearching && query.trim().length >= 2 && (
+          <SkeletonSearchResults files={4} matchesPerFile={3} className="py-1" />
+        )}
+        {/* No results message */}
+        {!isSearching && results.length === 0 && query.trim().length >= 2 && (
           <div className="p-4 text-center text-gray-500 dark:text-gray-400">
             <p className="text-sm">No results found for "{query}"</p>
             <p className="text-xs mt-2">Try a different search term</p>
           </div>
-        ) : (
+        )}
+        {/* Results */}
+        {!isSearching && results.length > 0 && (
           <div className="py-1">
             {results.map((result) => (
               <div key={result.filePath} className="border-b border-gray-100 dark:border-gray-800 last:border-b-0">

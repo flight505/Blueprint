@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { SkeletonFileTree } from '../skeleton';
 
 interface FileNode {
   name: string;
@@ -166,12 +167,15 @@ export default function FileBrowser({
         {error && (
           <p className="px-4 text-sm text-red-500">{error}</p>
         )}
-        {fileTree.length === 0 && !error && (
+        {isLoading && (
+          <SkeletonFileTree items={8} className="px-2" />
+        )}
+        {!isLoading && fileTree.length === 0 && !error && (
           <p className="px-4 text-sm text-gray-500 dark:text-gray-400">
             Empty folder
           </p>
         )}
-        {fileTree.map((node) => (
+        {!isLoading && fileTree.map((node) => (
           <FileTreeNode
             key={node.path}
             node={node}
