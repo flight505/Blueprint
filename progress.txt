@@ -31,6 +31,7 @@ Started: Sun Jan 25 21:44:33 CET 2026
 - Checkpoints stored in SQLite `checkpoints` table; use `checkpointService.saveCheckpoint()` after phase completion; resumeFromCheckpoint() restores full ProjectExecutionState
 - WCAG 2.2: Use useFocusTrap hook for modals; AnimatedModal/AnimatedOverlay have built-in focus trap; sr-only class for screen-reader-only content; skip link at top of App.tsx
 - Testing: Vitest with happy-dom env; mock fs with `vi.mock('node:fs', ...)` before import; test files at `src/main/services/*.test.ts`; run `pnpm test` or `pnpm test:coverage`
+- electron-builder: Config in electron-builder.yml; Vite builds to .vite/, electron-builder outputs to dist/; use `pnpm dist` for full build or `pnpm dist:mac|win|linux` for platform-specific
 
 ## 2026-01-25 - US-006
 - Implemented File Browser Component with tree view navigation
@@ -3070,3 +3071,72 @@ US-050 is complete. All acceptance criteria met:
 4. ✅ Typecheck passes
 
 Committed as: `feat: [US-050] - Write E2E Tests`
+
+=== Iteration 50 Mon Jan 26 01:37:12 CET 2026 ===
+There are still 12 stories with `passes: false`. US-050 is complete and there are more stories to implement. Let me end my response with the completion status.
+
+**US-050: Write E2E Tests is complete.**
+
+## Summary of US-050 Implementation
+
+Configured Playwright for Electron E2E testing with cross-platform CI support:
+
+### Files Created
+- **playwright.config.ts** - Playwright configuration for Electron testing
+- **e2e/fixtures.ts** - Electron test fixtures (electronApp, mainWindow, testProjectPath)
+- **e2e/new-project.e2e.ts** - Tests for new project wizard workflow
+- **e2e/edit-workflow.e2e.ts** - Tests for navigation, keyboard shortcuts, theme toggle, accessibility
+- **e2e/export-workflow.e2e.ts** - Tests for export, search, and chat workflows
+- **.github/workflows/e2e.yml** - CI workflow for cross-platform testing
+
+### Files Modified
+- **package.json** - Added playwright dependencies and test scripts
+- **.gitignore** - Added e2e-results/ directory
+
+### Acceptance Criteria Met
+1. Playwright configured for Electron with proper launch settings
+2. Critical workflow tests cover new project, file editing, and export
+3. GitHub Actions CI runs on macOS, Windows, and Linux
+4. Typecheck passes
+
+There are still 12 stories remaining with `passes: false`. The next story is US-051 (Configure electron-builder).
+
+---
+
+## 2026-01-26 - US-051
+- Configured electron-builder for production builds
+- Migrated from Electron Forge to electron-builder
+- Files changed:
+  - package.json - Removed Electron Forge deps, added electron-builder, updated scripts
+  - electron-builder.yml (new) - Build configuration for all platforms
+  - build/entitlements.mac.plist (new) - macOS entitlements for code signing
+  - forge.config.ts (deleted) - No longer needed
+  - vite.main.config.ts - SSR build for Node.js, builtinModules externalized, define MAIN_WINDOW vars
+  - vite.preload.config.ts - SSR build, emptyOutDir: false to preserve main.js
+  - vite.renderer.config.ts - Fixed build output path and entry point
+  - src/main.ts - Removed electron-squirrel-startup, fixed renderer path
+  - src/vite-env.d.ts - Documented magic variable definitions
+- **Learnings:**
+  - Vite for Electron main process needs `ssr: true` and `target: 'node18'`
+  - Use `builtinModules` from 'module' to externalize all Node.js built-ins
+  - Preload build needs `emptyOutDir: false` to not delete main.js
+  - Electron Forge magic variables (MAIN_WINDOW_VITE_DEV_SERVER_URL) replaced with Vite `define` config
+  - electron-builder outputs to dist/, Vite builds to .vite/
+
+=== Iteration Sun Jan 26 01:50:00 CET 2026 ===
+All checks pass. US-051 is complete:
+
+**Summary of US-051 Implementation:**
+- Installed electron-builder v26.4.0 and removed Electron Forge
+- Created electron-builder.yml with targets:
+  - macOS: DMG + ZIP (x64 + arm64)
+  - Windows: NSIS + Portable (x64)
+  - Linux: AppImage + Deb + RPM (x64)
+- Updated Vite configs for proper Node.js SSR builds
+- Added macOS entitlements for code signing
+- Build artifacts output to dist/ directory
+- All acceptance criteria met and typecheck passes
+
+**Committed as:** `feat: [US-051] - Configure electron-builder`
+
+There are still 11 stories remaining with `passes: false`. The next story is US-052 (Build macOS Installer).
