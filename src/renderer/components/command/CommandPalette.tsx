@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Fuse from 'fuse.js';
+import { AnimatedOverlay } from '../animations';
 
 export interface Command {
   id: string;
@@ -128,32 +129,14 @@ export default function CommandPalette({
     [onClose, onCommandExecuted]
   );
 
-  // Handle click on backdrop
-  const handleBackdropClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget) {
-        onClose();
-      }
-    },
-    [onClose]
-  );
-
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] bg-black/50"
-      onClick={handleBackdropClick}
-      aria-label="Command palette"
-      role="dialog"
-      aria-modal="true"
+    <AnimatedOverlay
+      isOpen={isOpen}
+      onClose={onClose}
+      className="w-[600px] max-w-[90vw] bg-white dark:bg-gray-800 rounded-lg shadow-2xl overflow-hidden"
+      position="top"
     >
-      <div
-        className="w-[600px] max-w-[90vw] bg-white dark:bg-gray-800 rounded-lg shadow-2xl overflow-hidden"
-        role="combobox"
-        aria-expanded="true"
-        aria-haspopup="listbox"
-      >
+      <div role="combobox" aria-expanded="true" aria-haspopup="listbox">
         {/* Search Input */}
         <div className="p-3 border-b border-gray-200 dark:border-gray-700">
           <input
@@ -221,7 +204,7 @@ export default function CommandPalette({
           </span>
         </div>
       </div>
-    </div>
+    </AnimatedOverlay>
   );
 }
 

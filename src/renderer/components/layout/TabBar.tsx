@@ -1,4 +1,6 @@
 import { useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ANIMATION_DURATION } from '../animations';
 
 export interface TabData {
   id: string;
@@ -68,17 +70,27 @@ export function TabBar({
       role="tablist"
       aria-label="Document tabs"
     >
-      {tabs.map((tab, index) => (
-        <Tab
-          key={tab.id}
-          label={tab.label}
-          active={tab.id === activeTabId}
-          hasUnsavedChanges={tab.hasUnsavedChanges}
-          shortcut={enableKeyboardShortcuts && index < 9 ? `Cmd+${index + 1}` : undefined}
-          onClick={() => onTabSelect(tab.id)}
-          onClose={() => onTabClose(tab.id)}
-        />
-      ))}
+      <AnimatePresence mode="popLayout">
+        {tabs.map((tab, index) => (
+          <motion.div
+            key={tab.id}
+            initial={{ opacity: 0, scale: 0.9, x: -10 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            exit={{ opacity: 0, scale: 0.9, x: -10 }}
+            transition={{ duration: ANIMATION_DURATION.normal }}
+            layout
+          >
+            <Tab
+              label={tab.label}
+              active={tab.id === activeTabId}
+              hasUnsavedChanges={tab.hasUnsavedChanges}
+              shortcut={enableKeyboardShortcuts && index < 9 ? `Cmd+${index + 1}` : undefined}
+              onClick={() => onTabSelect(tab.id)}
+              onClose={() => onTabClose(tab.id)}
+            />
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 }

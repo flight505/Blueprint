@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { SkeletonSearchResults } from '../skeleton';
+import { AnimatedCollapse } from '../animations';
 
 interface SearchMatch {
   line: number;
@@ -376,8 +377,8 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
                   </span>
                 </button>
 
-                {/* Matches list */}
-                {expandedFiles.has(result.filePath) && (
+                {/* Matches list with collapse animation */}
+                <AnimatedCollapse isOpen={expandedFiles.has(result.filePath)}>
                   <div className="bg-gray-50 dark:bg-gray-800/50">
                     {result.matches.map((match, idx) => {
                       const matchKey = `${result.filePath}-${match.line}-${match.column}`;
@@ -417,7 +418,7 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
                       );
                     })}
                   </div>
-                )}
+                </AnimatedCollapse>
               </div>
             ))}
           </div>

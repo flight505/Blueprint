@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { SkeletonFileTree } from '../skeleton';
+import { AnimatedCollapse } from '../animations';
 
 interface FileNode {
   name: string;
@@ -82,17 +83,19 @@ function FileTreeNode({
         <span aria-hidden="true">{icon}</span>
         <span className="truncate">{node.name}</span>
       </button>
-      {node.type === 'directory' && isExpanded && node.children && (
-        <div role="group">
-          {node.children.map((child) => (
-            <FileTreeNode
-              key={child.path}
-              node={child}
-              level={level + 1}
-              onFileSelect={onFileSelect}
-            />
-          ))}
-        </div>
+      {node.type === 'directory' && node.children && (
+        <AnimatedCollapse isOpen={isExpanded}>
+          <div role="group">
+            {node.children.map((child) => (
+              <FileTreeNode
+                key={child.path}
+                node={child}
+                level={level + 1}
+                onFileSelect={onFileSelect}
+              />
+            ))}
+          </div>
+        </AnimatedCollapse>
       )}
     </div>
   );

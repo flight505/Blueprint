@@ -6,6 +6,7 @@
  */
 
 import { useState, useCallback } from 'react';
+import { AnimatedModal } from '../animations';
 
 // Research mode type (matches ResearchRouter)
 export type ResearchMode = 'quick' | 'balanced' | 'comprehensive';
@@ -225,19 +226,12 @@ export function NewProjectWizard({ isOpen, onClose, onCreateProject }: NewProjec
     }
   }, [projectPath, projectName, researchMode, selectedPhases, onCreateProject, handleClose]);
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={handleClose}
-        aria-hidden="true"
-      />
-
-      {/* Modal */}
-      <div className="relative z-10 w-full max-w-2xl mx-4 bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden">
+    <AnimatedModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      className="w-full max-w-2xl mx-4 bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden"
+    >
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
@@ -559,8 +553,7 @@ export function NewProjectWizard({ isOpen, onClose, onCreateProject }: NewProjec
             </button>
           )}
         </div>
-      </div>
-    </div>
+    </AnimatedModal>
   );
 }
 

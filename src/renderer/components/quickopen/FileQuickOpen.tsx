@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Fuse from 'fuse.js';
+import { AnimatedOverlay } from '../animations';
 
 export interface QuickOpenFile {
   name: string;
@@ -161,16 +162,6 @@ export default function FileQuickOpen({
     [onClose, onFileSelect]
   );
 
-  // Handle click on backdrop
-  const handleBackdropClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget) {
-        onClose();
-      }
-    },
-    [onClose]
-  );
-
   // Get file icon based on extension
   const getFileIcon = (fileName: string): string => {
     const ext = fileName.split('.').pop()?.toLowerCase() || '';
@@ -199,22 +190,14 @@ export default function FileQuickOpen({
     return iconMap[ext] || '📄';
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh] bg-black/50"
-      onClick={handleBackdropClick}
-      aria-label="Quick open file"
-      role="dialog"
-      aria-modal="true"
+    <AnimatedOverlay
+      isOpen={isOpen}
+      onClose={onClose}
+      className="w-[800px] max-w-[90vw] bg-white dark:bg-gray-800 rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[70vh]"
+      position="top"
     >
-      <div
-        className="w-[800px] max-w-[90vw] bg-white dark:bg-gray-800 rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[70vh]"
-        role="combobox"
-        aria-expanded="true"
-        aria-haspopup="listbox"
-      >
+      <div role="combobox" aria-expanded="true" aria-haspopup="listbox" className="flex flex-col h-full">
         {/* Search Input */}
         <div className="p-3 border-b border-gray-200 dark:border-gray-700">
           <input
@@ -313,7 +296,7 @@ export default function FileQuickOpen({
           </span>
         </div>
       </div>
-    </div>
+    </AnimatedOverlay>
   );
 }
 

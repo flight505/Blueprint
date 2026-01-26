@@ -9,6 +9,7 @@ import { CommandPalette, useCommandPalette, Command } from './components/command
 import { FileQuickOpen, useFileQuickOpen } from './components/quickopen';
 import { InlineEditOverlay } from './components/inline-edit';
 import { DiffPreview } from './components/diff';
+import { AnimatedModal } from './components/animations';
 import { DiagramEditModal } from './components/diagram';
 import { useThemeEffect } from './hooks/useTheme';
 import { useStreaming } from './hooks/useStreaming';
@@ -752,27 +753,20 @@ function MainApp() {
         isGenerating={inlineEditState.isGenerating}
       />
 
-      {/* Diff Preview for reviewing AI edits */}
-      {diffPreviewState.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={rejectDiffEdit}
-            aria-hidden="true"
-          />
-          {/* Modal content */}
-          <div className="relative z-10 max-w-3xl w-full mx-4">
-            <DiffPreview
-              original={diffPreviewState.original}
-              proposed={diffPreviewState.proposed}
-              onAccept={acceptDiffEdit}
-              onReject={rejectDiffEdit}
-              mode="side-by-side"
-            />
-          </div>
-        </div>
-      )}
+      {/* Diff Preview for reviewing AI edits (with animation) */}
+      <AnimatedModal
+        isOpen={diffPreviewState.isOpen}
+        onClose={rejectDiffEdit}
+        className="max-w-3xl w-full mx-4"
+      >
+        <DiffPreview
+          original={diffPreviewState.original}
+          proposed={diffPreviewState.proposed}
+          onAccept={acceptDiffEdit}
+          onReject={rejectDiffEdit}
+          mode="side-by-side"
+        />
+      </AnimatedModal>
 
       {/* Diagram Edit Modal for editing Mermaid diagrams */}
       <DiagramEditModal

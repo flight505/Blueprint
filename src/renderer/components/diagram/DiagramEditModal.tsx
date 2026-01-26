@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useId } from 'react';
 import mermaid from 'mermaid';
+import { AnimatedModal, AnimatedCollapse } from '../animations';
 
 export interface DiagramEditModalProps {
   /** Whether the modal is open */
@@ -290,30 +291,16 @@ export function DiagramEditModal({
     [code, handleSave, onClose]
   );
 
-  // Don't render if not open
-  if (!isOpen) return null;
-
   const hasError = preview !== null && 'error' in preview;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      role="dialog"
-      aria-modal="true"
+    <AnimatedModal
+      isOpen={isOpen}
+      onClose={onClose}
+      className="w-full max-w-5xl max-h-[90vh] mx-4 bg-white dark:bg-gray-800 rounded-lg shadow-xl flex flex-col overflow-hidden"
       aria-labelledby="diagram-edit-title"
     >
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Modal content */}
-      <div
-        className="relative z-10 w-full max-w-5xl max-h-[90vh] mx-4 bg-white dark:bg-gray-800 rounded-lg shadow-xl flex flex-col overflow-hidden"
-        onKeyDown={handleKeyDown}
-      >
+      <div onKeyDown={handleKeyDown} className="flex flex-col h-full">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
           <h2 id="diagram-edit-title" className="text-lg font-semibold">
@@ -351,8 +338,8 @@ export function DiagramEditModal({
           </div>
         </div>
 
-        {/* AI Panel (collapsible) */}
-        {showAiPanel && (
+        {/* AI Panel (collapsible with animation) */}
+        <AnimatedCollapse isOpen={showAiPanel}>
           <div className="px-4 py-3 bg-purple-50 dark:bg-purple-900/10 border-b border-purple-200 dark:border-purple-800">
             <div className="flex flex-col gap-2">
               <label htmlFor="ai-diagram-input" className="text-sm font-medium text-purple-800 dark:text-purple-300">
@@ -410,7 +397,7 @@ export function DiagramEditModal({
               </p>
             </div>
           </div>
-        )}
+        </AnimatedCollapse>
 
         {/* Content - Split panes */}
         <div className="flex-1 flex min-h-0">
@@ -504,7 +491,7 @@ export function DiagramEditModal({
           </button>
         </div>
       </div>
-    </div>
+    </AnimatedModal>
   );
 }
 
