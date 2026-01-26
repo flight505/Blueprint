@@ -34,3 +34,15 @@ export {
   type CollaborationState,
   Y,
 } from './CollaborationSetup';
+
+export {
+  ConfidenceIndicator,
+  type ConfidenceIndicatorOptions,
+  type ConfidenceIndicatorStorage,
+  type ParagraphConfidenceData,
+  getConfidenceIndicatorEnabled,
+  setConfidenceIndicatorEnabled,
+  setConfidenceData,
+  getConfidenceData,
+  clearConfidenceData,
+} from './ConfidenceIndicator';

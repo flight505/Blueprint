@@ -35,6 +35,8 @@ interface UIPreferences {
   theme: Theme;
   leftPaneWidthPercent: number;
   activeSection: Section;
+  /** Whether confidence indicators are shown in editor */
+  showConfidenceIndicators: boolean;
 }
 
 // Streaming message state
@@ -103,6 +105,7 @@ const DEFAULT_UI_PREFERENCES: UIPreferences = {
   theme: 'system',
   leftPaneWidthPercent: 40,
   activeSection: 'chat',
+  showConfidenceIndicators: false,
 };
 
 const DEFAULT_SESSION_STATE: SessionState = {
@@ -273,4 +276,15 @@ export function setTextSelection(selection: TextSelection | null): void {
 // Action: Clear text selection
 export function clearTextSelection(): void {
   store$.session.textSelection.set(null);
+}
+
+// Action: Toggle confidence indicators visibility
+export function toggleConfidenceIndicators(): void {
+  const current = store$.ui.showConfidenceIndicators.get();
+  store$.ui.showConfidenceIndicators.set(!current);
+}
+
+// Action: Set confidence indicators visibility
+export function setShowConfidenceIndicators(show: boolean): void {
+  store$.ui.showConfidenceIndicators.set(show);
 }

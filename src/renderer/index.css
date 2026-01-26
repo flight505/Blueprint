@@ -164,3 +164,84 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* Confidence Indicator Styles */
+/* Color-coded underlines for paragraph confidence levels */
+.confidence-indicator {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  cursor: help;
+  transition: background-color 0.15s ease-out;
+}
+
+/* High confidence (>0.8) - Green */
+.confidence-high {
+  text-decoration-color: rgb(34, 197, 94);
+}
+
+.confidence-high:hover {
+  background-color: rgba(34, 197, 94, 0.1);
+}
+
+.dark .confidence-high {
+  text-decoration-color: rgb(74, 222, 128);
+}
+
+.dark .confidence-high:hover {
+  background-color: rgba(74, 222, 128, 0.15);
+}
+
+/* Medium confidence (0.6-0.8) - Amber/Yellow */
+.confidence-medium {
+  text-decoration-color: rgb(245, 158, 11);
+}
+
+.confidence-medium:hover {
+  background-color: rgba(245, 158, 11, 0.1);
+}
+
+.dark .confidence-medium {
+  text-decoration-color: rgb(251, 191, 36);
+}
+
+.dark .confidence-medium:hover {
+  background-color: rgba(251, 191, 36, 0.15);
+}
+
+/* Low confidence (<0.6) - Red */
+.confidence-low {
+  text-decoration-color: rgb(239, 68, 68);
+  text-decoration-style: wavy;
+}
+
+.confidence-low:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.dark .confidence-low {
+  text-decoration-color: rgb(248, 113, 113);
+}
+
+.dark .confidence-low:hover {
+  background-color: rgba(248, 113, 113, 0.15);
+}
+
+/* High contrast mode adjustments for confidence indicators */
+@media (prefers-contrast: high) {
+  .confidence-indicator {
+    text-decoration-thickness: 3px;
+  }
+
+  .confidence-high {
+    text-decoration-color: green;
+  }
+
+  .confidence-medium {
+    text-decoration-color: orange;
+  }
+
+  .confidence-low {
+    text-decoration-color: red;
+  }
+}

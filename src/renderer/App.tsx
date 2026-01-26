@@ -11,6 +11,7 @@ import { InlineEditOverlay } from './components/inline-edit';
 import { DiffPreview } from './components/diff';
 import { AnimatedModal } from './components/animations';
 import { DiagramEditModal } from './components/diagram';
+import { ConfidenceTooltip } from './components/confidence';
 import { useThemeEffect } from './hooks/useTheme';
 import { useStreaming } from './hooks/useStreaming';
 import { useMermaidRenderer } from './hooks/useMermaid';
@@ -23,6 +24,8 @@ import { ExportModal, ExportSection } from './components/export';
 import { WelcomeScreen } from './components/welcome';
 import { NewProjectWizard, ProjectConfig } from './components/wizard';
 import { VirtualizedDocument } from './components/document';
+import { store$, toggleConfidenceIndicators } from './state/store';
+import { setConfidenceIndicatorEnabled } from './components/editor/extensions';
 
 const DEFAULT_LEFT_WIDTH_PERCENT = 40;
 const MIN_PANE_WIDTH = 300;
@@ -403,6 +406,17 @@ function MainApp() {
         localStorage.setItem('blueprint:ui', JSON.stringify(ui));
         // Force refresh to apply theme
         window.location.reload();
+      },
+    },
+    {
+      id: 'view:toggle-confidence',
+      label: 'Toggle Confidence Indicators',
+      category: 'View',
+      action: () => {
+        // Toggle confidence indicators
+        toggleConfidenceIndicators();
+        const newState = store$.ui.showConfidenceIndicators.get();
+        setConfidenceIndicatorEnabled(newState);
       },
     },
     // File commands
@@ -805,6 +819,9 @@ function MainApp() {
         onClose={() => setShowNewProjectWizard(false)}
         onCreateProject={handleCreateProject}
       />
+
+      {/* Confidence Indicator Tooltip (global, positioned via events) */}
+      <ConfidenceTooltip />
     </div>
   );
 }
