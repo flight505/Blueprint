@@ -47,21 +47,31 @@ class SecureStorageService {
 
   /**
    * Store an API key securely
+   * @param requireEncryption If true, will refuse to store if encryption is unavailable (default: true)
    */
-  async setApiKey(type: ApiKeyType, key: string): Promise<boolean> {
+  async setApiKey(type: ApiKeyType, key: string, requireEncryption = true): Promise<boolean> {
     if (!this.initialized) {
       throw new Error('SecureStorageService not initialized');
     }
 
     if (!this.isEncryptionAvailable()) {
-      console.warn('Encryption not available, storing key with basic obfuscation');
+      if (requireEncryption) {
+        throw new Error(
+          'Secure encryption is not available on this system. ' +
+          'API keys cannot be stored securely. Please ensure your OS keychain/credential store is unlocked and accessible.'
+        );
+      }
+      console.warn(
+        'SECURITY WARNING: Encryption not available. API key will be stored with minimal protection. ' +
+        'This is not recommended for production use.'
+      );
     }
 
     try {
-      // Encrypt the key
+      // Encrypt the key (only if encryption is available)
       const encrypted = this.isEncryptionAvailable()
         ? safeStorage.encryptString(key)
-        : Buffer.from(key); // Fallback for non-encrypted systems
+        : this.obfuscate(key); // Fallback obfuscation (NOT secure, just basic protection)
 
       // Load existing store
       const store = this.loadStore();
@@ -107,7 +117,7 @@ class SecureStorageService {
       const buffer = Buffer.from(encrypted, 'base64');
       const decrypted = this.isEncryptionAvailable()
         ? safeStorage.decryptString(buffer)
-        : buffer.toString();
+        : this.deobfuscate(buffer);
 
       // Update cache
       this.cache.set(type, decrypted);
@@ -167,6 +177,40 @@ class SecureStorageService {
   }
 
   /**
+   * Basic obfuscation for systems without encryption support.
+   * WARNING: This is NOT secure encryption - it's just basic obfuscation
+   * to prevent casual inspection. Use only as a last resort.
+   */
+  private obfuscate(text: string): Buffer {
+    // Use XOR with a machine-specific key (not cryptographically secure)
+    const machineKey = app.getPath('userData');
+    const keyBuffer = Buffer.from(machineKey);
+    const textBuffer = Buffer.from(text, 'utf-8');
+    const result = Buffer.alloc(textBuffer.length);
+
+    for (let i = 0; i < textBuffer.length; i++) {
+      result[i] = textBuffer[i] ^ keyBuffer[i % keyBuffer.length];
+    }
+
+    return result;
+  }
+
+  /**
+   * Deobfuscate a value that was obfuscated with the obfuscate method
+   */
+  private deobfuscate(buffer: Buffer): string {
+    const machineKey = app.getPath('userData');
+    const keyBuffer = Buffer.from(machineKey);
+    const result = Buffer.alloc(buffer.length);
+
+    for (let i = 0; i < buffer.length; i++) {
+      result[i] = buffer[i] ^ keyBuffer[i % keyBuffer.length];
+    }
+
+    return result.toString('utf-8');
+  }
+
+  /**
    * Load the encrypted key store from disk
    */
   private loadStore(): EncryptedKeyStore {
@@ -209,7 +253,7 @@ class SecureStorageService {
         const buffer = Buffer.from(encrypted, 'base64');
         const decrypted = this.isEncryptionAvailable()
           ? safeStorage.decryptString(buffer)
-          : buffer.toString();
+          : this.deobfuscate(buffer);
 
         this.cache.set(type, decrypted);
       } catch (error) {

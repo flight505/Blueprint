@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import path from 'node:path';
 import { checkAllPermissions, openSystemPreferences } from './main/permissions';
-import { readDirectory, readFileContent, listAllFiles, searchInFiles, writeFile, FileNode, FileContent, QuickOpenFile, SearchResult } from './main/services/FileSystemService';
+import { readDirectory, readFileContent, listAllFiles, searchInFiles, writeFile, FileNode, FileContent, QuickOpenFile, SearchResult, addAllowedBasePath, clearAllowedBasePaths, isPathAllowed } from './main/services/FileSystemService';
 import { agentService, type AgentSession, type StreamChunk, type CreateSessionOptions, type SendMessageOptions, type MessageParam } from './main/services/AgentService';
 import { databaseService } from './main/services/DatabaseService';
 import type { SessionInput, DocumentInput, StoredSession, StoredDocument, PromptInput, StoredPrompt, RecentProjectInput, RecentProject } from './main/services/DatabaseService';
@@ -22,6 +22,48 @@ import { citationAttachmentService, type RAGSource, type AttachmentResult, type 
 import { confidenceScoringService, type ParagraphConfidence, type DocumentConfidence, type ConfidenceScoringConfig, type ConfidenceStreamUpdate } from './main/services/ConfidenceScoringService';
 import { reviewQueueService, type DocumentReviewQueue, type ReviewItem, type ReviewScanOptions } from './main/services/ReviewQueueService';
 import { hallucinationDashboardService, type DocumentMetrics, type ProjectMetrics, type TrendData, type ExportOptions } from './main/services/HallucinationDashboardService';
+
+// ========================================
+// Input Validation Utilities
+// ========================================
+
+/**
+ * Validate that a value is a non-empty string
+ */
+function validateString(value: unknown, paramName: string): string {
+  if (typeof value !== 'string') {
+    throw new Error(`Invalid parameter "${paramName}": expected string, got ${typeof value}`);
+  }
+  return value;
+}
+
+/**
+ * Validate that a value is a non-empty string path
+ */
+function validatePath(value: unknown, paramName: string): string {
+  const str = validateString(value, paramName);
+  if (str.length === 0) {
+    throw new Error(`Invalid parameter "${paramName}": path cannot be empty`);
+  }
+  // Check for null bytes (path injection)
+  if (str.includes('\0')) {
+    throw new Error(`Invalid parameter "${paramName}": path contains invalid characters`);
+  }
+  return str;
+}
+
+/**
+ * Validate an optional object parameter
+ */
+function validateObject<T>(value: unknown, paramName: string): T | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  if (typeof value !== 'object') {
+    throw new Error(`Invalid parameter "${paramName}": expected object, got ${typeof value}`);
+  }
+  return value as T;
+}
 
 // Register IPC handlers
 function registerIpcHandlers() {
@@ -44,32 +86,64 @@ function registerIpcHandlers() {
     const result = await dialog.showOpenDialog({
       properties: ['openDirectory'],
     });
-    return result.canceled ? null : result.filePaths[0];
+    if (result.canceled || !result.filePaths[0]) {
+      return null;
+    }
+    // Security: Add the selected directory as an allowed base path
+    const selectedPath = result.filePaths[0];
+    addAllowedBasePath(selectedPath);
+    return selectedPath;
   });
 
-  ipcMain.handle('fs:readDirectory', async (_, dirPath: string): Promise<FileNode[]> => {
-    return await readDirectory(dirPath);
+  ipcMain.handle('fs:setProjectPath', (_, projectPath: string): void => {
+    // Validate input
+    const validatedPath = validatePath(projectPath, 'projectPath');
+    // Security: Clear existing paths and set new project path as allowed
+    clearAllowedBasePaths();
+    addAllowedBasePath(validatedPath);
   });
 
-  ipcMain.handle('fs:readFile', async (_, filePath: string): Promise<FileContent> => {
-    return await readFileContent(filePath);
+  ipcMain.handle('fs:isPathAllowed', (_, filePath: string): boolean => {
+    const validatedPath = validatePath(filePath, 'filePath');
+    return isPathAllowed(validatedPath);
   });
 
-  ipcMain.handle('fs:listAllFiles', async (_, basePath: string): Promise<QuickOpenFile[]> => {
-    return await listAllFiles(basePath);
+  ipcMain.handle('fs:readDirectory', async (_, dirPath: unknown): Promise<FileNode[]> => {
+    // Validate input
+    const validatedPath = validatePath(dirPath, 'dirPath');
+    return await readDirectory(validatedPath);
+  });
+
+  ipcMain.handle('fs:readFile', async (_, filePath: unknown): Promise<FileContent> => {
+    // Validate input
+    const validatedPath = validatePath(filePath, 'filePath');
+    return await readFileContent(validatedPath);
+  });
+
+  ipcMain.handle('fs:listAllFiles', async (_, basePath: unknown): Promise<QuickOpenFile[]> => {
+    // Validate input
+    const validatedPath = validatePath(basePath, 'basePath');
+    return await listAllFiles(validatedPath);
   });
 
   ipcMain.handle('fs:searchInFiles', async (
     _,
-    basePath: string,
-    query: string,
-    options?: { useRegex?: boolean; caseSensitive?: boolean; maxResults?: number }
+    basePath: unknown,
+    query: unknown,
+    options?: unknown
   ): Promise<SearchResult[]> => {
-    return await searchInFiles(basePath, query, options);
+    // Validate inputs
+    const validatedBasePath = validatePath(basePath, 'basePath');
+    const validatedQuery = validateString(query, 'query');
+    const validatedOptions = validateObject<{ useRegex?: boolean; caseSensitive?: boolean; maxResults?: number }>(options, 'options');
+    return await searchInFiles(validatedBasePath, validatedQuery, validatedOptions);
   });
 
-  ipcMain.handle('fs:writeFile', async (_, filePath: string, content: string): Promise<void> => {
-    return await writeFile(filePath, content);
+  ipcMain.handle('fs:writeFile', async (_, filePath: unknown, content: unknown): Promise<void> => {
+    // Validate inputs
+    const validatedPath = validatePath(filePath, 'filePath');
+    const validatedContent = validateString(content, 'content');
+    return await writeFile(validatedPath, validatedContent);
   });
 
   // Agent service handlers

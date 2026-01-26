@@ -14,6 +14,69 @@ export interface FileContent {
   encoding: string;
 }
 
+// Security: Track allowed base directories
+let allowedBasePaths: Set<string> = new Set();
+
+/**
+ * Set the allowed base paths for file operations.
+ * All file operations will be restricted to these directories.
+ */
+export function setAllowedBasePaths(paths: string[]): void {
+  allowedBasePaths = new Set(paths.map(p => path.resolve(p)));
+}
+
+/**
+ * Add an allowed base path for file operations.
+ */
+export function addAllowedBasePath(basePath: string): void {
+  allowedBasePaths.add(path.resolve(basePath));
+}
+
+/**
+ * Clear all allowed base paths.
+ */
+export function clearAllowedBasePaths(): void {
+  allowedBasePaths.clear();
+}
+
+/**
+ * Security: Validate that a file path is within an allowed directory.
+ * Prevents path traversal attacks (e.g., ../../etc/passwd)
+ */
+export function isPathAllowed(filePath: string): boolean {
+  if (allowedBasePaths.size === 0) {
+    // If no base paths set, allow nothing by default (secure by default)
+    return false;
+  }
+
+  const resolvedPath = path.resolve(filePath);
+
+  // Check if the resolved path starts with any allowed base path
+  for (const basePath of allowedBasePaths) {
+    // Ensure we check against the directory boundary (path.sep)
+    // to prevent /allowed/path matching /allowed/pathevil
+    if (resolvedPath === basePath || resolvedPath.startsWith(basePath + path.sep)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Validate a path and throw if not allowed.
+ * Use this at the entry point of all file operations.
+ */
+export function validatePath(filePath: string, operation: string): void {
+  if (!isPathAllowed(filePath)) {
+    const resolvedPath = path.resolve(filePath);
+    throw new Error(
+      `Security: Path "${resolvedPath}" is not within allowed directories for operation "${operation}". ` +
+      `Allowed paths: ${Array.from(allowedBasePaths).join(', ') || 'none'}`
+    );
+  }
+}
+
 const IGNORED_PATTERNS = [
   'node_modules',
   '.git',
@@ -34,6 +97,9 @@ function shouldIgnore(name: string): boolean {
 }
 
 export async function readDirectory(dirPath: string): Promise<FileNode[]> {
+  // Security: Validate the path before reading
+  validatePath(dirPath, 'readDirectory');
+
   try {
     const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
     const nodes: FileNode[] = [];
@@ -67,6 +133,9 @@ export async function readDirectory(dirPath: string): Promise<FileNode[]> {
 }
 
 export async function readFileContent(filePath: string): Promise<FileContent> {
+  // Security: Validate the path before reading
+  validatePath(filePath, 'readFileContent');
+
   const content = await fs.promises.readFile(filePath, 'utf-8');
   return {
     path: filePath,
@@ -103,6 +172,9 @@ export interface SearchResult {
  * Returns files sorted by name, limited to common document/code file types
  */
 export async function listAllFiles(basePath: string): Promise<QuickOpenFile[]> {
+  // Security: Validate the base path before listing
+  validatePath(basePath, 'listAllFiles');
+
   const files: QuickOpenFile[] = [];
 
   async function walk(dirPath: string): Promise<void> {
@@ -171,6 +243,9 @@ export async function searchInFiles(
     maxResults?: number;
   } = {}
 ): Promise<SearchResult[]> {
+  // Security: Validate the base path before searching
+  validatePath(basePath, 'searchInFiles');
+
   const { useRegex = false, caseSensitive = false, maxResults = 500 } = options;
   const results: SearchResult[] = [];
   let totalMatches = 0;
@@ -266,6 +341,9 @@ export async function searchInFiles(
  * Write content to a file, creating parent directories if needed
  */
 export async function writeFile(filePath: string, content: string): Promise<void> {
+  // Security: Validate the path before writing
+  validatePath(filePath, 'writeFile');
+
   // Ensure parent directory exists
   const dir = path.dirname(filePath);
   await fs.promises.mkdir(dir, { recursive: true });

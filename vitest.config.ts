@@ -15,6 +15,8 @@ export default defineConfig({
       include: [
         'src/main/services/ModelRouter.ts',
         'src/main/services/CitationManager.ts',
+        'src/main/services/FileSystemService.ts',
+        'src/main/services/ConfidenceScoringService.ts',
       ],
       exclude: [
         'src/**/*.d.ts',
