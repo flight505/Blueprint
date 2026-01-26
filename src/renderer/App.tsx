@@ -21,6 +21,7 @@ import { SearchPanel } from './components/search';
 import { ExportModal, ExportSection } from './components/export';
 import { WelcomeScreen } from './components/welcome';
 import { NewProjectWizard, ProjectConfig } from './components/wizard';
+import { VirtualizedDocument } from './components/document';
 
 const DEFAULT_LEFT_WIDTH_PERCENT = 40;
 const MIN_PANE_WIDTH = 300;
@@ -1000,10 +1001,31 @@ function ActivityBarButton({ icon, label, shortcut, active, onClick }: ActivityB
   );
 }
 
+/** Threshold for using virtualized rendering (in lines) */
+const VIRTUALIZATION_THRESHOLD = 1000;
+
 function FileContentView({ file }: { file: OpenFile }) {
   const ext = file.name.split('.').pop()?.toLowerCase() || '';
-  const isCode = ['ts', 'tsx', 'js', 'jsx', 'json', 'css', 'scss', 'html', 'yml', 'yaml'].includes(ext);
+  const isCode = ['ts', 'tsx', 'js', 'jsx', 'json', 'css', 'scss', 'html', 'yml', 'yaml', 'py', 'rb', 'go', 'rs', 'md'].includes(ext);
 
+  // Count lines to determine if we need virtualization
+  const lineCount = useMemo(() => file.content.split('\n').length, [file.content]);
+  const useVirtualization = lineCount >= VIRTUALIZATION_THRESHOLD;
+
+  // Use virtualized document for large files (1000+ lines)
+  if (useVirtualization) {
+    return (
+      <div className="h-full">
+        <VirtualizedDocument
+          content={file.content}
+          fileName={file.name}
+          showLineNumbers={true}
+        />
+      </div>
+    );
+  }
+
+  // Standard rendering for smaller files
   return (
     <div className="p-4 h-full">
       <pre
