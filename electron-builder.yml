@@ -83,6 +83,8 @@ dmg:
   # background: assets/dmg-background.png
 
 # Windows configuration
+# Code signing: set CSC_LINK (base64 .pfx) and CSC_KEY_PASSWORD environment variables
+# For EV certificates, use Windows SignTool directly via afterSign hook
 win:
   target:
     - target: nsis
@@ -93,6 +95,12 @@ win:
         - x64
   icon: assets/icon.ico
   publisherName: Jesper Vang
+  # Sign the main executable
+  sign: scripts/win-sign.js
+  # Verification is disabled because we handle signing ourselves
+  verifyUpdateCodeSignature: false
+  # Request UAC elevation for installer
+  requestedExecutionLevel: requireAdministrator
 
 # NSIS installer configuration
 nsis:
@@ -103,6 +111,14 @@ nsis:
   installerIcon: assets/icon.ico
   uninstallerIcon: assets/icon.ico
   installerHeaderIcon: assets/icon.ico
+  # Create desktop shortcut
+  createDesktopShortcut: true
+  # Create start menu shortcut
+  createStartMenuShortcut: true
+  # Shortcut name
+  shortcutName: Blueprint
+  # Include uninstaller
+  include: build/installer.nsh
 
 # Linux configuration
 linux:
