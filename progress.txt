@@ -29,6 +29,7 @@ Started: Sun Jan 25 21:44:33 CET 2026
 - DOCX generation: use `docx` package with Packer.toBuffer() for buffer output; code blocks use Consolas font; Tables need explicit column widths as percentages
 - PPTX generation: use `pptxgenjs` with pptx.writeFile(); H1→section slides with colored background, H2+→content slides; themes in PPTX_THEMES constant; table cells need `fill: { color: 'HEXVAL' }` not just string
 - Checkpoints stored in SQLite `checkpoints` table; use `checkpointService.saveCheckpoint()` after phase completion; resumeFromCheckpoint() restores full ProjectExecutionState
+- WCAG 2.2: Use useFocusTrap hook for modals; AnimatedModal/AnimatedOverlay have built-in focus trap; sr-only class for screen-reader-only content; skip link at top of App.tsx
 
 ## 2026-01-25 - US-006
 - Implemented File Browser Component with tree view navigation
@@ -2864,3 +2865,46 @@ There are still 16 stories with `passes: false`. The iteration is complete for U
   - AnimatedModal handles backdrop + content animation; AnimatedOverlay for command palette style
   - AnimatedCollapse uses height: 'auto' animation for dynamic content
 ---
+
+=== Iteration 47 Mon Jan 26 01:17:02 CET 2026 ===
+## Summary
+
+I have successfully completed **US-048: Implement Smooth Animations**.
+
+**Changes made:**
+1. Installed `framer-motion` library for React animations
+2. Created reusable animation components in `src/renderer/components/animations/`:
+   - `AnimatedModal` - For modal dialogs with scale/fade animations
+   - `AnimatedOverlay` - For command palette style overlays
+   - `AnimatedCollapse` - For expandable/collapsible panels
+   - `AnimatedTabContent` - For tab content transitions
+   - `ANIMATION_DURATION` constants (200ms normal duration as required)
+
+3. Updated components with animations:
+   - **Panel collapse/expand (200ms):** `SearchPanel.tsx`, `FileBrowser.tsx`, `DiagramEditModal.tsx`
+   - **Tab switch transitions:** `TabBar.tsx` with AnimatePresence and layout animations
+   - **Modal open/close:** `ExportModal.tsx`, `CommandPalette.tsx`, `FileQuickOpen.tsx`, `DiagramEditModal.tsx`, `NewProjectWizard.tsx`, and DiffPreview wrapper in `App.tsx`
+
+4. All TypeScript checks pass
+
+**Commits:**
+- `a08a6ba` - feat: [US-048] - Implement Smooth Animations (main implementation)
+- `990a883` - feat: [US-048] - Implement Smooth Animations (PRD and progress update)
+
+## 2026-01-26 - US-048a
+- Implemented WCAG 2.2 Accessibility Compliance
+- Files changed:
+  - src/renderer/App.tsx - Added skip link, semantic landmarks (nav, main), aria-labels
+  - src/renderer/components/animations/AnimatedComponents.tsx - Added focus trap, focus restoration, Escape key handling
+  - src/renderer/components/diff/DiffPreview.tsx - Added screen reader accessible change annotations
+  - src/renderer/index.css - Added sr-only, reduced-motion, high-contrast support
+  - src/renderer/hooks/useFocusTrap.ts (new) - Reusable focus trap hook
+- **Learnings:**
+  - Use FOCUSABLE_SELECTORS constant for querySelectorAll to find all focusable elements
+  - Store previousActiveElement before focus trap activates, restore on close
+  - Use requestAnimationFrame before focusing to ensure DOM is ready
+  - Screen readers need explicit role="deletion" and role="insertion" for diff changes
+  - Skip links use sr-only class with focus:not-sr-only for keyboard-only visibility
+  - Semantic HTML (nav, main) provides better accessibility than div with roles
+---
+
