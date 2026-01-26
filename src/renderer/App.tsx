@@ -5,6 +5,7 @@ import ThemeToggle from './components/settings/ThemeToggle';
 import ApiKeySettings from './components/settings/ApiKeySettings';
 import { ContextPanel } from './components/context';
 import { CitationVerificationPanel } from './components/citation';
+import { ReviewQueue } from './components/review';
 import { TabBar, TabData } from './components/layout';
 import { CommandPalette, useCommandPalette, Command } from './components/command';
 import { FileQuickOpen, useFileQuickOpen } from './components/quickopen';
@@ -869,7 +870,7 @@ function LeftPaneContent({
   onScrollToCitation,
 }: LeftPaneContentProps) {
   // Context section tab state
-  const [contextTab, setContextTab] = useState<'context' | 'citations'>('context');
+  const [contextTab, setContextTab] = useState<'context' | 'citations' | 'review'>('context');
 
   switch (section) {
     case 'chat':
@@ -929,6 +930,18 @@ function LeftPaneContent({
             >
               Citations
             </button>
+            <button
+              onClick={() => setContextTab('review')}
+              className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+                contextTab === 'review'
+                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              }`}
+              aria-selected={contextTab === 'review'}
+              role="tab"
+            >
+              Review
+            </button>
           </div>
           {/* Tab content */}
           <div className="flex-1 overflow-hidden">
@@ -937,10 +950,14 @@ function LeftPaneContent({
                 sessionId={agentSessionId}
                 maxTokens={200000}
               />
-            ) : (
+            ) : contextTab === 'citations' ? (
               <CitationVerificationPanel
                 documentPath={activeDocumentPath ?? null}
                 onScrollToCitation={onScrollToCitation}
+              />
+            ) : (
+              <ReviewQueue
+                documentPath={activeDocumentPath ?? null}
               />
             )}
           </div>

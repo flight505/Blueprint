@@ -576,6 +576,87 @@ export interface ConfidenceStreamUpdate {
   isLowConfidence: boolean;
 }
 
+// Review Queue types
+export type ReviewItemType = 'low_confidence' | 'unverified_citation' | 'partial_citation';
+export type ReviewItemStatus = 'pending' | 'accepted' | 'edited' | 'removed' | 'dismissed';
+
+export interface ReviewItemAction {
+  type: 'accept' | 'edit' | 'remove' | 'dismiss';
+  timestamp: Date;
+  editedText?: string;
+  reason?: string;
+}
+
+export interface ReviewSource {
+  id: string;
+  type: 'citation' | 'context' | 'generated';
+  title?: string;
+  url?: string;
+  content: string;
+  relevanceScore?: number;
+}
+
+export interface LowConfidenceReviewItem {
+  id: string;
+  type: 'low_confidence';
+  documentPath: string;
+  paragraphIndex: number;
+  originalText: string;
+  confidence: number;
+  indicators: string[];
+  sources: ReviewSource[];
+  status: ReviewItemStatus;
+  action?: ReviewItemAction;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CitationReviewItem {
+  id: string;
+  type: 'unverified_citation' | 'partial_citation';
+  documentPath: string;
+  citationId: string;
+  citationNumber: number;
+  citationTitle: string;
+  citationUrl: string;
+  verificationStatus: 'unverified' | 'partial' | 'error';
+  verificationConfidence: number;
+  sources: ReviewSource[];
+  usages: Array<{
+    claim: string;
+    line?: number;
+    offset?: number;
+  }>;
+  status: ReviewItemStatus;
+  action?: ReviewItemAction;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type ReviewItem = LowConfidenceReviewItem | CitationReviewItem;
+
+export interface DocumentReviewQueue {
+  documentPath: string;
+  items: ReviewItem[];
+  stats: {
+    total: number;
+    pending: number;
+    accepted: number;
+    edited: number;
+    removed: number;
+    dismissed: number;
+    lowConfidenceCount: number;
+    unverifiedCitationCount: number;
+  };
+  lastUpdated: Date;
+}
+
+export interface ReviewScanOptions {
+  confidenceThreshold?: number;
+  includePartialCitations?: boolean;
+  maxItems?: number;
+}
+
 // PDF generation types
 export interface PDFGenerationOptions {
   includeToc?: boolean;
@@ -1177,6 +1258,32 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => ipcRenderer.removeListener('confidence:streamUpdate', listener);
   },
 
+  // Review Queue
+  reviewScanDocument: (documentPath: string, content: string, options?: ReviewScanOptions): Promise<DocumentReviewQueue> =>
+    ipcRenderer.invoke('review:scanDocument', documentPath, content, options),
+  reviewGetQueue: (documentPath: string): Promise<DocumentReviewQueue | undefined> =>
+    ipcRenderer.invoke('review:getQueue', documentPath),
+  reviewGetItem: (documentPath: string, itemId: string): Promise<ReviewItem | undefined> =>
+    ipcRenderer.invoke('review:getItem', documentPath, itemId),
+  reviewGetPendingItems: (documentPath: string): Promise<ReviewItem[]> =>
+    ipcRenderer.invoke('review:getPendingItems', documentPath),
+  reviewAcceptItem: (documentPath: string, itemId: string): Promise<ReviewItem | undefined> =>
+    ipcRenderer.invoke('review:acceptItem', documentPath, itemId),
+  reviewEditItem: (documentPath: string, itemId: string, editedText: string): Promise<ReviewItem | undefined> =>
+    ipcRenderer.invoke('review:editItem', documentPath, itemId, editedText),
+  reviewRemoveItem: (documentPath: string, itemId: string, reason?: string): Promise<ReviewItem | undefined> =>
+    ipcRenderer.invoke('review:removeItem', documentPath, itemId, reason),
+  reviewDismissItem: (documentPath: string, itemId: string): Promise<ReviewItem | undefined> =>
+    ipcRenderer.invoke('review:dismissItem', documentPath, itemId),
+  reviewClearQueue: (documentPath: string): Promise<void> =>
+    ipcRenderer.invoke('review:clearQueue', documentPath),
+  reviewGetDocumentsWithPendingReviews: (): Promise<string[]> =>
+    ipcRenderer.invoke('review:getDocumentsWithPendingReviews'),
+  reviewGetThreshold: (): Promise<number> =>
+    ipcRenderer.invoke('review:getThreshold'),
+  reviewSetThreshold: (threshold: number): Promise<void> =>
+    ipcRenderer.invoke('review:setThreshold', threshold),
+
   // PDF generation
   pdfIsPandocAvailable: (): Promise<boolean> =>
     ipcRenderer.invoke('pdf:isPandocAvailable'),
@@ -1576,6 +1683,20 @@ declare global {
       confidenceUpdateConfig: (config: Partial<ConfidenceScoringConfig>) => Promise<void>;
       confidenceProcessStreaming: (sessionId: string, newText: string, fullText: string) => Promise<void>;
       onConfidenceStreamUpdate: (callback: (update: ConfidenceStreamUpdate) => void) => () => void;
+
+      // Review Queue
+      reviewScanDocument: (documentPath: string, content: string, options?: ReviewScanOptions) => Promise<DocumentReviewQueue>;
+      reviewGetQueue: (documentPath: string) => Promise<DocumentReviewQueue | undefined>;
+      reviewGetItem: (documentPath: string, itemId: string) => Promise<ReviewItem | undefined>;
+      reviewGetPendingItems: (documentPath: string) => Promise<ReviewItem[]>;
+      reviewAcceptItem: (documentPath: string, itemId: string) => Promise<ReviewItem | undefined>;
+      reviewEditItem: (documentPath: string, itemId: string, editedText: string) => Promise<ReviewItem | undefined>;
+      reviewRemoveItem: (documentPath: string, itemId: string, reason?: string) => Promise<ReviewItem | undefined>;
+      reviewDismissItem: (documentPath: string, itemId: string) => Promise<ReviewItem | undefined>;
+      reviewClearQueue: (documentPath: string) => Promise<void>;
+      reviewGetDocumentsWithPendingReviews: () => Promise<string[]>;
+      reviewGetThreshold: () => Promise<number>;
+      reviewSetThreshold: (threshold: number) => Promise<void>;
 
       // PDF generation
       pdfIsPandocAvailable: () => Promise<boolean>;
