@@ -4,6 +4,7 @@ import FileBrowser from './components/explorer/FileBrowser';
 import ThemeToggle from './components/settings/ThemeToggle';
 import ApiKeySettings from './components/settings/ApiKeySettings';
 import { ContextPanel } from './components/context';
+import { CitationVerificationPanel } from './components/citation';
 import { TabBar, TabData } from './components/layout';
 import { CommandPalette, useCommandPalette, Command } from './components/command';
 import { FileQuickOpen, useFileQuickOpen } from './components/quickopen';
@@ -704,6 +705,12 @@ function MainApp() {
           projectPath={projectPath}
           onProjectPathChange={setProjectPath}
           onOpenExportModal={() => setIsExportModalOpen(true)}
+          activeDocumentPath={activeFileId ? openFiles.find(f => f.id === activeFileId)?.path ?? null : null}
+          onScrollToCitation={(citationNumber, line) => {
+            // Scroll to citation in the active document (basic implementation)
+            console.log(`Scroll to citation [${citationNumber}] at line ${line ?? 'unknown'}`);
+            // Future: implement actual scrolling via editor reference
+          }}
         />
       </div>
 
@@ -840,6 +847,8 @@ interface LeftPaneContentProps {
   projectPath?: string | null;
   onProjectPathChange?: (path: string | null) => void;
   onOpenExportModal?: () => void;
+  activeDocumentPath?: string | null;
+  onScrollToCitation?: (citationNumber: number, line?: number, offset?: number) => void;
 }
 
 function LeftPaneContent({
@@ -856,7 +865,12 @@ function LeftPaneContent({
   projectPath,
   onProjectPathChange,
   onOpenExportModal,
+  activeDocumentPath,
+  onScrollToCitation,
 }: LeftPaneContentProps) {
+  // Context section tab state
+  const [contextTab, setContextTab] = useState<'context' | 'citations'>('context');
+
   switch (section) {
     case 'chat':
       return (
@@ -888,10 +902,49 @@ function LeftPaneContent({
       );
     case 'context':
       return (
-        <ContextPanel
-          sessionId={agentSessionId}
-          maxTokens={200000}
-        />
+        <div className="flex flex-col h-full">
+          {/* Tab switcher */}
+          <div className="flex border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+            <button
+              onClick={() => setContextTab('context')}
+              className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+                contextTab === 'context'
+                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              }`}
+              aria-selected={contextTab === 'context'}
+              role="tab"
+            >
+              Context
+            </button>
+            <button
+              onClick={() => setContextTab('citations')}
+              className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+                contextTab === 'citations'
+                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              }`}
+              aria-selected={contextTab === 'citations'}
+              role="tab"
+            >
+              Citations
+            </button>
+          </div>
+          {/* Tab content */}
+          <div className="flex-1 overflow-hidden">
+            {contextTab === 'context' ? (
+              <ContextPanel
+                sessionId={agentSessionId}
+                maxTokens={200000}
+              />
+            ) : (
+              <CitationVerificationPanel
+                documentPath={activeDocumentPath ?? null}
+                onScrollToCitation={onScrollToCitation}
+              />
+            )}
+          </div>
+        </div>
       );
     case 'planning':
       return (
