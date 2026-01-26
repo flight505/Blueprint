@@ -21,6 +21,7 @@ import { citationVerificationService, type CitationQuery, type VerificationResul
 import { citationAttachmentService, type RAGSource, type AttachmentResult, type AttachmentOptions, type SourceClaimLink } from './main/services/CitationAttachmentService';
 import { confidenceScoringService, type ParagraphConfidence, type DocumentConfidence, type ConfidenceScoringConfig, type ConfidenceStreamUpdate } from './main/services/ConfidenceScoringService';
 import { reviewQueueService, type DocumentReviewQueue, type ReviewItem, type ReviewScanOptions } from './main/services/ReviewQueueService';
+import { hallucinationDashboardService, type DocumentMetrics, type ProjectMetrics, type TrendData, type ExportOptions } from './main/services/HallucinationDashboardService';
 
 // Register IPC handlers
 function registerIpcHandlers() {
@@ -1096,6 +1097,59 @@ function registerIpcHandlers() {
   ): void => {
     reviewQueueService.setConfidenceThreshold(threshold);
   });
+
+  // =============== Hallucination Dashboard ===============
+
+  ipcMain.handle('dashboard:analyzeDocument', async (
+    _,
+    documentPath: string,
+    projectPath: string,
+    content: string
+  ): Promise<DocumentMetrics> => {
+    return await hallucinationDashboardService.analyzeDocument(documentPath, projectPath, content);
+  });
+
+  ipcMain.handle('dashboard:getDocumentMetrics', (
+    _,
+    documentPath: string
+  ): DocumentMetrics | null => {
+    return hallucinationDashboardService.getDocumentMetrics(documentPath);
+  });
+
+  ipcMain.handle('dashboard:getProjectMetrics', (
+    _,
+    projectPath: string
+  ): ProjectMetrics => {
+    return hallucinationDashboardService.getProjectMetrics(projectPath);
+  });
+
+  ipcMain.handle('dashboard:getTrendData', (
+    _,
+    projectPath: string,
+    startDate?: string,
+    endDate?: string
+  ): TrendData => {
+    return hallucinationDashboardService.getTrendData(projectPath, startDate, endDate);
+  });
+
+  ipcMain.handle('dashboard:exportReport', (
+    _,
+    projectPath: string,
+    options: ExportOptions
+  ): string => {
+    return hallucinationDashboardService.exportReport(projectPath, options);
+  });
+
+  ipcMain.handle('dashboard:clearProjectMetrics', (
+    _,
+    projectPath: string
+  ): number => {
+    return hallucinationDashboardService.clearProjectMetrics(projectPath);
+  });
+
+  ipcMain.handle('dashboard:clearAllMetrics', (): number => {
+    return hallucinationDashboardService.clearAllMetrics();
+  });
 }
 
 const createWindow = async () => {
@@ -1150,6 +1204,7 @@ app.on('ready', async () => {
   databaseService.initialize();
   secureStorageService.initialize();
   citationVerificationService.initialize();
+  hallucinationDashboardService.initialize();
 
   // Initialize context manager with API key if available
   const anthropicKey = await secureStorageService.getApiKey('anthropic');
@@ -1195,6 +1250,7 @@ app.on('window-all-closed', () => {
 app.on('will-quit', () => {
   databaseService.close();
   citationVerificationService.close();
+  hallucinationDashboardService.close();
 });
 
 app.on('activate', () => {

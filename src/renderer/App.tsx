@@ -6,6 +6,7 @@ import ApiKeySettings from './components/settings/ApiKeySettings';
 import { ContextPanel } from './components/context';
 import { CitationVerificationPanel } from './components/citation';
 import { ReviewQueue } from './components/review';
+import { HallucinationDashboard } from './components/dashboard';
 import { TabBar, TabData } from './components/layout';
 import { CommandPalette, useCommandPalette, Command } from './components/command';
 import { FileQuickOpen, useFileQuickOpen } from './components/quickopen';
@@ -870,7 +871,7 @@ function LeftPaneContent({
   onScrollToCitation,
 }: LeftPaneContentProps) {
   // Context section tab state
-  const [contextTab, setContextTab] = useState<'context' | 'citations' | 'review'>('context');
+  const [contextTab, setContextTab] = useState<'context' | 'citations' | 'review' | 'dashboard'>('context');
 
   switch (section) {
     case 'chat':
@@ -942,6 +943,18 @@ function LeftPaneContent({
             >
               Review
             </button>
+            <button
+              onClick={() => setContextTab('dashboard')}
+              className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+                contextTab === 'dashboard'
+                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              }`}
+              aria-selected={contextTab === 'dashboard'}
+              role="tab"
+            >
+              Dashboard
+            </button>
           </div>
           {/* Tab content */}
           <div className="flex-1 overflow-hidden">
@@ -955,9 +968,13 @@ function LeftPaneContent({
                 documentPath={activeDocumentPath ?? null}
                 onScrollToCitation={onScrollToCitation}
               />
-            ) : (
+            ) : contextTab === 'review' ? (
               <ReviewQueue
                 documentPath={activeDocumentPath ?? null}
+              />
+            ) : (
+              <HallucinationDashboard
+                projectPath={projectPath}
               />
             )}
           </div>

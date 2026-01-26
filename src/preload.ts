@@ -657,6 +657,61 @@ export interface ReviewScanOptions {
   maxItems?: number;
 }
 
+// Hallucination Dashboard types
+export interface DocumentMetrics {
+  documentPath: string;
+  documentName: string;
+  averageConfidence: number;
+  totalParagraphs: number;
+  lowConfidenceParagraphs: number;
+  totalCitations: number;
+  verifiedCitations: number;
+  partialCitations: number;
+  unverifiedCitations: number;
+  verificationRate: number;
+  qualityScore: number;
+  lastAnalyzedAt: string;
+}
+
+export interface ProjectMetrics {
+  projectPath: string;
+  documents: DocumentMetrics[];
+  overallConfidence: number;
+  overallVerificationRate: number;
+  overallQualityScore: number;
+  totalDocuments: number;
+  totalParagraphs: number;
+  totalLowConfidenceParagraphs: number;
+  totalCitations: number;
+  totalVerifiedCitations: number;
+  lastAnalyzedAt: string;
+}
+
+export interface TrendDataPoint {
+  timestamp: string;
+  documentPath: string;
+  averageConfidence: number;
+  verificationRate: number;
+  qualityScore: number;
+}
+
+export interface TrendData {
+  projectPath: string;
+  dataPoints: TrendDataPoint[];
+  movingAverages: {
+    confidence: number;
+    verificationRate: number;
+    qualityScore: number;
+  };
+}
+
+export interface DashboardExportOptions {
+  format: 'json' | 'csv';
+  includeTrends: boolean;
+  startDate?: string;
+  endDate?: string;
+}
+
 // PDF generation types
 export interface PDFGenerationOptions {
   includeToc?: boolean;
@@ -1284,6 +1339,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
   reviewSetThreshold: (threshold: number): Promise<void> =>
     ipcRenderer.invoke('review:setThreshold', threshold),
 
+  // Hallucination Dashboard
+  dashboardAnalyzeDocument: (documentPath: string, projectPath: string, content: string): Promise<DocumentMetrics> =>
+    ipcRenderer.invoke('dashboard:analyzeDocument', documentPath, projectPath, content),
+  dashboardGetDocumentMetrics: (documentPath: string): Promise<DocumentMetrics | null> =>
+    ipcRenderer.invoke('dashboard:getDocumentMetrics', documentPath),
+  dashboardGetProjectMetrics: (projectPath: string): Promise<ProjectMetrics> =>
+    ipcRenderer.invoke('dashboard:getProjectMetrics', projectPath),
+  dashboardGetTrendData: (projectPath: string, startDate?: string, endDate?: string): Promise<TrendData> =>
+    ipcRenderer.invoke('dashboard:getTrendData', projectPath, startDate, endDate),
+  dashboardExportReport: (projectPath: string, options: DashboardExportOptions): Promise<string> =>
+    ipcRenderer.invoke('dashboard:exportReport', projectPath, options),
+  dashboardClearProjectMetrics: (projectPath: string): Promise<number> =>
+    ipcRenderer.invoke('dashboard:clearProjectMetrics', projectPath),
+  dashboardClearAllMetrics: (): Promise<number> =>
+    ipcRenderer.invoke('dashboard:clearAllMetrics'),
+
   // PDF generation
   pdfIsPandocAvailable: (): Promise<boolean> =>
     ipcRenderer.invoke('pdf:isPandocAvailable'),
@@ -1697,6 +1768,15 @@ declare global {
       reviewGetDocumentsWithPendingReviews: () => Promise<string[]>;
       reviewGetThreshold: () => Promise<number>;
       reviewSetThreshold: (threshold: number) => Promise<void>;
+
+      // Hallucination Dashboard
+      dashboardAnalyzeDocument: (documentPath: string, projectPath: string, content: string) => Promise<DocumentMetrics>;
+      dashboardGetDocumentMetrics: (documentPath: string) => Promise<DocumentMetrics | null>;
+      dashboardGetProjectMetrics: (projectPath: string) => Promise<ProjectMetrics>;
+      dashboardGetTrendData: (projectPath: string, startDate?: string, endDate?: string) => Promise<TrendData>;
+      dashboardExportReport: (projectPath: string, options: DashboardExportOptions) => Promise<string>;
+      dashboardClearProjectMetrics: (projectPath: string) => Promise<number>;
+      dashboardClearAllMetrics: () => Promise<number>;
 
       // PDF generation
       pdfIsPandocAvailable: () => Promise<boolean>;
