@@ -3213,3 +3213,46 @@ All checks pass. US-052 is complete:
 **Committed as:** `feat: [US-052] - Build macOS Installer`
 
 There are still 10 stories remaining with `passes: false`. The next story is US-053 (Build Windows Installer).
+
+=== Iteration 52 Mon Jan 26 01:50:28 CET 2026 ===
+There are still 10 stories with `passes: false`. The iteration is complete for US-052.
+
+---
+
+## Summary of US-052 Implementation
+
+**US-052: Build macOS Installer - COMPLETE**
+
+Implemented macOS installer with universal binary support, code signing, and notarization:
+
+### Files Created
+- `scripts/notarize.js` - afterSign hook for Apple notarization using @electron/notarize
+- `.github/workflows/release.yml` - CI/CD workflow for building and releasing all platforms
+
+### Files Modified  
+- `electron-builder.yml` - Updated mac config for universal binary, afterSign hook, DMG signing
+- `package.json` - Added @electron/notarize devDependency
+
+### Acceptance Criteria Met
+1. ✅ Universal binary (Intel + Apple Silicon) - Configured with `arch: universal`
+2. ✅ Code signing with Developer ID - Hardened runtime + entitlements + CSC_LINK env vars
+3. ✅ Notarized for Gatekeeper - afterSign hook with @electron/notarize using notarytool
+4. ✅ Typecheck passes
+
+**Committed as:** `feat: [US-052] - Build macOS Installer`
+
+## 2026-01-26 - US-053
+- Implemented Windows Installer build configuration
+- Files changed:
+  - electron-builder.yml - Added Windows signing script path, shortcuts, requestedExecutionLevel
+  - scripts/win-sign.js (new) - Windows code signing with signtool
+  - build/installer.nsh (new) - NSIS installer customizations
+  - assets/ (new directory) - All platform icons (ico, icns, png, svg source)
+  - package.json - Added electron-icon-builder devDependency
+- **Learnings:**
+  - electron-icon-builder generates all icon formats from single PNG (1024x1024)
+  - Windows signing uses signtool.exe from Windows SDK, found at various SDK paths
+  - NSIS `include` directive allows custom installer scripting
+  - `requestedExecutionLevel: requireAdministrator` needed for proper UAC elevation
+  - signtool requires /tr (timestamp server) and /td sha256 for proper timestamping
+---

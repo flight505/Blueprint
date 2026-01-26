@@ -1251,9 +1251,9 @@
         "Typecheck passes"
       ],
       "priority": 58,
-      "passes": false,
-      "status": "pending",
-      "notes": "",
+      "passes": true,
+      "status": "complete",
+      "notes": "Configured NSIS installer with desktop/start menu shortcuts. Created win-sign.js for code signing via signtool. Added all platform icons (ico, icns, png). CI workflow already configured with WIN_CERTS_BASE64 and WIN_CERTS_PASSWORD secrets for code signing.",
       "depends_on": ["US-051"],
       "related_to": [],
       "implementation_hint": "Configure Windows target in electron-builder with code signing.",
