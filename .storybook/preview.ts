@@ -35,13 +35,13 @@ const preview: Preview = {
       test: 'todo',
     },
 
-    // Background options - Tokyo Night Storm theme
+    // Background options - Tokyo Night Storm (official colors)
     backgrounds: {
-      default: 'tokyo-night',
+      default: 'tokyo-night-storm',
       values: [
-        { name: 'tokyo-night', value: 'hsl(222 15% 14%)' },
-        { name: 'tokyo-night-darker', value: 'hsl(222 15% 10%)' },
-        { name: 'tokyo-night-card', value: 'hsl(222 15% 17%)' },
+        { name: 'tokyo-night-storm', value: '#24283b' },      // main bg
+        { name: 'tokyo-night-dark', value: '#1f2335' },       // sidebar/darker
+        { name: 'tokyo-night-highlight', value: '#292e42' },  // hover/selection
         { name: 'light', value: '#ffffff' },
       ],
     },
@@ -91,18 +91,17 @@ const preview: Preview = {
         document.documentElement.style.setProperty('color-scheme', theme);
       }
 
-      // Wrap story with proper theming
+      // Wrap story with proper theming - Official Tokyo Night Storm colors
       return React.createElement(
         'div',
         {
           className: 'blueprint-story-wrapper',
           style: {
-            // Apply Tokyo Night Storm colors directly
-            color: theme === 'dark' ? 'hsl(225 40% 82%)' : 'hsl(222 15% 14%)',
+            // Official Tokyo Night Storm: fg #c0caf5 (9.02:1 contrast)
+            color: theme === 'dark' ? '#c0caf5' : '#24283b',
             fontFamily:
               "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif",
             minHeight: '100%',
-            // Ensure text rendering is smooth
             WebkitFontSmoothing: 'antialiased',
             MozOsxFontSmoothing: 'grayscale',
           },
