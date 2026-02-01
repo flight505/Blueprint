@@ -179,11 +179,11 @@ export function ModelSelector({
             aria-pressed={selectedModel === model.id}
             aria-label={`Select ${model.name} model`}
           >
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-medium text-gray-900 dark:text-gray-100">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <span className="font-medium text-gray-100">
                 {model.name}
               </span>
-              <span className={`text-xs px-1.5 py-0.5 rounded ${COMPLEXITY_COLORS[model.complexity]}`}>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 ${COMPLEXITY_COLORS[model.complexity]}`}>
                 {model.complexity}
               </span>
             </div>
