@@ -9,6 +9,86 @@
 /* Custom scrollbar for dark mode */
 :root {
   color-scheme: light dark;
+
+  /* ═══════════════════════════════════════════════════════════════
+     BLUEPRINT GLASS DESIGN SYSTEM
+     Adapted from Sonic Glass Design System - Ethereal Glass + Living Energy
+     For Blueprint: Rail + Panel sidebar pattern with glass aesthetics
+     ═══════════════════════════════════════════════════════════════ */
+
+  /* Tokyo Night Storm dark theme colors */
+  --background: 222 15% 14%;
+  --foreground: 225 40% 82%;
+  --text: 225 40% 82%;
+  --card: 222 15% 17%;
+  --card-foreground: 225 40% 82%;
+  --popover: 222 15% 14%;
+  --popover-foreground: 225 40% 82%;
+  --primary: 213 93% 68%;
+  --primary-foreground: 222 15% 14%;
+  --secondary: 222 15% 20%;
+  --secondary-foreground: 225 40% 82%;
+  --muted: 222 15% 20%;
+  --muted-foreground: 225 30% 70%;
+  --accent: 213 93% 68%;
+  --accent-foreground: 222 15% 14%;
+  --destructive: 350 100% 76%;
+  --destructive-foreground: 222 15% 14%;
+  --border: 222 15% 22%;
+  --input: 222 15% 22%;
+  --ring: 213 93% 68%;
+  --radius: 0.5rem;
+
+  /* Tokyo Night Storm brand colors */
+  --violet: 258 72% 67%;
+  --blue: 213 93% 68%;
+  --green: 95 38% 62%;
+  --yellow: 41 88% 65%;
+  --orange: 29 100% 70%;
+  --red: 350 100% 76%;
+  --magenta: 320 85% 62%;
+
+  /* Glass Surfaces - Layered transparency */
+  --glass-base: 0 0% 100% / 0.03;
+  --glass-surface: 0 0% 100% / 0.06;
+  --glass-elevated: 0 0% 100% / 0.10;
+  --glass-hover: 0 0% 100% / 0.12;
+  --glass-active: 0 0% 100% / 0.15;
+
+  /* Glass Borders - Gradient-ready */
+  --glass-border: 0 0% 100% / 0.08;
+  --glass-border-light: 0 0% 100% / 0.12;
+  --glass-border-strong: 0 0% 100% / 0.15;
+
+  /* Sonic Violet Glow - The accent that breathes */
+  --violet-hue: 258;
+  --violet-sat: 72%;
+  --violet-light: 67%;
+  --glow-color: var(--violet-hue) var(--violet-sat) var(--violet-light);
+
+  --glow-idle: var(--glow-color) / 0;
+  --glow-subtle: var(--glow-color) / 0.1;
+  --glow-soft: var(--glow-color) / 0.2;
+  --glow-medium: var(--glow-color) / 0.4;
+  --glow-strong: var(--glow-color) / 0.6;
+  --glow-intense: var(--glow-color) / 0.8;
+  --glow-peak: var(--glow-color) / 1.0;
+
+  /* Text on Glass */
+  --glass-text-primary: 0 0% 100% / 0.95;
+  --glass-text-secondary: 0 0% 100% / 0.60;
+  --glass-text-tertiary: 0 0% 100% / 0.40;
+  --glass-text-ghost: 0 0% 100% / 0.25;
+
+  /* Sidebar colors (Rail + Panel pattern) */
+  --sidebar-background: 222 15% 14%;
+  --sidebar-foreground: 225 40% 82%;
+  --sidebar-primary: 213 93% 68%;
+  --sidebar-primary-foreground: 222 15% 14%;
+  --sidebar-accent: 222 15% 20%;
+  --sidebar-accent-foreground: 225 40% 82%;
+  --sidebar-border: 222 15% 18%;
+  --sidebar-ring: 213 93% 68%;
 }
 
 /* Override highlight.js colors for dark mode */
@@ -259,4 +339,191 @@ body {
   .confidence-low {
     text-decoration-color: red;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GLASS DESIGN SYSTEM COMPONENTS
+   Rail + Panel sidebar pattern for Blueprint
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Glass Surface Variants */
+.glass {
+  background: hsl(var(--glass-surface));
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.glass-base {
+  background: hsl(var(--glass-base));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.glass-elevated {
+  background: hsl(var(--glass-elevated));
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+}
+
+.glass-ultra {
+  background: hsl(var(--glass-surface));
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+}
+
+/* Glass Border - Gradient edge that catches light */
+.glass-border {
+  position: relative;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+.glass-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--glass-border-light)) 0%,
+    hsl(var(--glass-border)) 50%,
+    hsl(0 0% 100% / 0.04) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Glow Effects - Violet-based */
+.glow-violet {
+  box-shadow: 0 0 20px hsl(var(--glow-soft)),
+              0 0 40px hsl(var(--glow-subtle));
+}
+
+.glow-violet-strong {
+  box-shadow: 0 0 20px hsl(var(--glow-medium)),
+              0 0 40px hsl(var(--glow-soft)),
+              0 0 60px hsl(var(--glow-subtle));
+}
+
+.glow-violet-intense {
+  box-shadow: 0 0 15px hsl(var(--glow-strong)),
+              0 0 30px hsl(var(--glow-medium)),
+              0 0 45px hsl(var(--glow-soft)),
+              0 0 60px hsl(var(--glow-subtle));
+}
+
+/* Inner glow for inputs on focus */
+.glow-inner-violet {
+  box-shadow: inset 0 0 20px hsl(var(--glow-subtle)),
+              0 0 20px hsl(var(--glow-subtle));
+}
+
+/* Text on glass */
+.text-glass-primary {
+  color: hsl(var(--glass-text-primary));
+}
+
+.text-glass-secondary {
+  color: hsl(var(--glass-text-secondary));
+}
+
+.text-glass-tertiary {
+  color: hsl(var(--glass-text-tertiary));
+}
+
+.text-glass-ghost {
+  color: hsl(var(--glass-text-ghost));
+}
+
+/* Breathing animation for idle states */
+@keyframes breathe {
+  0%, 100% { opacity: 0.02; }
+  50% { opacity: 0.05; }
+}
+
+@keyframes breathe-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px hsl(var(--glow-subtle));
+  }
+  50% {
+    box-shadow: 0 0 30px hsl(var(--glow-soft));
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px hsl(var(--glow-soft)), 0 0 40px hsl(var(--glow-subtle));
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 30px hsl(var(--glow-medium)), 0 0 60px hsl(var(--glow-soft));
+    transform: scale(1.02);
+  }
+}
+
+.animate-breathe {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+.animate-breathe-glow {
+  animation: breathe-glow 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   GLASS SIDEBAR COMPONENTS (Rail + Panel Pattern)
+   Rail: 48px icons only | Panel: 200-280px expandable | Content: flex
+   ───────────────────────────────────────────────────────────── */
+
+/* Rail - The narrow icon strip */
+.glass-sidebar-rail {
+  background: hsl(var(--glass-base));
+  border-right: 1px solid hsl(var(--glass-border));
+  width: 48px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Panel - Expandable content area */
+.glass-sidebar-panel {
+  background: hsl(var(--glass-surface));
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-right: 1px solid hsl(var(--glass-border));
+  width: 240px;
+  transition: width 200ms ease, opacity 200ms ease;
+}
+
+.glass-sidebar-panel.collapsed {
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+/* Sidebar Item - Works in both rail and panel */
+.glass-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+  cursor: pointer;
+}
+
+.glass-sidebar-item:hover {
+  background: hsl(var(--glass-hover));
+}
+
+.glass-sidebar-item.active {
+  background: hsl(var(--glass-active));
+  border-left: 2px solid hsl(var(--glow-color));
+  box-shadow: 0 0 20px hsl(var(--glow-subtle));
 }
