@@ -70,7 +70,7 @@ function FileTreeNode({
     <div>
       <button
         onClick={handleClick}
-        className="w-full flex items-center gap-1 py-1 px-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+        className="w-full flex items-center gap-1 py-1 px-2 text-left text-sm hover:bg-gray-700 rounded transition-colors"
         style={{ paddingLeft: `${level * 12 + 8}px` }}
         title={node.path}
         aria-expanded={node.type === 'directory' ? isExpanded : undefined}
@@ -153,7 +153,7 @@ export default function FileBrowser({
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+      <div className="px-4 py-2 border-b border-gray-700 flex items-center justify-between">
         <span className="text-xs text-gray-500 dark:text-gray-400 truncate flex-1" title={projectPath}>
           {projectPath.split('/').pop()}
         </span>

@@ -149,7 +149,7 @@ export function RecentProjectsList({
             <button
               onClick={() => handleProjectClick(project.path)}
               onContextMenu={(e) => handleContextMenu(e, project.id)}
-              className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+              className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-800 transition-colors group"
               aria-label={`Open ${project.name}`}
             >
               <div className="flex items-center gap-3">
@@ -174,7 +174,7 @@ export function RecentProjectsList({
       {/* Context Menu */}
       {contextMenu && (
         <div
-          className="fixed bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg py-1 z-50"
+          className="fixed bg-gray-800 border border-gray-700 rounded-md shadow-lg py-1 z-50"
           style={{
             left: contextMenu.x,
             top: contextMenu.y,
@@ -184,7 +184,7 @@ export function RecentProjectsList({
         >
           <button
             onClick={() => handleRemoveProject(contextMenu.projectId)}
-            className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700"
             role="menuitem"
           >
             Remove from Recent

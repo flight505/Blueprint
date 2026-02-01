@@ -39,11 +39,11 @@ export interface ModelSelectorProps {
   compact?: boolean;
 }
 
-// Complexity badge colors
+// Complexity badge colors - Tokyo Night Storm palette
 const COMPLEXITY_COLORS: Record<string, string> = {
-  simple: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  medium: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-  complex: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+  simple: 'bg-green-900/50 text-green-400',
+  medium: 'bg-blue-900/50 text-blue-400',
+  complex: 'bg-purple-900/50 text-purple-400',
 };
 
 export function ModelSelector({
@@ -98,7 +98,7 @@ export function ModelSelector({
             }
           }}
           disabled={disabled}
-          className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+          className="text-xs px-2 py-1 rounded border border-gray-600 bg-gray-700 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
           aria-label={`Select ${label.toLowerCase()}`}
         >
           {showAutoSelect && (
@@ -147,7 +147,7 @@ export function ModelSelector({
 
       {/* Classification info when in auto mode */}
       {classification && isAutoMode && (
-        <div className="p-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-xs space-y-1">
+        <div className="p-2 bg-gray-800 rounded-lg text-xs space-y-1">
           <div className="flex items-center justify-between">
             <span className="text-gray-600 dark:text-gray-300">
               Detected: {classification.complexity} task
@@ -171,10 +171,10 @@ export function ModelSelector({
             disabled={disabled}
             className={`p-3 rounded-lg border transition-colors text-left ${
               selectedModel === model.id && !isAutoMode
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                ? 'border-blue-500 bg-blue-900/30'
                 : isAutoMode && classification?.model === model.id
-                ? 'border-green-500 bg-green-50 dark:bg-green-900/30'
-                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                ? 'border-green-500 bg-green-900/30'
+                : 'border-gray-700 hover:border-gray-600'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
             aria-pressed={selectedModel === model.id}
             aria-label={`Select ${model.name} model`}

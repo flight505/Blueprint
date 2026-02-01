@@ -134,8 +134,8 @@ function Tab({ label, active, hasUnsavedChanges, shortcut, onClick, onClose }: T
       title={tooltipText}
       className={`group flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-t-lg transition-colors cursor-pointer select-none ${
         active
-          ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-t border-x border-gray-200 dark:border-gray-700'
-          : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+          ? 'bg-gray-800 text-gray-100 border-t border-x border-gray-700'
+          : 'text-gray-400 hover:text-gray-100 hover:bg-gray-700/50'
       }`}
       onClick={onClick}
       onKeyDown={handleKeyDown}
@@ -159,8 +159,8 @@ function Tab({ label, active, hasUnsavedChanges, shortcut, onClick, onClose }: T
           onClick={handleClose}
           className={`ml-0.5 w-4 h-4 flex items-center justify-center rounded transition-colors ${
             active
-              ? 'hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400'
-              : 'opacity-0 group-hover:opacity-100 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400'
+              ? 'hover:bg-gray-600 text-gray-400'
+              : 'opacity-0 group-hover:opacity-100 hover:bg-gray-600 text-gray-400'
           }`}
           aria-label={`Close ${label}`}
           title={`Close ${label}`}

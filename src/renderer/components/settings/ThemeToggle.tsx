@@ -26,8 +26,8 @@ export default function ThemeToggle() {
             onClick={() => setTheme(option.value)}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
               currentTheme === option.value
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600'
+                ? 'border-blue-500 bg-blue-900/30 text-blue-400'
+                : 'border-gray-700 bg-gray-800 hover:border-gray-600'
             }`}
             aria-pressed={currentTheme === option.value}
             aria-label={`Set theme to ${option.label}`}

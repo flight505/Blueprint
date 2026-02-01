@@ -7,8 +7,16 @@ import '../src/renderer/index.css';
 // Import Electron API mocks for isolated component testing
 import './electron-mocks';
 
+// Import Tokyo Night Storm theme for docs
+import tokyoNightStorm from './theme';
+
 const preview: Preview = {
   parameters: {
+    // Apply Tokyo Night Storm theme to docs
+    docs: {
+      theme: tokyoNightStorm,
+    },
+
     // Better action logging
     actions: { argTypesRegex: '^on[A-Z].*' },
 

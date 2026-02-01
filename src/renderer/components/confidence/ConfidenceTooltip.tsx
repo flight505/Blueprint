@@ -118,8 +118,8 @@ export function ConfidenceTooltip({ className = '' }: ConfidenceTooltipProps) {
     <div
       className={`
         fixed z-[100] w-[280px] p-3 rounded-lg shadow-lg
-        bg-white dark:bg-gray-800
-        border border-gray-200 dark:border-gray-700
+        bg-gray-800
+        border border-gray-700
         text-sm
         ${className}
       `}
@@ -150,7 +150,7 @@ export function ConfidenceTooltip({ className = '' }: ConfidenceTooltipProps) {
 
       {/* Progress bar */}
       <div
-        className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full mb-3"
+        className="h-2 w-full bg-gray-700 rounded-full mb-3"
         role="progressbar"
         aria-valuenow={percentage}
         aria-valuemin={0}

@@ -194,12 +194,12 @@ export default function FileQuickOpen({
     <AnimatedOverlay
       isOpen={isOpen}
       onClose={onClose}
-      className="w-[800px] max-w-[90vw] bg-white dark:bg-gray-800 rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[70vh]"
+      className="w-[800px] max-w-[90vw] bg-gray-800 border border-gray-700 rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[70vh]"
       position="top"
     >
       <div role="combobox" aria-expanded="true" aria-haspopup="listbox" className="flex flex-col h-full">
         {/* Search Input */}
-        <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+        <div className="p-3 border-b border-gray-700">
           <input
             ref={inputRef}
             type="text"
@@ -211,7 +211,7 @@ export default function FileQuickOpen({
             onKeyDown={handleKeyDown}
             placeholder={projectPath ? "Type to search files..." : "Open a project folder first"}
             disabled={!projectPath}
-            className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            className="w-full px-3 py-2 bg-gray-700 text-gray-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 placeholder-gray-400"
             aria-label="Search files"
             aria-controls="file-list"
             aria-autocomplete="list"
@@ -224,7 +224,7 @@ export default function FileQuickOpen({
           <div
             ref={listRef}
             id="file-list"
-            className="w-1/2 overflow-y-auto border-r border-gray-200 dark:border-gray-700"
+            className="w-1/2 overflow-y-auto border-r border-gray-700"
             role="listbox"
             aria-label="Files"
           >
@@ -257,7 +257,7 @@ export default function FileQuickOpen({
 
           {/* Preview Pane */}
           <div className="w-1/2 overflow-hidden flex flex-col">
-            <div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-750">
+            <div className="px-3 py-2 text-xs text-gray-400 border-b border-gray-700 bg-gray-750">
               Preview
             </div>
             <div className="flex-1 overflow-auto p-3">
@@ -275,21 +275,21 @@ export default function FileQuickOpen({
         </div>
 
         {/* Footer hint */}
-        <div className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 flex items-center gap-4 bg-gray-50 dark:bg-gray-750">
+        <div className="px-4 py-2 text-xs text-gray-400 border-t border-gray-700 flex items-center gap-4 bg-gray-750">
           <span>
-            <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-xs">
               ↑↓
             </kbd>{' '}
             to navigate
           </span>
           <span>
-            <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-xs">
               Enter
             </kbd>{' '}
             to open
           </span>
           <span>
-            <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-xs">
               Esc
             </kbd>{' '}
             to close
@@ -319,8 +319,8 @@ function FileItem({
     <div
       className={`px-3 py-2 cursor-pointer flex items-center gap-2 ${
         isSelected
-          ? 'bg-blue-100 dark:bg-blue-900/50'
-          : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+          ? 'bg-blue-900/50'
+          : 'hover:bg-gray-700'
       }`}
       onClick={onClick}
       onMouseEnter={onMouseEnter}

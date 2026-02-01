@@ -46,8 +46,8 @@ function MenuItem({ label, shortcut, icon, onClick, disabled = false }: MenuItem
       disabled={disabled}
       className={`w-full flex items-center gap-3 px-3 py-2 text-sm text-left transition-colors ${
         disabled
-          ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed'
-          : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+          ? 'text-gray-500 cursor-not-allowed'
+          : 'text-gray-200 hover:bg-gray-700'
       }`}
       role="menuitem"
       aria-disabled={disabled}
@@ -173,7 +173,7 @@ export function EditorContextMenu({
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 min-w-[200px] py-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
+      className="fixed z-50 min-w-[200px] py-1 bg-gray-800 rounded-lg shadow-lg border border-gray-700"
       style={{
         left: adjustedPosition.x,
         top: adjustedPosition.y,

@@ -190,7 +190,7 @@ export default function ResearchProgress({
 
   return (
     <div
-      className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm ${className}`}
+      className={`bg-gray-800 border border-gray-700 rounded-lg p-4 shadow-sm ${className}`}
       role="status"
       aria-live="polite"
       aria-label="Research progress"
@@ -202,14 +202,14 @@ export default function ResearchProgress({
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
             {getProviderName(provider)}
           </span>
-          <span className="text-xs text-gray-500 dark:text-gray-400 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded">
+          <span className="text-xs text-gray-400 px-1.5 py-0.5 bg-gray-700 rounded">
             {mode}
           </span>
         </div>
         {onCancel && (
           <button
             onClick={handleCancel}
-            className="text-sm px-3 py-1 rounded-md text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            className="text-sm px-3 py-1 rounded-md text-red-400 hover:bg-red-900/20 transition-colors"
             aria-label="Cancel research"
           >
             Cancel
@@ -219,7 +219,7 @@ export default function ResearchProgress({
 
       {/* Progress bar */}
       <div className="mb-2">
-        <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
           <div
             className={`h-full transition-all duration-300 ease-out ${getProgressColor(displayPercentage)}`}
             style={{ width: `${Math.min(displayPercentage, 100)}%` }}

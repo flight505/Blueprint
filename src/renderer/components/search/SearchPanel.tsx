@@ -230,7 +230,7 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
       const isMatch = pattern.test(part);
       pattern.lastIndex = 0; // Reset regex
       return isMatch ? (
-        <mark key={i} className="bg-yellow-300 dark:bg-yellow-700 text-inherit px-0.5 rounded">
+        <mark key={i} className="bg-yellow-700 text-inherit px-0.5 rounded">
           {part}
         </mark>
       ) : (
@@ -253,7 +253,7 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Search input and options */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="p-4 border-b border-gray-700">
         <div className="relative">
           <input
             ref={inputRef}
@@ -261,7 +261,7 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search in project..."
-            className="w-full px-3 py-2 pr-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            className="w-full px-3 py-2 pr-10 rounded-lg border border-gray-600 bg-gray-700 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm placeholder-gray-400"
             aria-label="Search query"
           />
           {isSearching && (
@@ -318,7 +318,7 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
               <div className="flex items-center gap-1">
                 <button
                   onClick={goToPreviousMatch}
-                  className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50"
+                  className="p-1 rounded hover:bg-gray-700 text-gray-400 disabled:opacity-50"
                   title="Previous match (Shift+F3)"
                   aria-label="Go to previous match"
                 >
@@ -328,7 +328,7 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
                 </button>
                 <button
                   onClick={goToNextMatch}
-                  className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50"
+                  className="p-1 rounded hover:bg-gray-700 text-gray-400 disabled:opacity-50"
                   title="Next match (F3)"
                   aria-label="Go to next match"
                 >
@@ -359,11 +359,11 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
         {!isSearching && results.length > 0 && (
           <div className="py-1">
             {results.map((result) => (
-              <div key={result.filePath} className="border-b border-gray-100 dark:border-gray-800 last:border-b-0">
+              <div key={result.filePath} className="border-b border-gray-700 last:border-b-0">
                 {/* File header */}
                 <button
                   onClick={() => toggleFileExpanded(result.filePath)}
-                  className="w-full px-4 py-2 flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 text-left"
+                  className="w-full px-4 py-2 flex items-center gap-2 hover:bg-gray-800 text-left"
                   aria-expanded={expandedFiles.has(result.filePath)}
                 >
                   <span className="text-gray-400 text-xs">
@@ -372,14 +372,14 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
                   <span className="flex-1 truncate text-sm font-medium text-gray-700 dark:text-gray-300">
                     {result.relativePath}
                   </span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">
+                  <span className="text-xs text-gray-400 bg-gray-700 px-1.5 py-0.5 rounded">
                     {result.matches.length}
                   </span>
                 </button>
 
                 {/* Matches list with collapse animation */}
                 <AnimatedCollapse isOpen={expandedFiles.has(result.filePath)}>
-                  <div className="bg-gray-50 dark:bg-gray-800/50">
+                  <div className="bg-gray-800/50">
                     {result.matches.map((match, idx) => {
                       const matchKey = `${result.filePath}-${match.line}-${match.column}`;
                       const matchIndex = getMatchIndex(result.filePath, match.line, match.column);
@@ -398,16 +398,16 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
                           onClick={() => handleMatchClick(result.filePath, match.line, match.column)}
                           className={`w-full px-4 py-1.5 flex items-start gap-3 text-left transition-colors ${
                             isCurrentMatch
-                              ? 'bg-yellow-100 dark:bg-yellow-900/50 border-l-2 border-yellow-500'
-                              : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                              ? 'bg-yellow-900/50 border-l-2 border-yellow-500'
+                              : 'hover:bg-gray-700'
                           }`}
                           title={`Go to line ${match.line}${isCurrentMatch ? ' (current)' : ''}`}
                           aria-current={isCurrentMatch ? 'true' : undefined}
                         >
                           <span className={`text-xs font-mono w-8 text-right flex-shrink-0 ${
                             isCurrentMatch
-                              ? 'text-yellow-700 dark:text-yellow-400 font-semibold'
-                              : 'text-gray-400 dark:text-gray-500'
+                              ? 'text-yellow-400 font-semibold'
+                              : 'text-gray-500'
                           }`}>
                             {match.line}
                           </span>

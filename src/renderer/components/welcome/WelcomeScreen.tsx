@@ -63,25 +63,25 @@ export function WelcomeScreen({ onNewProject, onOpenProject }: WelcomeScreenProp
         </div>
 
         {/* Getting Started */}
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 mb-8">
+        <div className="bg-gray-800 rounded-lg p-6 mb-8">
           <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
             Getting Started
           </h2>
           <div className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
             <div className="flex items-start gap-3">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-medium">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-900 text-blue-400 flex items-center justify-center text-xs font-medium">
                 1
               </span>
               <p>Configure your API keys in Settings (Cmd+,)</p>
             </div>
             <div className="flex items-start gap-3">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-medium">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-900 text-blue-400 flex items-center justify-center text-xs font-medium">
                 2
               </span>
               <p>Create a new project or open an existing one</p>
             </div>
             <div className="flex items-start gap-3">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-medium">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-900 text-blue-400 flex items-center justify-center text-xs font-medium">
                 3
               </span>
               <p>Use Chat (Cmd+1) to interact with the AI planning assistant</p>
@@ -127,7 +127,7 @@ function WelcomeCard({ title, description, icon, onClick }: WelcomeCardProps) {
   return (
     <button
       onClick={onClick}
-      className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-md transition-all text-left group"
+      className="p-4 rounded-lg border border-gray-700 bg-gray-800 hover:border-blue-500 hover:shadow-md transition-all text-left group"
     >
       <span className="text-2xl mb-2 block group-hover:scale-110 transition-transform">
         {icon}

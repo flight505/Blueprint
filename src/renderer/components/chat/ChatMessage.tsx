@@ -29,7 +29,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
         className={`max-w-[85%] rounded-lg px-4 py-3 ${
           isUser
             ? 'bg-blue-500 text-white rounded-br-sm'
-            : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-bl-sm'
+            : 'bg-gray-700 text-gray-100 rounded-bl-sm'
         }`}
       >
         {isUser ? (
@@ -56,7 +56,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
                   if (!className) {
                     return (
                       <code
-                        className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-sm"
+                        className="bg-gray-600 px-1 py-0.5 rounded text-sm text-gray-100"
                         {...props}
                       >
                         {children}
@@ -99,21 +99,21 @@ export function ChatMessage({ message }: ChatMessageProps) {
                 // Style tables (GFM feature)
                 table: ({ children }) => (
                   <div className="overflow-x-auto my-4">
-                    <table className="min-w-full border-collapse border border-gray-300 dark:border-gray-600">
+                    <table className="min-w-full border-collapse border border-gray-600">
                       {children}
                     </table>
                   </div>
                 ),
                 thead: ({ children }) => (
-                  <thead className="bg-gray-100 dark:bg-gray-700">{children}</thead>
+                  <thead className="bg-gray-600">{children}</thead>
                 ),
                 th: ({ children }) => (
-                  <th className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left font-semibold">
+                  <th className="border border-gray-600 px-3 py-2 text-left font-semibold text-gray-100">
                     {children}
                   </th>
                 ),
                 td: ({ children }) => (
-                  <td className="border border-gray-300 dark:border-gray-600 px-3 py-2">
+                  <td className="border border-gray-600 px-3 py-2">
                     {children}
                   </td>
                 ),
@@ -121,7 +121,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
                 input: (props) => (
                   <input
                     {...props}
-                    className="mr-2 h-4 w-4 rounded border-gray-300 dark:border-gray-600"
+                    className="mr-2 h-4 w-4 rounded border-gray-500"
                     disabled
                   />
                 ),

@@ -133,12 +133,12 @@ export default function CommandPalette({
     <AnimatedOverlay
       isOpen={isOpen}
       onClose={onClose}
-      className="w-[600px] max-w-[90vw] bg-white dark:bg-gray-800 rounded-lg shadow-2xl overflow-hidden"
+      className="w-[600px] max-w-[90vw] bg-gray-800 rounded-lg shadow-2xl overflow-hidden border border-gray-700"
       position="top"
     >
       <div role="combobox" aria-expanded="true" aria-haspopup="listbox">
         {/* Search Input */}
-        <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+        <div className="p-3 border-b border-gray-700">
           <input
             ref={inputRef}
             type="text"
@@ -149,7 +149,7 @@ export default function CommandPalette({
             }}
             onKeyDown={handleKeyDown}
             placeholder="Type a command or search..."
-            className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 bg-gray-700 text-gray-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
             aria-label="Search commands"
             aria-controls="command-list"
             aria-autocomplete="list"
@@ -183,21 +183,21 @@ export default function CommandPalette({
         </div>
 
         {/* Footer hint */}
-        <div className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 flex items-center gap-4">
+        <div className="px-4 py-2 text-xs text-gray-400 border-t border-gray-700 flex items-center gap-4">
           <span>
-            <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-xs text-gray-300">
               ↑↓
             </kbd>{' '}
             to navigate
           </span>
           <span>
-            <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-xs text-gray-300">
               Enter
             </kbd>{' '}
             to select
           </span>
           <span>
-            <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-xs text-gray-300">
               Esc
             </kbd>{' '}
             to close
@@ -227,8 +227,8 @@ function CommandItem({
     <div
       className={`px-4 py-2.5 cursor-pointer flex items-center justify-between ${
         isSelected
-          ? 'bg-blue-100 dark:bg-blue-900/50'
-          : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+          ? 'bg-blue-800/50'
+          : 'hover:bg-gray-700'
       }`}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
@@ -239,25 +239,25 @@ function CommandItem({
       <div className="flex items-center gap-3">
         {isRecent && (
           <span
-            className="text-xs text-gray-400 dark:text-gray-500"
+            className="text-xs text-gray-500"
             aria-label="Recent command"
           >
             🕐
           </span>
         )}
         <div>
-          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+          <div className="text-sm font-medium text-gray-100">
             {command.label}
           </div>
           {command.category && (
-            <div className="text-xs text-gray-500 dark:text-gray-400">
+            <div className="text-xs text-gray-400">
               {command.category}
             </div>
           )}
         </div>
       </div>
       {command.shortcut && (
-        <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-600 dark:text-gray-300 font-mono">
+        <kbd className="px-2 py-1 bg-gray-700 rounded text-xs text-gray-300 font-mono">
           {command.shortcut}
         </kbd>
       )}
