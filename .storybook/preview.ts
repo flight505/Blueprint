@@ -32,25 +32,21 @@ const preview: Preview = {
           { id: 'button-name', enabled: true },
         ],
       },
-      // 'todo' - show a11y violations in the test UI only
-      // 'error' - fail CI on a11y violations
-      // 'off' - skip a11y checks entirely
       test: 'todo',
     },
 
-    // Background options - Glass Design System colors
+    // Background options - Tokyo Night Storm theme
     backgrounds: {
       default: 'tokyo-night',
       values: [
-        { name: 'tokyo-night', value: 'hsl(222 15% 14%)' }, // --background
-        { name: 'glass-dark', value: 'hsl(222 15% 10%)' },
-        { name: 'glass-surface', value: 'hsl(222 15% 17%)' }, // --card
+        { name: 'tokyo-night', value: 'hsl(222 15% 14%)' },
+        { name: 'tokyo-night-darker', value: 'hsl(222 15% 10%)' },
+        { name: 'tokyo-night-card', value: 'hsl(222 15% 17%)' },
         { name: 'light', value: '#ffffff' },
-        { name: 'transparent', value: 'transparent' },
       ],
     },
 
-    // Responsive viewports matching Blueprint's typical use cases
+    // Responsive viewports
     viewport: {
       viewports: {
         compact: {
@@ -73,35 +69,42 @@ const preview: Preview = {
       defaultValue: 'dark',
       toolbar: {
         title: 'Theme',
-        icon: 'circlehollow',
-        items: ['light', 'dark'],
+        icon: 'moon',
+        items: [
+          { value: 'dark', icon: 'moon', title: 'Dark (Tokyo Night)' },
+          { value: 'light', icon: 'sun', title: 'Light' },
+        ],
         dynamicTitle: true,
       },
     },
   },
 
-  // Decorators for theme switching and glass styling
+  // Decorators for Tokyo Night Storm theme
   decorators: [
     (Story, context) => {
       const theme = context.globals.theme || 'dark';
 
-      // Apply theme class to document
+      // Apply theme to document root
       if (typeof document !== 'undefined') {
         document.documentElement.classList.remove('light', 'dark');
         document.documentElement.classList.add(theme);
-        // Set CSS variables for glass theme
         document.documentElement.style.setProperty('color-scheme', theme);
       }
 
-      // Wrap in a container with glass background for dark mode
+      // Wrap story with proper theming
       return React.createElement(
         'div',
         {
-          className: theme === 'dark' ? 'text-gray-100' : 'text-gray-900',
+          className: 'blueprint-story-wrapper',
           style: {
-            minHeight: '100%',
+            // Apply Tokyo Night Storm colors directly
+            color: theme === 'dark' ? 'hsl(225 40% 82%)' : 'hsl(222 15% 14%)',
             fontFamily:
               "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif",
+            minHeight: '100%',
+            // Ensure text rendering is smooth
+            WebkitFontSmoothing: 'antialiased',
+            MozOsxFontSmoothing: 'grayscale',
           },
         },
         React.createElement(Story)

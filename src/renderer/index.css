@@ -6,89 +6,122 @@
 /* Import KaTeX CSS for math equation rendering */
 @import "katex/dist/katex.min.css";
 
-/* Custom scrollbar for dark mode */
-:root {
-  color-scheme: light dark;
+/* ═══════════════════════════════════════════════════════════════
+   BLUEPRINT GLASS DESIGN SYSTEM
+   Tokyo Night Storm Theme - Ethereal Glass + Living Energy
+   For Blueprint: Rail + Panel sidebar pattern with glass aesthetics
+   ═══════════════════════════════════════════════════════════════ */
 
-  /* ═══════════════════════════════════════════════════════════════
-     BLUEPRINT GLASS DESIGN SYSTEM
-     Adapted from Sonic Glass Design System - Ethereal Glass + Living Energy
-     For Blueprint: Rail + Panel sidebar pattern with glass aesthetics
-     ═══════════════════════════════════════════════════════════════ */
+@layer base {
+  :root {
+    color-scheme: dark;
 
-  /* Tokyo Night Storm dark theme colors */
-  --background: 222 15% 14%;
-  --foreground: 225 40% 82%;
-  --text: 225 40% 82%;
-  --card: 222 15% 17%;
-  --card-foreground: 225 40% 82%;
-  --popover: 222 15% 14%;
-  --popover-foreground: 225 40% 82%;
-  --primary: 213 93% 68%;
-  --primary-foreground: 222 15% 14%;
-  --secondary: 222 15% 20%;
-  --secondary-foreground: 225 40% 82%;
-  --muted: 222 15% 20%;
-  --muted-foreground: 225 30% 70%;
-  --accent: 213 93% 68%;
-  --accent-foreground: 222 15% 14%;
-  --destructive: 350 100% 76%;
-  --destructive-foreground: 222 15% 14%;
-  --border: 222 15% 22%;
-  --input: 222 15% 22%;
-  --ring: 213 93% 68%;
-  --radius: 0.5rem;
+    /* Tokyo Night Storm dark theme colors */
+    --background: 222 15% 14%;
+    --foreground: 225 40% 82%;
+    --text: 225 40% 82%;
+    --card: 222 15% 17%;
+    --card-foreground: 225 40% 82%;
+    --popover: 222 15% 14%;
+    --popover-foreground: 225 40% 82%;
+    --primary: 213 93% 68%;
+    --primary-foreground: 222 15% 14%;
+    --secondary: 222 15% 20%;
+    --secondary-foreground: 225 40% 82%;
+    --muted: 222 15% 20%;
+    --muted-foreground: 225 30% 70%;
+    --accent: 213 93% 68%;
+    --accent-foreground: 222 15% 14%;
+    --destructive: 350 100% 76%;
+    --destructive-foreground: 222 15% 14%;
+    --border: 222 15% 22%;
+    --input: 222 15% 22%;
+    --ring: 213 93% 68%;
+    --radius: 0.5rem;
 
-  /* Tokyo Night Storm brand colors */
-  --violet: 258 72% 67%;
-  --blue: 213 93% 68%;
-  --green: 95 38% 62%;
-  --yellow: 41 88% 65%;
-  --orange: 29 100% 70%;
-  --red: 350 100% 76%;
-  --magenta: 320 85% 62%;
+    /* Tokyo Night Storm brand colors */
+    --violet: 258 72% 67%;
+    --blue: 213 93% 68%;
+    --green: 95 38% 62%;
+    --yellow: 41 88% 65%;
+    --orange: 29 100% 70%;
+    --red: 350 100% 76%;
+    --magenta: 320 85% 62%;
 
-  /* Glass Surfaces - Layered transparency */
-  --glass-base: 0 0% 100% / 0.03;
-  --glass-surface: 0 0% 100% / 0.06;
-  --glass-elevated: 0 0% 100% / 0.10;
-  --glass-hover: 0 0% 100% / 0.12;
-  --glass-active: 0 0% 100% / 0.15;
+    /* Glass Surfaces - Layered transparency */
+    --glass-base: 0 0% 100% / 0.03;
+    --glass-surface: 0 0% 100% / 0.06;
+    --glass-elevated: 0 0% 100% / 0.10;
+    --glass-hover: 0 0% 100% / 0.12;
+    --glass-active: 0 0% 100% / 0.15;
 
-  /* Glass Borders - Gradient-ready */
-  --glass-border: 0 0% 100% / 0.08;
-  --glass-border-light: 0 0% 100% / 0.12;
-  --glass-border-strong: 0 0% 100% / 0.15;
+    /* Glass Borders - Gradient-ready */
+    --glass-border: 0 0% 100% / 0.08;
+    --glass-border-light: 0 0% 100% / 0.12;
+    --glass-border-strong: 0 0% 100% / 0.15;
 
-  /* Sonic Violet Glow - The accent that breathes */
-  --violet-hue: 258;
-  --violet-sat: 72%;
-  --violet-light: 67%;
-  --glow-color: var(--violet-hue) var(--violet-sat) var(--violet-light);
+    /* Sonic Violet Glow - The accent that breathes */
+    --violet-hue: 258;
+    --violet-sat: 72%;
+    --violet-light: 67%;
+    --glow-color: var(--violet-hue) var(--violet-sat) var(--violet-light);
 
-  --glow-idle: var(--glow-color) / 0;
-  --glow-subtle: var(--glow-color) / 0.1;
-  --glow-soft: var(--glow-color) / 0.2;
-  --glow-medium: var(--glow-color) / 0.4;
-  --glow-strong: var(--glow-color) / 0.6;
-  --glow-intense: var(--glow-color) / 0.8;
-  --glow-peak: var(--glow-color) / 1.0;
+    --glow-idle: var(--glow-color) / 0;
+    --glow-subtle: var(--glow-color) / 0.1;
+    --glow-soft: var(--glow-color) / 0.2;
+    --glow-medium: var(--glow-color) / 0.4;
+    --glow-strong: var(--glow-color) / 0.6;
+    --glow-intense: var(--glow-color) / 0.8;
+    --glow-peak: var(--glow-color) / 1.0;
 
-  /* Text on Glass */
-  --glass-text-primary: 0 0% 100% / 0.95;
-  --glass-text-secondary: 0 0% 100% / 0.60;
-  --glass-text-tertiary: 0 0% 100% / 0.40;
-  --glass-text-ghost: 0 0% 100% / 0.25;
+    /* Text on Glass */
+    --glass-text-primary: 0 0% 100% / 0.95;
+    --glass-text-secondary: 0 0% 100% / 0.60;
+    --glass-text-tertiary: 0 0% 100% / 0.40;
+    --glass-text-ghost: 0 0% 100% / 0.25;
 
-  /* Sidebar colors (Rail + Panel pattern) */
-  --sidebar-background: 222 15% 14%;
-  --sidebar-foreground: 225 40% 82%;
-  --sidebar-primary: 213 93% 68%;
-  --sidebar-primary-foreground: 222 15% 14%;
-  --sidebar-accent: 222 15% 20%;
-  --sidebar-accent-foreground: 225 40% 82%;
-  --sidebar-border: 222 15% 18%;
-  --sidebar-ring: 213 93% 68%;
+    /* Sidebar colors (Rail + Panel pattern) */
+    --sidebar-background: 222 15% 14%;
+    --sidebar-foreground: 225 40% 82%;
+    --sidebar-primary: 213 93% 68%;
+    --sidebar-primary-foreground: 222 15% 14%;
+    --sidebar-accent: 222 15% 20%;
+    --sidebar-accent-foreground: 225 40% 82%;
+    --sidebar-border: 222 15% 18%;
+    --sidebar-ring: 213 93% 68%;
+  }
+
+  /* Apply border color globally */
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  /* Base body styling with Tokyo Night Storm */
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Custom scrollbar for dark theme */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.5);
+  }
 }
 
 /* Override highlight.js colors for dark mode */
