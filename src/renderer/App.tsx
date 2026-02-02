@@ -606,14 +606,14 @@ function MainApp() {
   return (
     <div
       ref={containerRef}
-      className="flex flex-col h-screen w-screen overflow-hidden bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+      className="flex flex-col h-screen w-screen overflow-hidden bg-[#1f2335] text-gray-100"
     >
       {/* macOS Title Bar - Draggable region for window movement */}
-      <div className="title-bar-drag-region h-9 flex-shrink-0 flex items-center bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      <div className="title-bar-drag-region h-9 flex-shrink-0 flex items-center bg-white/[0.02] backdrop-blur-sm border-b border-white/[0.06]">
         {/* Left spacing for traffic lights (macOS) - approximately 72px */}
         <div className="w-[72px] flex-shrink-0" />
         {/* Optional: App title or window controls could go here */}
-        <div className="flex-1 text-center text-xs text-gray-500 dark:text-gray-400 font-medium">
+        <div className="flex-1 text-center text-xs text-gray-400 font-medium">
           Blueprint
         </div>
         {/* Right spacing for balance */}
@@ -673,7 +673,7 @@ function MainApp() {
         style={{ minWidth: MIN_PANE_WIDTH }}
         aria-label="Document content"
       >
-        <header className="h-10 flex items-center border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <header className="h-10 flex items-center border-b border-white/[0.06] bg-white/[0.02] backdrop-blur-sm">
           <TabBar
             tabs={openFiles.map((file): TabData => ({
               id: file.id,
@@ -845,13 +845,13 @@ function LeftPaneContent({
       return (
         <div className="flex flex-col h-full">
           {/* Tab switcher */}
-          <div className="flex border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+          <div className="flex border-b border-white/[0.06] bg-white/[0.02]">
             <button
               onClick={() => setContextTab('context')}
-              className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+              className={`flex-1 px-4 py-2 text-sm font-medium transition-all duration-150 ${
                 contextTab === 'context'
-                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                  ? 'text-purple-400 border-b-2 border-purple-400 shadow-[0_2px_8px_rgba(167,139,250,0.15)]'
+                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
               }`}
               aria-selected={contextTab === 'context'}
               role="tab"
@@ -860,10 +860,10 @@ function LeftPaneContent({
             </button>
             <button
               onClick={() => setContextTab('citations')}
-              className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+              className={`flex-1 px-4 py-2 text-sm font-medium transition-all duration-150 ${
                 contextTab === 'citations'
-                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                  ? 'text-purple-400 border-b-2 border-purple-400 shadow-[0_2px_8px_rgba(167,139,250,0.15)]'
+                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
               }`}
               aria-selected={contextTab === 'citations'}
               role="tab"
@@ -872,10 +872,10 @@ function LeftPaneContent({
             </button>
             <button
               onClick={() => setContextTab('review')}
-              className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+              className={`flex-1 px-4 py-2 text-sm font-medium transition-all duration-150 ${
                 contextTab === 'review'
-                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                  ? 'text-purple-400 border-b-2 border-purple-400 shadow-[0_2px_8px_rgba(167,139,250,0.15)]'
+                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
               }`}
               aria-selected={contextTab === 'review'}
               role="tab"
@@ -884,10 +884,10 @@ function LeftPaneContent({
             </button>
             <button
               onClick={() => setContextTab('dashboard')}
-              className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+              className={`flex-1 px-4 py-2 text-sm font-medium transition-all duration-150 ${
                 contextTab === 'dashboard'
-                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                  ? 'text-purple-400 border-b-2 border-purple-400 shadow-[0_2px_8px_rgba(167,139,250,0.15)]'
+                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
               }`}
               aria-selected={contextTab === 'dashboard'}
               role="tab"
@@ -932,8 +932,8 @@ function LeftPaneContent({
       return (
         <div className="flex-1 overflow-y-auto p-4">
           <div className="space-y-4">
-            <div className="text-gray-500 dark:text-gray-400">
-              <p className="text-sm font-medium mb-2">Export Documents</p>
+            <div className="text-gray-400">
+              <p className="text-sm font-medium mb-2 text-gray-200">Export Documents</p>
               <p className="text-xs mb-4">Generate PDF, DOCX, or PPTX from your project</p>
             </div>
 
@@ -941,39 +941,39 @@ function LeftPaneContent({
             <div className="grid grid-cols-1 gap-3">
               <button
                 onClick={onOpenExportModal}
-                className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-500 dark:hover:border-blue-500 transition-colors text-left"
+                className="p-4 rounded-lg border border-white/[0.06] bg-white/[0.04] hover:bg-white/[0.07] hover:border-purple-400/30 hover:shadow-[0_0_12px_rgba(167,139,250,0.12)] transition-all duration-200 text-left group"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">📄</span>
+                  <span className="text-2xl group-hover:scale-110 transition-transform">📄</span>
                   <div>
-                    <p className="font-medium text-sm text-gray-900 dark:text-gray-100">PDF Document</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Professional format with precise layout</p>
+                    <p className="font-medium text-sm text-gray-100">PDF Document</p>
+                    <p className="text-xs text-gray-400">Professional format with precise layout</p>
                   </div>
                 </div>
               </button>
 
               <button
                 onClick={onOpenExportModal}
-                className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-500 dark:hover:border-blue-500 transition-colors text-left"
+                className="p-4 rounded-lg border border-white/[0.06] bg-white/[0.04] hover:bg-white/[0.07] hover:border-purple-400/30 hover:shadow-[0_0_12px_rgba(167,139,250,0.12)] transition-all duration-200 text-left group"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">📝</span>
+                  <span className="text-2xl group-hover:scale-110 transition-transform">📝</span>
                   <div>
-                    <p className="font-medium text-sm text-gray-900 dark:text-gray-100">Word Document</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Editable DOCX for collaboration</p>
+                    <p className="font-medium text-sm text-gray-100">Word Document</p>
+                    <p className="text-xs text-gray-400">Editable DOCX for collaboration</p>
                   </div>
                 </div>
               </button>
 
               <button
                 onClick={onOpenExportModal}
-                className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-500 dark:hover:border-blue-500 transition-colors text-left"
+                className="p-4 rounded-lg border border-white/[0.06] bg-white/[0.04] hover:bg-white/[0.07] hover:border-purple-400/30 hover:shadow-[0_0_12px_rgba(167,139,250,0.12)] transition-all duration-200 text-left group"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">📊</span>
+                  <span className="text-2xl group-hover:scale-110 transition-transform">📊</span>
                   <div>
-                    <p className="font-medium text-sm text-gray-900 dark:text-gray-100">PowerPoint</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Presentation slides for meetings</p>
+                    <p className="font-medium text-sm text-gray-100">PowerPoint</p>
+                    <p className="text-xs text-gray-400">Presentation slides for meetings</p>
                   </div>
                 </div>
               </button>

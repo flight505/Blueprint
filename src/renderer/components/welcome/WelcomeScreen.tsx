@@ -33,10 +33,10 @@ export function WelcomeScreen({ onNewProject, onOpenProject }: WelcomeScreenProp
       <div className="max-w-2xl mx-auto flex-1">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-gray-100">
+          <h1 className="text-3xl font-bold mb-2 text-gray-100">
             Blueprint
           </h1>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-gray-300">
             AI-powered project planning with Claude Agent SDK
           </p>
         </div>
@@ -63,25 +63,25 @@ export function WelcomeScreen({ onNewProject, onOpenProject }: WelcomeScreenProp
         </div>
 
         {/* Getting Started */}
-        <div className="bg-gray-800 rounded-lg p-6 mb-8">
-          <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
+        <div className="bg-white/[0.04] backdrop-blur-sm rounded-lg p-6 mb-8 border border-white/[0.06]">
+          <h2 className="text-lg font-semibold mb-4 text-gray-100">
             Getting Started
           </h2>
-          <div className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
+          <div className="space-y-3 text-sm text-gray-300">
             <div className="flex items-start gap-3">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-900 text-blue-400 flex items-center justify-center text-xs font-medium">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-900/50 text-purple-400 flex items-center justify-center text-xs font-medium">
                 1
               </span>
               <p>Configure your API keys in Settings (Cmd+,)</p>
             </div>
             <div className="flex items-start gap-3">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-900 text-blue-400 flex items-center justify-center text-xs font-medium">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-900/50 text-purple-400 flex items-center justify-center text-xs font-medium">
                 2
               </span>
               <p>Create a new project or open an existing one</p>
             </div>
             <div className="flex items-start gap-3">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-900 text-blue-400 flex items-center justify-center text-xs font-medium">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-900/50 text-purple-400 flex items-center justify-center text-xs font-medium">
                 3
               </span>
               <p>Use Chat (Cmd+1) to interact with the AI planning assistant</p>
@@ -127,13 +127,13 @@ function WelcomeCard({ title, description, icon, onClick }: WelcomeCardProps) {
   return (
     <button
       onClick={onClick}
-      className="p-4 rounded-lg border border-gray-700 bg-gray-800 hover:border-blue-500 hover:shadow-md transition-all text-left group"
+      className="p-4 rounded-lg border border-white/[0.06] bg-white/[0.04] backdrop-blur-sm hover:bg-white/[0.07] hover:border-purple-400/30 hover:shadow-[0_0_16px_rgba(167,139,250,0.15)] transition-all duration-200 text-left group"
     >
       <span className="text-2xl mb-2 block group-hover:scale-110 transition-transform">
         {icon}
       </span>
-      <h3 className="font-medium mb-1 text-gray-900 dark:text-gray-100">{title}</h3>
-      <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>
+      <h3 className="font-medium mb-1 text-gray-100">{title}</h3>
+      <p className="text-sm text-gray-400">{description}</p>
     </button>
   );
 }

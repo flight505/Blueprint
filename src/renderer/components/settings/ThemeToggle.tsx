@@ -18,16 +18,16 @@ export default function ThemeToggle() {
 
   return (
     <div className="space-y-2">
-      <p className="text-sm font-medium mb-2">Theme</p>
+      <p className="text-sm font-medium mb-2 text-gray-200">Theme</p>
       <div className="flex gap-2">
         {THEME_OPTIONS.map((option) => (
           <button
             key={option.value}
             onClick={() => setTheme(option.value)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-150 ${
               currentTheme === option.value
-                ? 'border-blue-500 bg-blue-900/30 text-blue-400'
-                : 'border-gray-700 bg-gray-800 hover:border-gray-600'
+                ? 'border-purple-400/30 bg-white/[0.10] text-purple-400 shadow-[inset_0_0_0_1px_rgba(167,139,250,0.2),0_0_12px_rgba(167,139,250,0.12)]'
+                : 'border-white/[0.06] bg-white/[0.04] hover:bg-white/[0.07] hover:border-white/[0.10] text-gray-300'
             }`}
             aria-pressed={currentTheme === option.value}
             aria-label={`Set theme to ${option.label}`}
@@ -37,7 +37,7 @@ export default function ThemeToggle() {
           </button>
         ))}
       </div>
-      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+      <p className="text-xs text-gray-400 mt-1">
         {currentTheme === 'system'
           ? 'Theme follows your system preference'
           : `Using ${currentTheme} theme`}

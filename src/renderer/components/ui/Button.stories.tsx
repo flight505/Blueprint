@@ -33,7 +33,7 @@ const meta = {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['primary', 'secondary', 'outline', 'ghost', 'danger'],
+      options: ['primary', 'secondary', 'outline', 'ghost', 'danger', 'glass'],
       description: 'Visual style variant',
     },
     size: {
@@ -112,12 +112,26 @@ export const Danger: Story = {
   },
 };
 
+/**
+ * Glass button for the Glass Design System - transparent with backdrop blur.
+ * Features violet glow on active/focus states.
+ */
+export const Glass: Story = {
+  args: {
+    variant: 'glass',
+    children: 'Glass Button',
+  },
+  parameters: {
+    backgrounds: { default: 'tokyo-night-storm' },
+  },
+};
+
 // ============================================================================
 // Sizes
 // ============================================================================
 
 /**
- * Small buttons for compact UIs or inline actions.
+ * Small is the default size for buttons in Blueprint.
  */
 export const Small: Story = {
   args: {
@@ -127,7 +141,7 @@ export const Small: Story = {
 };
 
 /**
- * Medium is the default size for most buttons.
+ * Medium size for buttons that need more prominence.
  */
 export const Medium: Story = {
   args: {
@@ -237,15 +251,17 @@ export const IconOnly: Story = {
 
 /**
  * Gallery showing all button variants side by side.
+ * All buttons default to small size. Glass variant shows backdrop blur.
  */
 export const AllVariants: Story = {
   render: () => (
-    <div className="flex flex-wrap gap-4">
+    <div className="flex flex-wrap gap-4 p-4">
       <Button variant="primary">Primary</Button>
       <Button variant="secondary">Secondary</Button>
       <Button variant="outline">Outline</Button>
       <Button variant="ghost">Ghost</Button>
       <Button variant="danger">Danger</Button>
+      <Button variant="glass">Glass</Button>
     </div>
   ),
 };

@@ -132,10 +132,10 @@ function Tab({ label, active, hasUnsavedChanges, shortcut, onClick, onClose }: T
       aria-selected={active}
       aria-label={tooltipText}
       title={tooltipText}
-      className={`group flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-t-lg transition-colors cursor-pointer select-none ${
+      className={`group flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-t-lg transition-all duration-150 cursor-pointer select-none ${
         active
-          ? 'bg-gray-800 text-gray-100 border-t border-x border-gray-700'
-          : 'text-gray-400 hover:text-gray-100 hover:bg-gray-700/50'
+          ? 'bg-white/[0.10] text-purple-400 border-t border-x border-white/[0.10] shadow-[inset_0_0_0_1px_rgba(167,139,250,0.2),0_0_12px_rgba(167,139,250,0.10)]'
+          : 'text-gray-400 hover:text-gray-100 hover:bg-white/[0.06]'
       }`}
       onClick={onClick}
       onKeyDown={handleKeyDown}
@@ -157,10 +157,10 @@ function Tab({ label, active, hasUnsavedChanges, shortcut, onClick, onClose }: T
         <button
           type="button"
           onClick={handleClose}
-          className={`ml-0.5 w-4 h-4 flex items-center justify-center rounded transition-colors ${
+          className={`ml-0.5 w-4 h-4 flex items-center justify-center rounded transition-all duration-150 ${
             active
-              ? 'hover:bg-gray-600 text-gray-400'
-              : 'opacity-0 group-hover:opacity-100 hover:bg-gray-600 text-gray-400'
+              ? 'hover:bg-white/[0.14] text-gray-400 hover:text-gray-200'
+              : 'opacity-0 group-hover:opacity-100 hover:bg-white/[0.14] text-gray-400 hover:text-gray-200'
           }`}
           aria-label={`Close ${label}`}
           title={`Close ${label}`}
