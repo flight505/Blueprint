@@ -64,6 +64,11 @@ export function useStreaming(options: UseStreamingOptions = {}): UseStreamingRes
 
   // Set up IPC listener for stream chunks
   useEffect(() => {
+    // Skip if running without Electron (browser mode)
+    if (!window.electronAPI?.onAgentStreamChunk) {
+      return;
+    }
+
     // Register the stream chunk listener
     cleanupRef.current = window.electronAPI.onAgentStreamChunk(
       (sessionId: string, chunk) => {
@@ -117,6 +122,11 @@ export function useStreaming(options: UseStreamingOptions = {}): UseStreamingRes
 
   // Initialize the agent service
   const initializeAgent = useCallback(async (apiKey: string): Promise<boolean> => {
+    if (!window.electronAPI?.agentInitialize) {
+      console.warn('Running without Electron - agent initialization skipped');
+      return false;
+    }
+
     try {
       return await window.electronAPI.agentInitialize(apiKey);
     } catch (error) {
@@ -128,6 +138,11 @@ export function useStreaming(options: UseStreamingOptions = {}): UseStreamingRes
   // Create a new session
   const createSession = useCallback(
     async (options?: { model?: string; systemPrompt?: string }): Promise<string> => {
+      if (!window.electronAPI?.agentCreateSession) {
+        console.warn('Running without Electron - session creation skipped');
+        return '';
+      }
+
       const session = await window.electronAPI.agentCreateSession(options);
       setAgentSessionId(session.id);
       return session.id;
@@ -138,6 +153,12 @@ export function useStreaming(options: UseStreamingOptions = {}): UseStreamingRes
   // Send a message and start streaming
   const sendMessage = useCallback(
     async (sessionId: string, message: string): Promise<void> => {
+      if (!window.electronAPI?.agentSendMessageStream) {
+        console.warn('Running without Electron - message sending skipped');
+        onError?.('Not running in Electron environment');
+        return;
+      }
+
       // Generate a unique message ID
       const messageId = `stream-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 

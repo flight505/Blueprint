@@ -37,6 +37,12 @@ export function RecentProjectsList({
 
   // Load recent projects on mount
   const loadProjects = useCallback(async () => {
+    // Skip if running without Electron (browser mode)
+    if (!window.electronAPI?.recentProjectsList) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const recentProjects = await window.electronAPI.recentProjectsList(maxProjects);
       setProjects(recentProjects);
@@ -84,6 +90,11 @@ export function RecentProjectsList({
   // Remove project from recent list
   const handleRemoveProject = useCallback(
     async (projectId: string) => {
+      if (!window.electronAPI?.recentProjectsRemove) {
+        setContextMenu(null);
+        return;
+      }
+
       try {
         const removed = await window.electronAPI.recentProjectsRemove(projectId);
         if (removed) {
