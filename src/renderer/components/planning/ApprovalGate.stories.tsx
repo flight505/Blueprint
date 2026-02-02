@@ -276,7 +276,7 @@ export const WorkflowSimulation: StoryObj = {
         if (currentPhaseIndex < phases.length - 1) {
           setCurrentPhaseIndex((prev) => prev + 1);
         } else {
-          alert('All phases complete! 🎉');
+          alert('All phases complete!');
           setCurrentPhaseIndex(0);
         }
       }, 1000);

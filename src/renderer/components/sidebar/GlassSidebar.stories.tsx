@@ -10,21 +10,22 @@ import {
   GlassSidebarBrand,
   type NavItem,
 } from './index';
+import { NAV_ICONS, Folder, FileText, Palette } from '../icons';
 
 // Sample navigation items matching Blueprint's sections
 const blueprintNavItems: NavItem[] = [
-  { id: 'chat', icon: '💬', label: 'Chat', shortcut: '⌘1' },
-  { id: 'explorer', icon: '📁', label: 'Explorer', shortcut: '⌘2' },
-  { id: 'search', icon: '🔍', label: 'Search', shortcut: '⌘3' },
-  { id: 'context', icon: '📊', label: 'Context', shortcut: '⌘4' },
-  { id: 'planning', icon: '📋', label: 'Planning', shortcut: '⌘5', badge: 3 },
-  { id: 'export', icon: '📥', label: 'Export', shortcut: '⌘6' },
-  { id: 'history', icon: '🕐', label: 'History', shortcut: '⌘7' },
+  { id: 'chat', icon: <NAV_ICONS.chat size={18} />, label: 'Chat', shortcut: '⌘1' },
+  { id: 'explorer', icon: <NAV_ICONS.explorer size={18} />, label: 'Explorer', shortcut: '⌘2' },
+  { id: 'search', icon: <NAV_ICONS.search size={18} />, label: 'Search', shortcut: '⌘3' },
+  { id: 'context', icon: <NAV_ICONS.context size={18} />, label: 'Context', shortcut: '⌘4' },
+  { id: 'planning', icon: <NAV_ICONS.planning size={18} />, label: 'Planning', shortcut: '⌘5', badge: 3 },
+  { id: 'export', icon: <NAV_ICONS.export size={18} />, label: 'Export', shortcut: '⌘6' },
+  { id: 'history', icon: <NAV_ICONS.history size={18} />, label: 'History', shortcut: '⌘7' },
 ];
 
 const utilityNavItems: NavItem[] = [
-  { id: 'settings', icon: '⚙️', label: 'Settings', shortcut: '⌘,' },
-  { id: 'help', icon: '❓', label: 'Help', shortcut: '⌘?' },
+  { id: 'settings', icon: <NAV_ICONS.settings size={18} />, label: 'Settings', shortcut: '⌘,' },
+  { id: 'help', icon: <NAV_ICONS.help size={18} />, label: 'Help', shortcut: '⌘?' },
 ];
 
 /**
@@ -93,13 +94,13 @@ export const ExpandedMode: Story = {
         <p className="mb-2">File tree would go here</p>
         <div className="space-y-1 text-xs">
           <div className="flex items-center gap-2 p-1 hover:bg-white/5 rounded">
-            📁 src
+            <Folder size={14} /> src
           </div>
           <div className="flex items-center gap-2 p-1 hover:bg-white/5 rounded pl-4">
-            📁 components
+            <Folder size={14} /> components
           </div>
           <div className="flex items-center gap-2 p-1 hover:bg-white/5 rounded pl-6">
-            📄 App.tsx
+            <FileText size={14} /> App.tsx
           </div>
         </div>
       </div>
@@ -159,9 +160,9 @@ export const Interactive: StoryObj = {
               {['App.tsx', 'index.ts', 'components/', 'hooks/'].map((file) => (
                 <div
                   key={file}
-                  className="px-2 py-1.5 text-xs text-gray-300 hover:bg-white/5 rounded cursor-pointer"
+                  className="px-2 py-1.5 text-xs text-gray-300 hover:bg-white/5 rounded cursor-pointer flex items-center gap-2"
                 >
-                  {file.endsWith('/') ? '📁' : '📄'} {file}
+                  {file.endsWith('/') ? <Folder size={14} /> : <FileText size={14} />} {file}
                 </div>
               ))}
             </div>
@@ -255,20 +256,20 @@ export const SidebarItemStates: StoryObj = {
       <div>
         <h3 className="text-sm text-gray-400 mb-4">Rail Mode (icon only)</h3>
         <div className="flex gap-2">
-          <GlassSidebarItem icon="💬" label="Chat" />
-          <GlassSidebarItem icon="📁" label="Explorer" active />
-          <GlassSidebarItem icon="🔍" label="Search" badge={5} />
-          <GlassSidebarItem icon="⚙️" label="Settings" shortcut="⌘," />
+          <GlassSidebarItem icon={<NAV_ICONS.chat size={18} />} label="Chat" />
+          <GlassSidebarItem icon={<NAV_ICONS.explorer size={18} />} label="Explorer" active />
+          <GlassSidebarItem icon={<NAV_ICONS.search size={18} />} label="Search" badge={5} />
+          <GlassSidebarItem icon={<NAV_ICONS.settings size={18} />} label="Settings" shortcut="⌘," />
         </div>
       </div>
 
       <div>
         <h3 className="text-sm text-gray-400 mb-4">Panel Mode (with labels)</h3>
         <div className="w-56 space-y-1">
-          <GlassSidebarItem icon="💬" label="Chat" showLabel />
-          <GlassSidebarItem icon="📁" label="Explorer" showLabel active />
-          <GlassSidebarItem icon="🔍" label="Search" showLabel badge={5} />
-          <GlassSidebarItem icon="⚙️" label="Settings" showLabel shortcut="⌘," />
+          <GlassSidebarItem icon={<NAV_ICONS.chat size={18} />} label="Chat" showLabel />
+          <GlassSidebarItem icon={<NAV_ICONS.explorer size={18} />} label="Explorer" showLabel active />
+          <GlassSidebarItem icon={<NAV_ICONS.search size={18} />} label="Search" showLabel badge={5} />
+          <GlassSidebarItem icon={<NAV_ICONS.settings size={18} />} label="Settings" showLabel shortcut="⌘," />
         </div>
       </div>
     </div>
@@ -286,15 +287,15 @@ export const RailStandalone: StoryObj = {
         brand={<GlassSidebarBrand />}
         footer={
           <>
-            <GlassSidebarItem icon="⚙️" label="Settings" />
-            <GlassSidebarItem icon="❓" label="Help" />
+            <GlassSidebarItem icon={<NAV_ICONS.settings size={18} />} label="Settings" />
+            <GlassSidebarItem icon={<NAV_ICONS.help size={18} />} label="Help" />
           </>
         }
       >
-        <GlassSidebarItem icon="💬" label="Chat" active />
-        <GlassSidebarItem icon="📁" label="Explorer" />
-        <GlassSidebarItem icon="🔍" label="Search" />
-        <GlassSidebarItem icon="📊" label="Context" badge={2} />
+        <GlassSidebarItem icon={<NAV_ICONS.chat size={18} />} label="Chat" active />
+        <GlassSidebarItem icon={<NAV_ICONS.explorer size={18} />} label="Explorer" />
+        <GlassSidebarItem icon={<NAV_ICONS.search size={18} />} label="Search" />
+        <GlassSidebarItem icon={<NAV_ICONS.context size={18} />} label="Context" badge={2} />
       </GlassSidebarRail>
       <div className="flex-1 flex items-center justify-center text-gray-500">
         Content
@@ -322,27 +323,27 @@ export const PanelWithSections: StoryObj = {
         <GlassSidebarPanel isOpen={isOpen} title="Explorer" width={260}>
           <GlassSidebarSection title="Open Editors">
             <div className="px-2 space-y-0.5">
-              <div className="px-2 py-1.5 text-xs text-purple-400 bg-white/5 rounded">
-                📄 App.tsx
+              <div className="px-2 py-1.5 text-xs text-purple-400 bg-white/5 rounded flex items-center gap-2">
+                <FileText size={14} /> App.tsx
               </div>
-              <div className="px-2 py-1.5 text-xs text-gray-300 hover:bg-white/5 rounded">
-                📄 index.ts
+              <div className="px-2 py-1.5 text-xs text-gray-300 hover:bg-white/5 rounded flex items-center gap-2">
+                <FileText size={14} /> index.ts
               </div>
             </div>
           </GlassSidebarSection>
           <GlassSidebarSection title="Project Files">
             <div className="px-2 space-y-0.5">
-              <div className="px-2 py-1.5 text-xs text-gray-300 hover:bg-white/5 rounded">
-                📁 src
+              <div className="px-2 py-1.5 text-xs text-gray-300 hover:bg-white/5 rounded flex items-center gap-2">
+                <Folder size={14} /> src
               </div>
-              <div className="px-2 py-1.5 text-xs text-gray-300 hover:bg-white/5 rounded pl-4">
-                📁 components
+              <div className="px-2 py-1.5 text-xs text-gray-300 hover:bg-white/5 rounded pl-4 flex items-center gap-2">
+                <Folder size={14} /> components
               </div>
-              <div className="px-2 py-1.5 text-xs text-gray-300 hover:bg-white/5 rounded pl-4">
-                📁 hooks
+              <div className="px-2 py-1.5 text-xs text-gray-300 hover:bg-white/5 rounded pl-4 flex items-center gap-2">
+                <Folder size={14} /> hooks
               </div>
-              <div className="px-2 py-1.5 text-xs text-gray-300 hover:bg-white/5 rounded">
-                📄 package.json
+              <div className="px-2 py-1.5 text-xs text-gray-300 hover:bg-white/5 rounded flex items-center gap-2">
+                <FileText size={14} /> package.json
               </div>
             </div>
           </GlassSidebarSection>
@@ -367,7 +368,7 @@ export const BrandVariations: StoryObj = {
         <p className="text-xs text-gray-500 mt-2">Default</p>
       </div>
       <div className="text-center">
-        <GlassSidebarBrand logo="🎨" name="Design App" />
+        <GlassSidebarBrand logo={<Palette size={20} className="text-purple-400" />} name="Design App" />
         <p className="text-xs text-gray-500 mt-2">Custom Icon</p>
       </div>
       <div className="text-center">
