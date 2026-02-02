@@ -69,7 +69,7 @@ Tracking bug fixes, polish, and feature extensions before v1.1/v2.0.
 
 | Phase | Task | Status |
 |-------|------|--------|
-| 1 | Create `ImageEditorService.ts` in main process | ⬚ |
+| 1 | Create `ImageEditorService.ts` in main process | ✅ |
 | 2 | Add IPC handlers in `main.ts` and `preload.ts` | ⬚ |
 | 3 | Create Legend State slice `imageEditorStore.ts` | ⬚ |
 | 4 | Build `ImageEditorPanel.tsx` UI component | ⬚ |
