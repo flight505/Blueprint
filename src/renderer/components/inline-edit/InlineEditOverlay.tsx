@@ -10,6 +10,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { ModelSelector, TaskClassification } from '../models';
 import { PromptLibrary, Prompt } from '../prompt-library';
+import { Sparkles, X } from '../icons';
 
 export interface InlineEditOverlayProps {
   /** Whether the overlay is visible */
@@ -181,9 +182,7 @@ export function InlineEditOverlay({
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="text-lg" role="img" aria-label="AI edit">
-            ✨
-          </span>
+          <Sparkles size={18} className="text-purple-400" aria-hidden="true" />
           <h3 className="font-medium text-gray-900 dark:text-gray-100">
             Edit with AI
           </h3>
@@ -193,9 +192,7 @@ export function InlineEditOverlay({
           className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded"
           aria-label="Close"
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <X size={16} />
         </button>
       </div>
 

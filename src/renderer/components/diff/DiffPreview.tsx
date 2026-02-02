@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import * as Diff from 'diff';
+import { Check, X } from '../icons';
 
 export interface DiffPreviewProps {
   /** The original text before editing */
@@ -109,7 +110,7 @@ export function DiffPreview({
           className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
           aria-label="Accept AI edit"
         >
-          ✓ Accept
+          <Check size={14} className="inline mr-1" /> Accept
         </button>
       </div>
     </div>

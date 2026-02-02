@@ -1,5 +1,6 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, type ReactNode } from 'react';
 import { AnimatedModal } from '../animations';
+import { EXPORT_ICONS } from '../icons';
 
 /**
  * Available export formats
@@ -61,20 +62,20 @@ interface ExportResult {
   error?: string;
 }
 
-const FORMAT_INFO: Record<ExportFormat, { label: string; icon: string; description: string }> = {
+const FORMAT_INFO: Record<ExportFormat, { label: string; icon: ReactNode; description: string }> = {
   pdf: {
     label: 'PDF',
-    icon: '📄',
+    icon: <EXPORT_ICONS.pdf size={20} />,
     description: 'Professional document with precise formatting',
   },
   docx: {
     label: 'Word',
-    icon: '📝',
+    icon: <EXPORT_ICONS.docx size={20} />,
     description: 'Editable document for Microsoft Word',
   },
   pptx: {
     label: 'PowerPoint',
-    icon: '📊',
+    icon: <EXPORT_ICONS.pptx size={20} />,
     description: 'Presentation slides for meetings',
   },
 };

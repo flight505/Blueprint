@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useId } from 'react';
 import mermaid from 'mermaid';
 import panzoom, { PanZoom } from 'panzoom';
+import { AlertTriangle } from '../icons';
 
 // Initialize mermaid with default settings
 mermaid.initialize({
@@ -194,7 +195,7 @@ export function MermaidDiagram({
       {error && !isRendering && (
         <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
           <div className="flex items-start">
-            <span className="text-red-500 mr-2">⚠️</span>
+            <AlertTriangle size={18} className="text-red-500 mr-2 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold text-red-700 dark:text-red-400">Diagram Error</p>
               <pre className="text-xs text-red-600 dark:text-red-300 mt-1 whitespace-pre-wrap">

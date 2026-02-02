@@ -7,9 +7,10 @@
  * - Search in project
  */
 
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useCallback, useState, type ReactNode } from 'react';
 import { useSelector } from '@legendapp/state/react';
 import { store$ } from '../../state/store';
+import { Sparkles, Copy, Search } from '../icons';
 
 export interface ContextMenuPosition {
   x: number;
@@ -34,7 +35,7 @@ export interface EditorContextMenuProps {
 interface MenuItemProps {
   label: string;
   shortcut?: string;
-  icon: string;
+  icon: ReactNode;
   onClick: () => void;
   disabled?: boolean;
 }
@@ -52,7 +53,7 @@ function MenuItem({ label, shortcut, icon, onClick, disabled = false }: MenuItem
       role="menuitem"
       aria-disabled={disabled}
     >
-      <span className="w-5 text-center" aria-hidden="true">{icon}</span>
+      <span className="w-5 flex justify-center" aria-hidden="true">{icon}</span>
       <span className="flex-1">{label}</span>
       {shortcut && (
         <span className="text-xs text-gray-400 dark:text-gray-500 ml-4">
@@ -184,7 +185,7 @@ export function EditorContextMenu({
       <MenuItem
         label="Edit with AI"
         shortcut="⌘K"
-        icon="✨"
+        icon={<Sparkles size={14} />}
         onClick={handleEditWithAI}
         disabled={!hasSelection}
       />
@@ -192,14 +193,14 @@ export function EditorContextMenu({
       <MenuItem
         label="Copy"
         shortcut="⌘C"
-        icon="📋"
+        icon={<Copy size={14} />}
         onClick={handleCopy}
         disabled={!hasSelection}
       />
       <MenuItem
         label="Search in Project"
         shortcut="⌘⇧F"
-        icon="🔍"
+        icon={<Search size={14} />}
         onClick={handleSearch}
         disabled={!hasSelection}
       />

@@ -6,6 +6,7 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import type { ApiKeyType } from '../../../preload';
+import { Check } from '../icons';
 
 interface ApiKeyConfig {
   type: ApiKeyType;
@@ -299,7 +300,7 @@ function ApiKeyInput({
         <label className="text-sm font-medium">{config.label}</label>
         {state.hasKey && !state.isEditing && (
           <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-            <span aria-hidden="true">✓</span> Configured
+            <Check size={12} aria-hidden="true" /> Configured
           </span>
         )}
       </div>
@@ -325,7 +326,7 @@ function ApiKeyInput({
             />
             {state.validationStatus === 'valid' && (
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
-                ✓
+                <Check size={16} />
               </span>
             )}
           </div>

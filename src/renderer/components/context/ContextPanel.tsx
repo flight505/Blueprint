@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Search, Check } from '../icons';
 
 // Context item representing a file or document in the context
 export interface ContextItem {
@@ -233,7 +234,7 @@ export default function ContextPanel({
           aria-label="Search context documents"
         />
         <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true">
-          🔍
+          <Search size={14} />
         </span>
         {searchQuery && (
           <button
@@ -273,7 +274,7 @@ export default function ContextPanel({
             aria-label={item.isIncluded ? 'Exclude from context' : 'Include in context'}
             aria-pressed={item.isIncluded}
           >
-            {item.isIncluded && <span className="text-xs">✓</span>}
+            {item.isIncluded && <Check size={12} />}
           </button>
           <span className="text-sm truncate" title={item.filePath}>
             {item.fileName}

@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, type ReactNode } from 'react';
 import Fuse from 'fuse.js';
 import { AnimatedOverlay } from '../animations';
+import { FileIcon } from '../icons';
 
 export interface QuickOpenFile {
   name: string;
@@ -163,31 +164,8 @@ export default function FileQuickOpen({
   );
 
   // Get file icon based on extension
-  const getFileIcon = (fileName: string): string => {
-    const ext = fileName.split('.').pop()?.toLowerCase() || '';
-    const iconMap: Record<string, string> = {
-      md: '📝',
-      mdx: '📝',
-      ts: '📘',
-      tsx: '⚛️',
-      js: '📒',
-      jsx: '⚛️',
-      json: '📋',
-      yaml: '⚙️',
-      yml: '⚙️',
-      css: '🎨',
-      scss: '🎨',
-      html: '🌐',
-      svg: '🖼️',
-      png: '🖼️',
-      jpg: '🖼️',
-      jpeg: '🖼️',
-      gif: '🖼️',
-      py: '🐍',
-      rs: '🦀',
-      go: '🐹',
-    };
-    return iconMap[ext] || '📄';
+  const getFileIconElement = (fileName: string): ReactNode => {
+    return <FileIcon filename={fileName} size="sm" className="text-gray-400" />;
   };
 
   return (
@@ -246,7 +224,7 @@ export default function FileQuickOpen({
                 <FileItem
                   key={result.item.path}
                   file={result.item}
-                  icon={getFileIcon(result.item.name)}
+                  icon={getFileIconElement(result.item.name)}
                   isSelected={index === selectedIndex}
                   onClick={() => openFile(result.item)}
                   onMouseEnter={() => setSelectedIndex(index)}
@@ -302,7 +280,7 @@ export default function FileQuickOpen({
 
 interface FileItemProps {
   file: QuickOpenFile;
-  icon: string;
+  icon: ReactNode;
   isSelected: boolean;
   onClick: () => void;
   onMouseEnter: () => void;

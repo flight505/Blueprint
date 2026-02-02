@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useId } from 'react';
 import mermaid from 'mermaid';
 import { AnimatedModal, AnimatedCollapse } from '../animations';
+import { AlertTriangle } from '../icons';
 
 export interface DiagramEditModalProps {
   /** Whether the modal is open */
@@ -445,7 +446,7 @@ export function DiagramEditModal({
               {hasError && (
                 <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                   <div className="flex items-start">
-                    <span className="text-red-500 mr-2">⚠️</span>
+                    <AlertTriangle size={18} className="text-red-500 mr-2 flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="font-semibold text-red-700 dark:text-red-400">Syntax Error</p>
                       <pre className="text-xs text-red-600 dark:text-red-300 mt-1 whitespace-pre-wrap">

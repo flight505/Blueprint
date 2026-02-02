@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type ReactNode } from 'react';
+import { CircleCheck, CircleAlert, CircleX } from '../icons';
 
 /**
  * ConfidenceTooltip - Hover tooltip for confidence indicators
@@ -25,25 +26,25 @@ interface ConfidenceTooltipProps {
 function getConfidenceLevel(confidence: number): {
   level: string;
   colorClass: string;
-  icon: string;
+  icon: ReactNode;
 } {
   if (confidence >= 0.8) {
     return {
       level: 'High',
       colorClass: 'text-green-600 dark:text-green-400',
-      icon: '✓',
+      icon: <CircleCheck size={18} />,
     };
   } else if (confidence >= 0.6) {
     return {
       level: 'Medium',
       colorClass: 'text-amber-600 dark:text-amber-400',
-      icon: '⚠',
+      icon: <CircleAlert size={18} />,
     };
   } else {
     return {
       level: 'Low',
       colorClass: 'text-red-600 dark:text-red-400',
-      icon: '✗',
+      icon: <CircleX size={18} />,
     };
   }
 }
@@ -133,7 +134,7 @@ export function ConfidenceTooltip({ className = '' }: ConfidenceTooltipProps) {
       {/* Header with score */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <span className={`text-lg ${colorClass}`} aria-hidden="true">
+          <span className={colorClass} aria-hidden="true">
             {icon}
           </span>
           <span className={`font-semibold ${colorClass}`}>
