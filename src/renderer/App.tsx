@@ -8,6 +8,7 @@ import { CitationVerificationPanel } from './components/citation';
 import { ReviewQueue } from './components/review';
 import { HallucinationDashboard } from './components/dashboard';
 import { TabBar, TabData } from './components/layout';
+import { GlassSidebar, GlassSidebarSection, type NavItem } from './components/sidebar';
 import { CommandPalette, useCommandPalette, Command } from './components/command';
 import { FileQuickOpen, useFileQuickOpen } from './components/quickopen';
 import { InlineEditOverlay } from './components/inline-edit';
@@ -30,22 +31,37 @@ import { VirtualizedDocument } from './components/document';
 import { store$, toggleConfidenceIndicators } from './state/store';
 import { setConfidenceIndicatorEnabled } from './components/editor/extensions';
 
-const DEFAULT_LEFT_WIDTH_PERCENT = 40;
 const MIN_PANE_WIDTH = 300;
 
 type Section = 'chat' | 'explorer' | 'search' | 'context' | 'planning' | 'export' | 'history' | 'settings' | 'help';
 
 const SECTION_CONFIG: Record<Section, { icon: string; label: string; shortcut?: string }> = {
-  chat: { icon: '💬', label: 'Chat', shortcut: 'Cmd+1' },
-  explorer: { icon: '📁', label: 'Explorer', shortcut: 'Cmd+2' },
-  search: { icon: '🔍', label: 'Search', shortcut: 'Cmd+3' },
-  context: { icon: '📊', label: 'Context', shortcut: 'Cmd+4' },
-  planning: { icon: '📋', label: 'Planning', shortcut: 'Cmd+5' },
-  export: { icon: '📥', label: 'Export', shortcut: 'Cmd+6' },
-  history: { icon: '🕐', label: 'History', shortcut: 'Cmd+7' },
-  settings: { icon: '⚙️', label: 'Settings', shortcut: 'Cmd+,' },
-  help: { icon: '❓', label: 'Help', shortcut: 'Cmd+?' },
+  chat: { icon: '💬', label: 'Chat', shortcut: '⌘1' },
+  explorer: { icon: '📁', label: 'Explorer', shortcut: '⌘2' },
+  search: { icon: '🔍', label: 'Search', shortcut: '⌘3' },
+  context: { icon: '📊', label: 'Context', shortcut: '⌘4' },
+  planning: { icon: '📋', label: 'Planning', shortcut: '⌘5' },
+  export: { icon: '📥', label: 'Export', shortcut: '⌘6' },
+  history: { icon: '🕐', label: 'History', shortcut: '⌘7' },
+  settings: { icon: '⚙️', label: 'Settings', shortcut: '⌘,' },
+  help: { icon: '❓', label: 'Help', shortcut: '⌘?' },
 };
+
+// Convert section config to NavItem array for GlassSidebar
+const PRIMARY_NAV_ITEMS: NavItem[] = [
+  { id: 'chat', icon: '💬', label: 'Chat', shortcut: '⌘1' },
+  { id: 'explorer', icon: '📁', label: 'Explorer', shortcut: '⌘2' },
+  { id: 'search', icon: '🔍', label: 'Search', shortcut: '⌘3' },
+  { id: 'context', icon: '📊', label: 'Context', shortcut: '⌘4' },
+  { id: 'planning', icon: '📋', label: 'Planning', shortcut: '⌘5' },
+  { id: 'export', icon: '📥', label: 'Export', shortcut: '⌘6' },
+  { id: 'history', icon: '🕐', label: 'History', shortcut: '⌘7' },
+];
+
+const UTILITY_NAV_ITEMS: NavItem[] = [
+  { id: 'settings', icon: '⚙️', label: 'Settings', shortcut: '⌘,' },
+  { id: 'help', icon: '❓', label: 'Help', shortcut: '⌘?' },
+];
 
 type OnboardingStep = 'permissions' | 'complete';
 
@@ -135,8 +151,6 @@ function MainApp() {
   } = useDiagramEdit();
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const [leftWidthPercent, setLeftWidthPercent] = useState(DEFAULT_LEFT_WIDTH_PERCENT);
-  const [isDragging, setIsDragging] = useState(false);
   const [activeSection, setActiveSection] = useState<Section>('chat');
   const [openFiles, setOpenFiles] = useState<OpenFile[]>([]);
   const [activeFileId, setActiveFileId] = useState<string | null>(null);
@@ -387,12 +401,6 @@ function MainApp() {
     },
     // View commands
     {
-      id: 'view:reset-layout',
-      label: 'Reset Pane Layout',
-      category: 'View',
-      action: () => setLeftWidthPercent(DEFAULT_LEFT_WIDTH_PERCENT),
-    },
-    {
       id: 'view:toggle-theme',
       label: 'Toggle Dark Mode',
       category: 'View',
@@ -533,52 +541,6 @@ function MainApp() {
     }
   }, [openFiles, activeFileId]);
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isDragging || !containerRef.current) return;
-
-    const container = containerRef.current;
-    const containerRect = container.getBoundingClientRect();
-    const activityBarWidth = 48; // 12 * 4 = 48px (w-12)
-    const availableWidth = containerRect.width - activityBarWidth;
-    const mouseX = e.clientX - containerRect.left - activityBarWidth;
-
-    // Calculate new width percent, respecting minimums
-    const minPercent = (MIN_PANE_WIDTH / availableWidth) * 100;
-    const maxPercent = 100 - minPercent;
-    const newPercent = Math.max(minPercent, Math.min(maxPercent, (mouseX / availableWidth) * 100));
-
-    setLeftWidthPercent(newPercent);
-  }, [isDragging]);
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
-
-  const handleDoubleClick = useCallback(() => {
-    setLeftWidthPercent(DEFAULT_LEFT_WIDTH_PERCENT);
-  }, []);
-
-  useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = 'col-resize';
-      document.body.style.userSelect = 'none';
-    }
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    };
-  }, [isDragging, handleMouseMove, handleMouseUp]);
-
   // Keyboard shortcuts for Activity Bar navigation and Command Palette
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -668,79 +630,41 @@ function MainApp() {
           Skip to main content
         </a>
 
-        {/* Activity Bar */}
-        <nav
-          aria-label="Main navigation"
-          className="w-12 flex-shrink-0 flex flex-col bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700"
-        >
-        <div className="flex-1 flex flex-col items-center pt-4 gap-2">
-          {(['chat', 'explorer', 'search', 'context', 'planning', 'export', 'history'] as const).map((section) => (
-            <ActivityBarButton
-              key={section}
-              icon={SECTION_CONFIG[section].icon}
-              label={SECTION_CONFIG[section].label}
-              shortcut={SECTION_CONFIG[section].shortcut}
-              active={activeSection === section}
-              onClick={() => setActiveSection(section)}
+        {/* Glass Sidebar - Rail + Panel */}
+        <GlassSidebar
+          mode="expanded"
+          items={PRIMARY_NAV_ITEMS}
+          utilityItems={UTILITY_NAV_ITEMS}
+          activeId={activeSection}
+          onItemSelect={(id) => setActiveSection(id as Section)}
+          panelTitle={SECTION_CONFIG[activeSection].label}
+          panelWidth={320}
+          panelContent={
+            <LeftPaneContent
+              section={activeSection}
+              onFileSelect={handleFileSelect}
+              chatMessages={chatMessages}
+              isChatLoading={isChatLoading}
+              onSendMessage={handleSendMessage}
+              streamingContent={streamingContent}
+              isStreaming={isStreaming}
+              activeQuestion={activeQuestion}
+              onAnswerQuestion={handleAnswerQuestion}
+              agentSessionId={agentSessionId}
+              projectPath={projectPath}
+              onProjectPathChange={setProjectPath}
+              onOpenExportModal={() => setIsExportModalOpen(true)}
+              activeDocumentPath={activeFileId ? openFiles.find(f => f.id === activeFileId)?.path ?? null : null}
+              onScrollToCitation={(citationNumber, line) => {
+                // Scroll to citation in the active document (basic implementation)
+                console.log(`Scroll to citation [${citationNumber}] at line ${line ?? 'unknown'}`);
+                // Future: implement actual scrolling via editor reference
+              }}
             />
-          ))}
-        </div>
-        <div className="flex flex-col items-center pb-4 gap-2">
-          {(['settings', 'help'] as const).map((section) => (
-            <ActivityBarButton
-              key={section}
-              icon={SECTION_CONFIG[section].icon}
-              label={SECTION_CONFIG[section].label}
-              shortcut={SECTION_CONFIG[section].shortcut}
-              active={activeSection === section}
-              onClick={() => setActiveSection(section)}
-            />
-          ))}
-        </div>
-      </nav>
-
-      {/* Left Pane */}
-      <div
-        className="flex flex-col border-r border-gray-200 dark:border-gray-700"
-        style={{ width: `${leftWidthPercent}%`, minWidth: MIN_PANE_WIDTH }}
-      >
-        <header className="h-10 flex items-center px-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-          <h2 className="text-sm font-medium">{SECTION_CONFIG[activeSection].label}</h2>
-        </header>
-        <LeftPaneContent
-          section={activeSection}
-          onFileSelect={handleFileSelect}
-          chatMessages={chatMessages}
-          isChatLoading={isChatLoading}
-          onSendMessage={handleSendMessage}
-          streamingContent={streamingContent}
-          isStreaming={isStreaming}
-          activeQuestion={activeQuestion}
-          onAnswerQuestion={handleAnswerQuestion}
-          agentSessionId={agentSessionId}
-          projectPath={projectPath}
-          onProjectPathChange={setProjectPath}
-          onOpenExportModal={() => setIsExportModalOpen(true)}
-          activeDocumentPath={activeFileId ? openFiles.find(f => f.id === activeFileId)?.path ?? null : null}
-          onScrollToCitation={(citationNumber, line) => {
-            // Scroll to citation in the active document (basic implementation)
-            console.log(`Scroll to citation [${citationNumber}] at line ${line ?? 'unknown'}`);
-            // Future: implement actual scrolling via editor reference
-          }}
+          }
+          version="1.0.0"
         />
-      </div>
 
-      {/* Resize Handle */}
-      <div
-        className={`w-1 flex-shrink-0 cursor-col-resize transition-colors ${
-          isDragging
-            ? 'bg-blue-500'
-            : 'bg-gray-200 dark:bg-gray-700 hover:bg-blue-400'
-        }`}
-        onMouseDown={handleMouseDown}
-        onDoubleClick={handleDoubleClick}
-        title="Drag to resize, double-click to reset"
-      />
 
       {/* Right Pane - Content */}
       <main
@@ -1100,32 +1024,6 @@ function LeftPaneContent({
   }
 }
 
-interface ActivityBarButtonProps {
-  icon: string;
-  label: string;
-  shortcut?: string;
-  active?: boolean;
-  onClick?: () => void;
-}
-
-function ActivityBarButton({ icon, label, shortcut, active, onClick }: ActivityBarButtonProps) {
-  const tooltipText = shortcut ? `${label} (${shortcut})` : label;
-  return (
-    <button
-      onClick={onClick}
-      className={`w-10 h-10 flex items-center justify-center rounded-lg transition-colors ${
-        active
-          ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400'
-          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-      }`}
-      title={tooltipText}
-      aria-label={label}
-      aria-keyshortcuts={shortcut}
-    >
-      <span className="text-lg" aria-hidden="true">{icon}</span>
-    </button>
-  );
-}
 
 /** Threshold for using virtualized rendering (in lines) */
 const VIRTUALIZATION_THRESHOLD = 1000;
