@@ -21,11 +21,29 @@ export default function PermissionsCheck({ onComplete, onSkip }: PermissionsChec
   const [platform, setPlatform] = useState<string>('');
 
   useEffect(() => {
+    // Check if running in Electron (electronAPI available)
+    if (!window.electronAPI) {
+      // Running in browser without Electron - skip permissions check
+      console.warn('Running without Electron - skipping permissions check');
+      setChecking(false);
+      setPermissions({
+        fileAccess: { granted: true },
+        networkAccess: { granted: true },
+      });
+      setTimeout(() => onComplete(), 500);
+      return;
+    }
+
     checkPermissions();
-    setPlatform(window.electronAPI.getPlatform());
-  }, []);
+    setPlatform(window.electronAPI.getPlatform?.() ?? 'unknown');
+  }, [onComplete]);
 
   async function checkPermissions() {
+    if (!window.electronAPI?.checkPermissions) {
+      setChecking(false);
+      return;
+    }
+
     setChecking(true);
     try {
       const result = await window.electronAPI.checkPermissions();
@@ -42,7 +60,7 @@ export default function PermissionsCheck({ onComplete, onSkip }: PermissionsChec
   }
 
   function openSettings(pane: 'files' | 'network') {
-    window.electronAPI.openSystemPreferences(pane);
+    window.electronAPI?.openSystemPreferences?.(pane);
   }
 
   const allGranted = permissions?.fileAccess.granted && permissions?.networkAccess.granted;
