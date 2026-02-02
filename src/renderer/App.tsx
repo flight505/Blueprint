@@ -30,37 +30,39 @@ import { NewProjectWizard, ProjectConfig } from './components/wizard';
 import { VirtualizedDocument } from './components/document';
 import { store$, toggleConfidenceIndicators } from './state/store';
 import { setConfidenceIndicatorEnabled } from './components/editor/extensions';
+import { NAV_ICONS, EXPORT_ICONS } from './components/icons';
 
 const MIN_PANE_WIDTH = 300;
 
 type Section = 'chat' | 'explorer' | 'search' | 'context' | 'planning' | 'export' | 'history' | 'settings' | 'help';
 
-const SECTION_CONFIG: Record<Section, { icon: string; label: string; shortcut?: string }> = {
-  chat: { icon: '💬', label: 'Chat', shortcut: '⌘1' },
-  explorer: { icon: '📁', label: 'Explorer', shortcut: '⌘2' },
-  search: { icon: '🔍', label: 'Search', shortcut: '⌘3' },
-  context: { icon: '📊', label: 'Context', shortcut: '⌘4' },
-  planning: { icon: '📋', label: 'Planning', shortcut: '⌘5' },
-  export: { icon: '📥', label: 'Export', shortcut: '⌘6' },
-  history: { icon: '🕐', label: 'History', shortcut: '⌘7' },
-  settings: { icon: '⚙️', label: 'Settings', shortcut: '⌘,' },
-  help: { icon: '❓', label: 'Help', shortcut: '⌘?' },
+// Section labels for panel titles
+const SECTION_LABELS: Record<Section, string> = {
+  chat: 'Chat',
+  explorer: 'Explorer',
+  search: 'Search',
+  context: 'Context',
+  planning: 'Planning',
+  export: 'Export',
+  history: 'History',
+  settings: 'Settings',
+  help: 'Help',
 };
 
 // Convert section config to NavItem array for GlassSidebar
 const PRIMARY_NAV_ITEMS: NavItem[] = [
-  { id: 'chat', icon: '💬', label: 'Chat', shortcut: '⌘1' },
-  { id: 'explorer', icon: '📁', label: 'Explorer', shortcut: '⌘2' },
-  { id: 'search', icon: '🔍', label: 'Search', shortcut: '⌘3' },
-  { id: 'context', icon: '📊', label: 'Context', shortcut: '⌘4' },
-  { id: 'planning', icon: '📋', label: 'Planning', shortcut: '⌘5' },
-  { id: 'export', icon: '📥', label: 'Export', shortcut: '⌘6' },
-  { id: 'history', icon: '🕐', label: 'History', shortcut: '⌘7' },
+  { id: 'chat', icon: <NAV_ICONS.chat size={18} />, label: 'Chat', shortcut: '⌘1' },
+  { id: 'explorer', icon: <NAV_ICONS.explorer size={18} />, label: 'Explorer', shortcut: '⌘2' },
+  { id: 'search', icon: <NAV_ICONS.search size={18} />, label: 'Search', shortcut: '⌘3' },
+  { id: 'context', icon: <NAV_ICONS.context size={18} />, label: 'Context', shortcut: '⌘4' },
+  { id: 'planning', icon: <NAV_ICONS.planning size={18} />, label: 'Planning', shortcut: '⌘5' },
+  { id: 'export', icon: <NAV_ICONS.export size={18} />, label: 'Export', shortcut: '⌘6' },
+  { id: 'history', icon: <NAV_ICONS.history size={18} />, label: 'History', shortcut: '⌘7' },
 ];
 
 const UTILITY_NAV_ITEMS: NavItem[] = [
-  { id: 'settings', icon: '⚙️', label: 'Settings', shortcut: '⌘,' },
-  { id: 'help', icon: '❓', label: 'Help', shortcut: '⌘?' },
+  { id: 'settings', icon: <NAV_ICONS.settings size={18} />, label: 'Settings', shortcut: '⌘,' },
+  { id: 'help', icon: <NAV_ICONS.help size={18} />, label: 'Help', shortcut: '⌘?' },
 ];
 
 type OnboardingStep = 'permissions' | 'complete';
@@ -637,7 +639,7 @@ function MainApp() {
           utilityItems={UTILITY_NAV_ITEMS}
           activeId={activeSection}
           onItemSelect={(id) => setActiveSection(id as Section)}
-          panelTitle={SECTION_CONFIG[activeSection].label}
+          panelTitle={SECTION_LABELS[activeSection]}
           panelWidth={320}
           panelContent={
             <LeftPaneContent
@@ -944,7 +946,9 @@ function LeftPaneContent({
                 className="p-4 rounded-lg border border-white/[0.06] bg-white/[0.04] hover:bg-white/[0.07] hover:border-purple-400/30 hover:shadow-[0_0_12px_rgba(167,139,250,0.12)] transition-all duration-200 text-left group"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl group-hover:scale-110 transition-transform">📄</span>
+                  <div className="text-gray-300 group-hover:scale-110 transition-transform">
+                    <EXPORT_ICONS.pdf size={24} />
+                  </div>
                   <div>
                     <p className="font-medium text-sm text-gray-100">PDF Document</p>
                     <p className="text-xs text-gray-400">Professional format with precise layout</p>
@@ -957,7 +961,9 @@ function LeftPaneContent({
                 className="p-4 rounded-lg border border-white/[0.06] bg-white/[0.04] hover:bg-white/[0.07] hover:border-purple-400/30 hover:shadow-[0_0_12px_rgba(167,139,250,0.12)] transition-all duration-200 text-left group"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl group-hover:scale-110 transition-transform">📝</span>
+                  <div className="text-gray-300 group-hover:scale-110 transition-transform">
+                    <EXPORT_ICONS.docx size={24} />
+                  </div>
                   <div>
                     <p className="font-medium text-sm text-gray-100">Word Document</p>
                     <p className="text-xs text-gray-400">Editable DOCX for collaboration</p>
@@ -970,7 +976,9 @@ function LeftPaneContent({
                 className="p-4 rounded-lg border border-white/[0.06] bg-white/[0.04] hover:bg-white/[0.07] hover:border-purple-400/30 hover:shadow-[0_0_12px_rgba(167,139,250,0.12)] transition-all duration-200 text-left group"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl group-hover:scale-110 transition-transform">📊</span>
+                  <div className="text-gray-300 group-hover:scale-110 transition-transform">
+                    <EXPORT_ICONS.pptx size={24} />
+                  </div>
                   <div>
                     <p className="font-medium text-sm text-gray-100">PowerPoint</p>
                     <p className="text-xs text-gray-400">Presentation slides for meetings</p>

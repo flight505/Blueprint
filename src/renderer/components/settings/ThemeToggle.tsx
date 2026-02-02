@@ -6,11 +6,13 @@
  */
 
 import { store$, setTheme, type Theme } from '../../state/store';
+import { THEME_ICONS } from '../icons';
+import type { ReactNode } from 'react';
 
-const THEME_OPTIONS: { value: Theme; label: string; icon: string }[] = [
-  { value: 'light', label: 'Light', icon: '☀️' },
-  { value: 'dark', label: 'Dark', icon: '🌙' },
-  { value: 'system', label: 'System', icon: '💻' },
+const THEME_OPTIONS: { value: Theme; label: string; icon: ReactNode }[] = [
+  { value: 'light', label: 'Light', icon: <THEME_ICONS.light size={16} /> },
+  { value: 'dark', label: 'Dark', icon: <THEME_ICONS.dark size={16} /> },
+  { value: 'system', label: 'System', icon: <THEME_ICONS.system size={16} /> },
 ];
 
 export default function ThemeToggle() {

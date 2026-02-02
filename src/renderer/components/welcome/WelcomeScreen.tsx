@@ -6,8 +6,9 @@
  * Shows recent projects list with right-click to remove.
  */
 
-import { useCallback } from 'react';
+import { useCallback, type ReactNode } from 'react';
 import { RecentProjectsList } from './RecentProjectsList';
+import { Sparkles, FolderOpen } from '../icons';
 
 interface WelcomeScreenProps {
   /** Callback when user wants to start a new project (opens wizard) */
@@ -46,13 +47,13 @@ export function WelcomeScreen({ onNewProject, onOpenProject }: WelcomeScreenProp
           <WelcomeCard
             title="New Project"
             description="Start a new planning project with the wizard"
-            icon="✨"
+            icon={<Sparkles size={28} />}
             onClick={onNewProject}
           />
           <WelcomeCard
             title="Open Project"
             description="Open an existing project folder"
-            icon="📂"
+            icon={<FolderOpen size={28} />}
             onClick={handleOpenProject}
           />
         </div>
@@ -119,7 +120,7 @@ export function WelcomeScreen({ onNewProject, onOpenProject }: WelcomeScreenProp
 interface WelcomeCardProps {
   title: string;
   description: string;
-  icon: string;
+  icon: ReactNode;
   onClick: () => void;
 }
 
@@ -129,7 +130,7 @@ function WelcomeCard({ title, description, icon, onClick }: WelcomeCardProps) {
       onClick={onClick}
       className="p-4 rounded-lg border border-white/[0.06] bg-white/[0.04] backdrop-blur-sm hover:bg-white/[0.07] hover:border-purple-400/30 hover:shadow-[0_0_16px_rgba(167,139,250,0.15)] transition-all duration-200 text-left group"
     >
-      <span className="text-2xl mb-2 block group-hover:scale-110 transition-transform">
+      <span className="mb-2 block text-gray-300 group-hover:text-purple-400 group-hover:scale-110 transition-all">
         {icon}
       </span>
       <h3 className="font-medium mb-1 text-gray-100">{title}</h3>

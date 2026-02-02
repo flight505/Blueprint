@@ -9,7 +9,7 @@
  * - Approval gate for phase transitions
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type ReactNode } from 'react';
 import type {
   ProjectPhase,
   PhaseState,
@@ -17,17 +17,13 @@ import type {
   PhaseOrchestratorConfig,
 } from '../../../preload';
 import { ApprovalGate } from './ApprovalGate';
+import { PHASE_ICONS as PHASE_ICON_COMPONENTS, Check, Circle, X, Pause, Loader2, Clock } from '../icons';
 
-// Phase display metadata
-const PHASE_ICONS: Record<ProjectPhase, string> = {
-  market_research: '📊',
-  competitive_analysis: '🔍',
-  technical_feasibility: '⚙️',
-  architecture_design: '🏗️',
-  risk_assessment: '⚠️',
-  sprint_planning: '📋',
-  general: '📝',
-};
+// Phase display metadata with Lucide icons
+function getPhaseIcon(phase: ProjectPhase): ReactNode {
+  const IconComponent = PHASE_ICON_COMPONENTS[phase];
+  return IconComponent ? <IconComponent size={20} /> : null;
+}
 
 const PHASE_DISPLAY_NAMES: Record<ProjectPhase, string> = {
   market_research: 'Market Research',
@@ -208,20 +204,20 @@ export function PhaseDashboard({
   };
 
   // Get status icon
-  const getStatusIcon = (status: PhaseState['status']): string => {
+  const getStatusIcon = (status: PhaseState['status']): ReactNode => {
     switch (status) {
       case 'completed':
-        return '✓';
+        return <Check size={14} />;
       case 'in_progress':
-        return '●';
+        return <Loader2 size={14} className="animate-spin" />;
       case 'failed':
-        return '✗';
+        return <X size={14} />;
       case 'paused':
-        return '⏸';
+        return <Pause size={14} />;
       case 'skipped':
-        return '⊘';
+        return <Circle size={14} />;
       default:
-        return '○';
+        return <Circle size={14} className="opacity-50" />;
     }
   };
 
@@ -389,23 +385,23 @@ export function PhaseDashboard({
         {executionState && (
           <div className="mt-3 flex gap-2">
             {isComplete && (
-              <span className="px-2 py-1 text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full">
-                ✓ Complete
+              <span className="px-2 py-1 text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full flex items-center gap-1">
+                <Check size={12} /> Complete
               </span>
             )}
             {isPaused && (
-              <span className="px-2 py-1 text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full">
-                ⏸ Paused
+              <span className="px-2 py-1 text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full flex items-center gap-1">
+                <Pause size={12} /> Paused
               </span>
             )}
             {isFailed && (
-              <span className="px-2 py-1 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full">
-                ✗ Failed
+              <span className="px-2 py-1 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full flex items-center gap-1">
+                <X size={12} /> Failed
               </span>
             )}
             {isWaitingForApproval && (
-              <span className="px-2 py-1 text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full">
-                ⏳ Awaiting Approval
+              <span className="px-2 py-1 text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full flex items-center gap-1">
+                <Clock size={12} /> Awaiting Approval
               </span>
             )}
           </div>
@@ -444,7 +440,7 @@ export function PhaseDashboard({
                 }
                 className="w-full p-3 flex items-center gap-3 text-left"
               >
-                <span className="text-xl">{PHASE_ICONS[phaseState.phase]}</span>
+                <span className="text-gray-400">{getPhaseIcon(phaseState.phase)}</span>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">

@@ -56,6 +56,9 @@ importers:
       katex:
         specifier: ^0.16.28
         version: 0.16.28
+      lucide-react:
+        specifier: ^0.563.0
+        version: 0.563.0(react@19.2.3)
       mermaid:
         specifier: ^11.12.2
         version: 11.12.2
@@ -114,6 +117,9 @@ importers:
       '@storybook/test':
         specifier: ^8.6.15
         version: 8.6.15(storybook@9.1.17(@testing-library/dom@10.4.1)(vite@5.4.21(@types/node@22.19.7)(lightningcss@1.30.2)(terser@5.46.0)))
+      '@storybook/theming':
+        specifier: ^8.6.14
+        version: 8.6.14(storybook@9.1.17(@testing-library/dom@10.4.1)(vite@5.4.21(@types/node@22.19.7)(lightningcss@1.30.2)(terser@5.46.0)))
       '@tailwindcss/postcss':
         specifier: ^4.0.0
         version: 4.1.18
@@ -1234,6 +1240,11 @@ packages:
     resolution: {integrity: sha512-EwquDRUDVvWcZds3T2abmB5wSN/Vattal4YtZ6fpBlIUqONV4o/cOBX39cFfQSUCBrIXIjQ6RmapQCHK/PvBYw==}
     peerDependencies:
       storybook: ^8.6.15
+
+  '@storybook/theming@8.6.14':
+    resolution: {integrity: sha512-r4y+LsiB37V5hzpQo+BM10PaCsp7YlZ0YcZzQP1OCkPlYXmUAFy2VvDKaFRpD8IeNPKug2u4iFm/laDEbs03dg==}
+    peerDependencies:
+      storybook: ^8.2.0 || ^8.3.0-0 || ^8.4.0-0 || ^8.5.0-0 || ^8.6.0-0
 
   '@szmarczak/http-timer@4.0.6':
     resolution: {integrity: sha512-4BAffykYOgO+5nzBWYwE3W90sBgLJoUPRWWcL8wlyiM8IB8ipJz3UMJ9KXQd1RKQXpKp8Tutn80HZtWsu2u76w==}
@@ -3966,6 +3977,11 @@ packages:
   lru-cache@6.0.0:
     resolution: {integrity: sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==}
     engines: {node: '>=10'}
+
+  lucide-react@0.563.0:
+    resolution: {integrity: sha512-8dXPB2GI4dI8jV4MgUDGBeLdGk8ekfqVZ0BdLcrRzocGgG75ltNEmWS+gE7uokKF/0oSUuczNDT+g9hFJ23FkA==}
+    peerDependencies:
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   lz-string@1.5.0:
     resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
@@ -6874,6 +6890,10 @@ snapshots:
       '@testing-library/user-event': 14.5.2(@testing-library/dom@10.4.0)
       '@vitest/expect': 2.0.5
       '@vitest/spy': 2.0.5
+      storybook: 9.1.17(@testing-library/dom@10.4.1)(vite@5.4.21(@types/node@22.19.7)(lightningcss@1.30.2)(terser@5.46.0))
+
+  '@storybook/theming@8.6.14(storybook@9.1.17(@testing-library/dom@10.4.1)(vite@5.4.21(@types/node@22.19.7)(lightningcss@1.30.2)(terser@5.46.0)))':
+    dependencies:
       storybook: 9.1.17(@testing-library/dom@10.4.1)(vite@5.4.21(@types/node@22.19.7)(lightningcss@1.30.2)(terser@5.46.0))
 
   '@szmarczak/http-timer@4.0.6':
@@ -10043,6 +10063,10 @@ snapshots:
   lru-cache@6.0.0:
     dependencies:
       yallist: 4.0.0
+
+  lucide-react@0.563.0(react@19.2.3):
+    dependencies:
+      react: 19.2.3
 
   lz-string@1.5.0: {}
 

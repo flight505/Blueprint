@@ -47,13 +47,14 @@ export const GlassSidebarItem = forwardRef<HTMLButtonElement, GlassSidebarItemPr
         ref={ref}
         onClick={onClick}
         className={`
-          group relative flex items-center gap-3 transition-all duration-200
+          group relative flex items-center gap-3 transition-all duration-200 ease-out
           ${showLabel ? 'w-full px-3 py-2 rounded-lg' : 'w-10 h-10 justify-center rounded-lg'}
           ${
             active
-              ? 'bg-white/10 text-purple-400 shadow-[inset_0_0_0_1px_rgba(167,139,250,0.3),0_0_12px_rgba(167,139,250,0.15)]'
-              : 'text-gray-400 hover:text-gray-100 hover:bg-white/[0.06]'
+              ? 'bg-white/[0.12] text-purple-400 shadow-[inset_0_0_0_1px_rgba(167,139,250,0.35),0_0_16px_rgba(167,139,250,0.2)]'
+              : 'text-gray-400 hover:text-gray-100 hover:bg-white/[0.08] hover:shadow-[0_0_8px_rgba(167,139,250,0.08)]'
           }
+          active:scale-95 active:bg-white/[0.14]
           ${className}
         `}
         title={!showLabel ? tooltipText : undefined}
@@ -71,7 +72,7 @@ export const GlassSidebarItem = forwardRef<HTMLButtonElement, GlassSidebarItemPr
 
         {/* Icon */}
         <span
-          className={`flex-shrink-0 text-lg ${active ? 'scale-110' : 'group-hover:scale-105'} transition-transform`}
+          className={`flex-shrink-0 ${active ? 'scale-110 text-purple-400' : 'group-hover:scale-110 group-hover:text-gray-100'} transition-all duration-200`}
           aria-hidden="true"
         >
           {icon}

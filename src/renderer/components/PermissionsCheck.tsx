@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Lock, Check, AlertTriangle } from './icons';
 
 interface PermissionStatus {
   granted: boolean;
@@ -70,7 +71,9 @@ export default function PermissionsCheck({ onComplete, onSkip }: PermissionsChec
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-8">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="text-4xl mb-4">🔐</div>
+          <div className="flex justify-center mb-4">
+            <Lock size={48} className="text-gray-600 dark:text-gray-300" />
+          </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             Permissions Check
           </h1>
@@ -107,7 +110,7 @@ export default function PermissionsCheck({ onComplete, onSkip }: PermissionsChec
             }`}>
               {allGranted ? (
                 <div className="flex items-center gap-2">
-                  <span>✓</span>
+                  <Check size={18} />
                   <span>All permissions granted. Continuing...</span>
                 </div>
               ) : (
@@ -171,9 +174,9 @@ function PermissionRow({ label, description, status, checking, onFix }: Permissi
           {checking ? (
             <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
           ) : status?.granted ? (
-            <span className="text-green-500 text-xl">✓</span>
+            <Check size={20} className="text-green-500" />
           ) : (
-            <span className="text-amber-500 text-xl">⚠</span>
+            <AlertTriangle size={20} className="text-amber-500" />
           )}
         </div>
         <div>

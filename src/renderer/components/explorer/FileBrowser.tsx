@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { SkeletonFileTree } from '../skeleton';
 import { AnimatedCollapse } from '../animations';
+import { FileIcon, ChevronRight, ChevronDown } from '../icons';
 
 interface FileNode {
   name: string;
@@ -13,35 +14,6 @@ interface FileBrowserProps {
   onFileSelect: (filePath: string) => void;
   projectPath?: string | null;
   onProjectPathChange?: (path: string | null) => void;
-}
-
-const FILE_ICONS: Record<string, string> = {
-  md: '📝',
-  mdx: '📝',
-  markdown: '📝',
-  yml: '⚙️',
-  yaml: '⚙️',
-  json: '📋',
-  ts: '🔷',
-  tsx: '🔷',
-  js: '🟡',
-  jsx: '🟡',
-  css: '🎨',
-  scss: '🎨',
-  html: '🌐',
-  png: '🖼️',
-  jpg: '🖼️',
-  jpeg: '🖼️',
-  gif: '🖼️',
-  svg: '🎯',
-  pdf: '📕',
-  txt: '📄',
-};
-
-function getFileIcon(name: string, isDirectory: boolean): string {
-  if (isDirectory) return '📁';
-  const ext = name.split('.').pop()?.toLowerCase() || '';
-  return FILE_ICONS[ext] || '📄';
 }
 
 function FileTreeNode({
@@ -63,27 +35,30 @@ function FileTreeNode({
     }
   };
 
-  const icon = getFileIcon(node.name, node.type === 'directory');
-  const chevron = node.type === 'directory' ? (isExpanded ? '▼' : '▶') : null;
+  const isDirectory = node.type === 'directory';
 
   return (
     <div>
       <button
         onClick={handleClick}
-        className="w-full flex items-center gap-1 py-1 px-2 text-left text-sm hover:bg-gray-700 rounded transition-colors"
+        className="w-full flex items-center gap-1.5 py-1 px-2 text-left text-sm hover:bg-gray-700 rounded transition-colors group"
         style={{ paddingLeft: `${level * 12 + 8}px` }}
         title={node.path}
-        aria-expanded={node.type === 'directory' ? isExpanded : undefined}
-        aria-label={`${node.type === 'directory' ? 'Folder' : 'File'}: ${node.name}`}
+        aria-expanded={isDirectory ? isExpanded : undefined}
+        aria-label={`${isDirectory ? 'Folder' : 'File'}: ${node.name}`}
       >
-        {node.type === 'directory' && (
-          <span className="text-[10px] text-gray-400 w-3" aria-hidden="true">{chevron}</span>
+        {isDirectory && (
+          <span className="text-gray-400 w-3 flex-shrink-0" aria-hidden="true">
+            {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+          </span>
         )}
-        {node.type === 'file' && <span className="w-3" />}
-        <span aria-hidden="true">{icon}</span>
+        {!isDirectory && <span className="w-3 flex-shrink-0" />}
+        <span className="flex-shrink-0 text-gray-400 group-hover:text-gray-300" aria-hidden="true">
+          <FileIcon filename={node.name} isDirectory={isDirectory} size="sm" />
+        </span>
         <span className="truncate">{node.name}</span>
       </button>
-      {node.type === 'directory' && node.children && (
+      {isDirectory && node.children && (
         <AnimatedCollapse isOpen={isExpanded}>
           <div role="group">
             {node.children.map((child) => (

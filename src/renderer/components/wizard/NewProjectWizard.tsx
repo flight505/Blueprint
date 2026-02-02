@@ -5,8 +5,9 @@
  * Steps: Project Name → Research Mode → Phases → Create
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, type ReactNode } from 'react';
 import { AnimatedModal } from '../animations';
+import { RESEARCH_ICONS } from '../icons';
 
 // Research mode type (matches ResearchRouter)
 export type ResearchMode = 'quick' | 'balanced' | 'comprehensive';
@@ -32,21 +33,21 @@ export interface ProjectConfig {
 }
 
 // Research mode metadata
-const RESEARCH_MODES: Record<ResearchMode, { label: string; description: string; icon: string }> = {
+const RESEARCH_MODES: Record<ResearchMode, { label: string; description: string; icon: ReactNode }> = {
   quick: {
     label: 'Quick',
     description: 'Fast research using Perplexity. Best for quick facts and simple queries. Returns in ~30 seconds.',
-    icon: '⚡',
+    icon: <RESEARCH_ICONS.quick size={20} />,
   },
   balanced: {
     label: 'Balanced',
     description: 'Uses Deep Research for Phase 1 (Market Research), Perplexity for other phases. Good balance of speed and depth.',
-    icon: '⚖️',
+    icon: <RESEARCH_ICONS.balanced size={20} />,
   },
   comprehensive: {
     label: 'Comprehensive',
     description: 'Uses Deep Research for all major phases. Most thorough analysis but takes longer (up to 60 minutes per query).',
-    icon: '🔬',
+    icon: <RESEARCH_ICONS.comprehensive size={20} />,
   },
 };
 

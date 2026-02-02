@@ -7,8 +7,9 @@
  * - Revise the current phase with feedback
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, type ReactNode } from 'react';
 import type { ProjectPhase, PhaseState } from '../../../preload';
+import { PHASE_ICONS as PHASE_ICON_COMPONENTS, Check, Sparkles } from '../icons';
 
 // Phase display metadata
 const PHASE_DISPLAY_NAMES: Record<ProjectPhase, string> = {
@@ -21,15 +22,11 @@ const PHASE_DISPLAY_NAMES: Record<ProjectPhase, string> = {
   general: 'General',
 };
 
-const PHASE_ICONS: Record<ProjectPhase, string> = {
-  market_research: '📊',
-  competitive_analysis: '🔍',
-  technical_feasibility: '⚙️',
-  architecture_design: '🏗️',
-  risk_assessment: '⚠️',
-  sprint_planning: '📋',
-  general: '📝',
-};
+// Get phase icon as React element
+function getPhaseIcon(phase: ProjectPhase): ReactNode {
+  const IconComponent = PHASE_ICON_COMPONENTS[phase];
+  return IconComponent ? <IconComponent size={24} /> : null;
+}
 
 export interface ApprovalGateProps {
   /** The completed phase state */
@@ -99,8 +96,8 @@ export function ApprovalGate({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
           <div className="flex items-center gap-3">
-            <span className="text-2xl" role="img" aria-hidden="true">
-              {PHASE_ICONS[phaseState.phase]}
+            <span className="text-gray-400" aria-hidden="true">
+              {getPhaseIcon(phaseState.phase)}
             </span>
             <div>
               <h2
@@ -131,7 +128,7 @@ export function ApprovalGate({
         <div className="flex-1 overflow-y-auto p-4">
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-green-600 dark:text-green-400">✓</span>
+              <Check size={16} className="text-green-600 dark:text-green-400" />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Phase completed successfully
               </span>
@@ -214,12 +211,12 @@ export function ApprovalGate({
             {/* Next phase info */}
             <div className="text-sm text-gray-600 dark:text-gray-400">
               {!isLastPhase && nextPhase ? (
-                <span>
-                  Next: {PHASE_ICONS[nextPhase]} {PHASE_DISPLAY_NAMES[nextPhase]}
+                <span className="flex items-center gap-1">
+                  Next: <span className="text-gray-400">{getPhaseIcon(nextPhase)}</span> {PHASE_DISPLAY_NAMES[nextPhase]}
                 </span>
               ) : (
-                <span className="text-green-600 dark:text-green-400">
-                  ✨ All phases complete after this
+                <span className="text-green-600 dark:text-green-400 flex items-center gap-1">
+                  <Sparkles size={14} /> All phases complete after this
                 </span>
               )}
             </div>

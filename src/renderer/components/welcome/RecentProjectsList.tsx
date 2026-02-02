@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { Folder } from '../icons';
 
 interface RecentProject {
   id: string;
@@ -164,7 +165,7 @@ export function RecentProjectsList({
               aria-label={`Open ${project.name}`}
             >
               <div className="flex items-center gap-3">
-                <span className="text-xl">📁</span>
+                <Folder size={20} className="text-gray-400 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
                     {project.name}
