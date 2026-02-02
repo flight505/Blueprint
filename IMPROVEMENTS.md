@@ -24,7 +24,9 @@ Tracking bug fixes, polish, and feature extensions before v1.1/v2.0.
 | ID | Description | Priority | Status |
 |----|-------------|----------|--------|
 | UX-001 | macOS title bar and window dragging | High | ✅ |
-| UX-002 | | | ⬚ |
+| UX-002 | Replace all emojis with Lucide icons for professional look | Medium | ✅ |
+| UX-003 | Glass UI sidebar with hover/active violet glow effects | Medium | ✅ |
+| UX-004 | | | ⬚ |
 
 ---
 
@@ -40,113 +42,113 @@ Tracking bug fixes, polish, and feature extensions before v1.1/v2.0.
 
 | ID | Description | Priority | Status |
 |----|-------------|----------|--------|
-| PL-001 | **Nano Banana Image Editor** - AI-powered iterative image editing using Gemini 3 Image API. Upload images, edit with natural language, navigate editing history with click-to-revert. | Medium | 🔄 Research |
+| PL-001 | **Nano Banana Image Editor** - AI-powered iterative image editing using Gemini 2.5 Flash Image API. Upload images, edit with natural language, navigate editing history with click-to-revert. | Medium | 🔄 Planning |
 
-### PL-001: Nano Banana Image Editor Plugin
+### PL-001: Nano Banana Image Editor
 
 **Goal:** Extend Blueprint with iterative image editing capabilities for project diagrams, mockups, and visual assets.
 
-**Features:**
-- Upload images for AI-powered editing
-- Natural language edit instructions
-- Edit history with click-to-revert functionality
-- Integration with Blueprint's document workflow
+**Architecture Decision:** Integrated Feature Module (not a plugin system)
+- Ships as first-class feature using existing Blueprint patterns
+- Reuses IPC, SecureStorageService, Legend State, SQLite
+- No external plugin API complexity
 
-**Research:**
+**Features:**
+- Upload images (drag & drop, file picker)
+- Natural language edit instructions via Gemini 2.5 Flash Image API
+- Edit history with click-to-revert (git-like linear history)
+- Insert edited images into TipTap documents
+- Persistent history in SQLite (survives app restart)
+
+**Research:** ✅ Complete
 - [x] Analyze reference implementation (`nano-banana-editor-main/`)
-- [ ] Define plugin architecture for Blueprint
-- [ ] Determine Gemini 3 Image API integration approach
-- [ ] Design UI/UX for editor panel
+- [x] Define architecture approach (Integrated Feature Module)
+- [x] Determine Gemini API integration (reuse existing `@google/genai` package)
+
+**Implementation Plan:**
+
+| Phase | Task | Status |
+|-------|------|--------|
+| 1 | Create `ImageEditorService.ts` in main process | ⬚ |
+| 2 | Add IPC handlers in `main.ts` and `preload.ts` | ⬚ |
+| 3 | Create Legend State slice `imageEditorStore.ts` | ⬚ |
+| 4 | Build `ImageEditorPanel.tsx` UI component | ⬚ |
+| 5 | Build `ImageHistory.tsx` history strip | ⬚ |
+| 6 | Build `ImageUploader.tsx` upload zone | ⬚ |
+| 7 | Add "Image" section to Activity Bar | ⬚ |
+| 8 | SQLite schema for `image_edits` table | ⬚ |
+| 9 | TipTap integration (insert image command) | ⬚ |
+| 10 | Testing & polish | ⬚ |
 
 **Reference:** `nano-banana-editor-main/` - Next.js implementation (by Warp team)
 
 ---
 
-#### Research Notes: Reference Implementation Analysis
+#### Technical Specification
 
-**Tech Stack (Reference):**
-- Next.js 15.5 with App Router
-- `@google/genai` v1.17.0 for Gemini API
-- TypeScript + Tailwind CSS
-- Client-side state management with React hooks
-
-**Core Architecture:**
-
+**File Structure:**
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      Frontend (page.tsx)                     │
-├─────────────────────────────────────────────────────────────┤
-│  State:                                                      │
-│  - selectedImage: string | null     (current image base64)  │
-│  - selectedFile: File | null        (for API submission)    │
-│  - instructions: string             (edit prompt)           │
-│  - imageHistory: ImageHistoryItem[] (revert stack)          │
-│  - isSubmitting: boolean            (loading state)         │
-├─────────────────────────────────────────────────────────────┤
-│  Flow:                                                       │
-│  1. Upload image → FileReader → base64                      │
-│  2. Enter instructions → Submit form                        │
-│  3. POST to /api/process-image                              │
-│  4. Response: new image replaces current, old → history     │
-│  5. Click history item → truncate & revert (like git reset) │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   Backend (route.ts)                         │
-├─────────────────────────────────────────────────────────────┤
-│  1. Parse FormData (image + instructions)                   │
-│  2. Convert image to base64                                 │
-│  3. Call Gemini API:                                        │
-│     model: 'gemini-2.5-flash-image-preview'                 │
-│     contents: [{ parts: [text, inlineData] }]               │
-│  4. Extract generated image from response                   │
-│  5. Return as data:image/png;base64,...                     │
-└─────────────────────────────────────────────────────────────┘
+src/
+├── main/services/
+│   └── ImageEditorService.ts      # Gemini API integration (main process)
+├── renderer/
+│   ├── components/image-editor/
+│   │   ├── ImageEditorPanel.tsx   # Main editor UI
+│   │   ├── ImageHistory.tsx       # History strip (fixed bottom)
+│   │   ├── ImageUploader.tsx      # Drag & drop upload zone
+│   │   └── index.ts               # Barrel export
+│   └── state/
+│       └── imageEditorStore.ts    # Legend State observable
+├── main.ts                        # Add IPC handlers
+└── preload.ts                     # Expose imageEditor API
 ```
 
-**Key API Call:**
+**Database Schema:**
+```sql
+CREATE TABLE image_edits (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id TEXT NOT NULL,
+  image_data TEXT NOT NULL,           -- base64 encoded
+  prompt TEXT NOT NULL,
+  response_text TEXT,                 -- AI explanation (optional)
+  created_at INTEGER NOT NULL,
+  FOREIGN KEY (project_id) REFERENCES projects(id)
+);
+
+CREATE INDEX idx_image_edits_project ON image_edits(project_id);
+```
+
+**IPC Handlers:**
+```typescript
+// main.ts
+ipcMain.handle('imageEditor:process', async (_, { imageBase64, mimeType, instructions }) => {...});
+ipcMain.handle('imageEditor:getHistory', async (_, projectId) => {...});
+ipcMain.handle('imageEditor:revertTo', async (_, { projectId, editId }) => {...});
+ipcMain.handle('imageEditor:clearHistory', async (_, projectId) => {...});
+```
+
+**Gemini API Call:**
 ```typescript
 const response = await genAI.models.generateContent({
-  model: 'gemini-2.5-flash-image-preview',
+  model: 'gemini-2.5-flash-preview-05-20',  // Latest image model
   contents: [{
     parts: [
       { text: instructions },
-      { inlineData: { mimeType: file.type, data: base64Data } }
+      { inlineData: { mimeType, data: imageBase64 } }
     ]
   }]
 });
 ```
 
-**Blueprint Plugin Architecture (Proposed):**
+**Design Decisions:**
+- **Panel placement:** Dedicated section in Activity Bar (like Explorer, Planning)
+- **History persistence:** SQLite database (survives restart)
+- **Max image size:** 10MB (Gemini API limit)
+- **Export integration:** Edited images can be inserted into documents, included in PDF/DOCX export
 
-```
-src/
-├── main/services/
-│   └── ImageEditorService.ts      # Gemini API integration (main process)
-├── renderer/components/
-│   └── image-editor/
-│       ├── ImageEditorPanel.tsx   # Main editor UI
-│       ├── ImageHistory.tsx       # History strip component
-│       ├── ImageUploader.tsx      # Drag & drop upload
-│       └── index.ts
-└── preload.ts                     # Add IPC handlers
-```
-
-**Integration Points:**
-1. **Activity Bar** - New "Image" section icon
-2. **IPC Handlers** - `imageEditor:process`, `imageEditor:getHistory`
-3. **SecureStorageService** - Already has Gemini API key storage
-4. **Document Integration** - Insert edited images into TipTap editor
-
-**Dependencies Needed:**
-- `@google/genai` (already in use via GeminiService.ts for Deep Research)
-
-**Open Questions:**
-- [ ] Separate panel or modal?
-- [ ] Save history to database or session-only?
-- [ ] Max image size limits?
-- [ ] Integration with export (PDF/DOCX)?
+**Dependencies:**
+- `@google/genai` - Already installed (used by GeminiService.ts)
+- No new dependencies required
 
 ---
 
@@ -203,5 +205,7 @@ Items marked ✅ can be moved here after release:
 
 #### v1.0.1 (pending)
 - UX-001: macOS title bar and window dragging
+- UX-002: Lucide icons replacing emojis (centralized icon module)
+- UX-003: Glass UI sidebar with violet glow hover/active states
 - SH-001-004: Security hardening (path validation, IPC validation, CSP, encryption)
 - DC-001: CLAUDE.md documentation
