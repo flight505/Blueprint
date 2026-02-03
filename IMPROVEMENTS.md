@@ -42,7 +42,7 @@ Tracking bug fixes, polish, and feature extensions before v1.1/v2.0.
 
 | ID | Description | Priority | Status |
 |----|-------------|----------|--------|
-| PL-001 | **Nano Banana Image Editor** - AI-powered iterative image editing using Gemini 2.5 Flash Image API. Upload images, edit with natural language, navigate editing history with click-to-revert. | Medium | 🔄 Planning |
+| PL-001 | **Nano Banana Image Editor** - AI-powered iterative image editing using Gemini 2.5 Flash Image API. Upload images, edit with natural language, navigate editing history with click-to-revert. | Medium | ✅ Complete |
 
 ### PL-001: Nano Banana Image Editor
 
@@ -70,15 +70,15 @@ Tracking bug fixes, polish, and feature extensions before v1.1/v2.0.
 | Phase | Task | Status |
 |-------|------|--------|
 | 1 | Create `ImageEditorService.ts` in main process | ✅ |
-| 2 | Add IPC handlers in `main.ts` and `preload.ts` | ⬚ |
-| 3 | Create Legend State slice `imageEditorStore.ts` | ⬚ |
-| 4 | Build `ImageEditorPanel.tsx` UI component | ⬚ |
-| 5 | Build `ImageHistory.tsx` history strip | ⬚ |
-| 6 | Build `ImageUploader.tsx` upload zone | ⬚ |
-| 7 | Add "Image" section to Activity Bar | ⬚ |
-| 8 | SQLite schema for `image_edits` table | ⬚ |
-| 9 | TipTap integration (insert image command) | ⬚ |
-| 10 | Testing & polish | ⬚ |
+| 2 | Add IPC handlers in `main.ts` and `preload.ts` | ✅ |
+| 3 | Create Legend State slice `imageEditorStore.ts` | ✅ |
+| 4 | Build `ImageEditorPanel.tsx` UI component | ✅ |
+| 5 | Build `ImageHistory.tsx` history strip | ✅ |
+| 6 | Build `ImageUploader.tsx` upload zone | ✅ |
+| 7 | Add "Image" section to Activity Bar | ✅ |
+| 8 | SQLite schema for `image_edits` table | ✅ |
+| 9 | TipTap integration (insert image command) | ✅ |
+| 10 | Testing & polish | ✅ |
 
 **Reference:** `nano-banana-editor-main/` - Next.js implementation (by Warp team)
 

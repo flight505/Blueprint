@@ -18,6 +18,7 @@ export type Section =
   | 'explorer'
   | 'search'
   | 'planning'
+  | 'image'
   | 'export'
   | 'history'
   | 'settings'

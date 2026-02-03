@@ -56,6 +56,12 @@ import {
   Cog,
   Layers,
   Loader2,
+  Upload,
+  Wand2,
+  RotateCcw,
+  Send,
+  ImagePlus,
+  History,
   type LucideIcon,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -112,6 +118,12 @@ export {
   Cog,
   Layers,
   Loader2,
+  Upload,
+  Wand2,
+  RotateCcw,
+  Send,
+  ImagePlus,
+  History,
 };
 
 // Icon size presets
@@ -133,6 +145,7 @@ export const NAV_ICONS = {
   search: Search,
   context: BarChart3,
   planning: ClipboardList,
+  image: ImagePlus,
   export: Download,
   history: Clock,
   settings: Settings,

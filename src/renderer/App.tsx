@@ -24,6 +24,7 @@ import { useDiffPreview } from './hooks/useDiffPreview';
 import { useDiagramEdit } from './hooks/useDiagramEdit';
 import { ChatContainer, ChatMessageData, AskUserQuestionData } from './components/chat';
 import { SearchPanel } from './components/search';
+import { ImageEditorPanel } from './components/image-editor';
 import { ExportModal, ExportSection } from './components/export';
 import { WelcomeScreen } from './components/welcome';
 import { NewProjectWizard, ProjectConfig } from './components/wizard';
@@ -34,7 +35,7 @@ import { NAV_ICONS, EXPORT_ICONS } from './components/icons';
 
 const MIN_PANE_WIDTH = 300;
 
-type Section = 'chat' | 'explorer' | 'search' | 'context' | 'planning' | 'export' | 'history' | 'settings' | 'help';
+type Section = 'chat' | 'explorer' | 'search' | 'context' | 'planning' | 'image' | 'export' | 'history' | 'settings' | 'help';
 
 // Section labels for panel titles
 const SECTION_LABELS: Record<Section, string> = {
@@ -43,6 +44,7 @@ const SECTION_LABELS: Record<Section, string> = {
   search: 'Search',
   context: 'Context',
   planning: 'Planning',
+  image: 'Image Editor',
   export: 'Export',
   history: 'History',
   settings: 'Settings',
@@ -56,8 +58,9 @@ const PRIMARY_NAV_ITEMS: NavItem[] = [
   { id: 'search', icon: <NAV_ICONS.search size={18} />, label: 'Search', shortcut: '⌘3' },
   { id: 'context', icon: <NAV_ICONS.context size={18} />, label: 'Context', shortcut: '⌘4' },
   { id: 'planning', icon: <NAV_ICONS.planning size={18} />, label: 'Planning', shortcut: '⌘5' },
-  { id: 'export', icon: <NAV_ICONS.export size={18} />, label: 'Export', shortcut: '⌘6' },
-  { id: 'history', icon: <NAV_ICONS.history size={18} />, label: 'History', shortcut: '⌘7' },
+  { id: 'image', icon: <NAV_ICONS.image size={18} />, label: 'Image', shortcut: '⌘6' },
+  { id: 'export', icon: <NAV_ICONS.export size={18} />, label: 'Export', shortcut: '⌘7' },
+  { id: 'history', icon: <NAV_ICONS.history size={18} />, label: 'History', shortcut: '⌘8' },
 ];
 
 const UTILITY_NAV_ITEMS: NavItem[] = [
@@ -374,16 +377,23 @@ function MainApp() {
       action: () => setActiveSection('planning'),
     },
     {
+      id: 'nav:image',
+      label: 'Go to Image Editor',
+      shortcut: 'Cmd+6',
+      category: 'Navigation',
+      action: () => setActiveSection('image'),
+    },
+    {
       id: 'nav:export',
       label: 'Go to Export',
-      shortcut: 'Cmd+6',
+      shortcut: 'Cmd+7',
       category: 'Navigation',
       action: () => setActiveSection('export'),
     },
     {
       id: 'nav:history',
       label: 'Go to History',
-      shortcut: 'Cmd+7',
+      shortcut: 'Cmd+8',
       category: 'Navigation',
       action: () => setActiveSection('history'),
     },
@@ -576,8 +586,9 @@ function MainApp() {
         '3': 'search',
         '4': 'context',
         '5': 'planning',
-        '6': 'export',
-        '7': 'history',
+        '6': 'image',
+        '7': 'export',
+        '8': 'history',
       };
 
       if (e.key in sectionByNumber) {
@@ -930,6 +941,12 @@ function LeftPaneContent({
           </div>
         </div>
       );
+    case 'image':
+      return (
+        <ImageEditorPanel
+          projectId={projectPath ?? undefined}
+        />
+      );
     case 'export':
       return (
         <div className="flex-1 overflow-y-auto p-4">
@@ -1015,7 +1032,8 @@ function LeftPaneContent({
             <div>
               <p className="text-sm font-medium mb-2">Keyboard Shortcuts</p>
               <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
-                <p>Cmd+1-7 - Switch sections</p>
+                <p>Cmd+1-8 - Switch sections</p>
+                <p>Cmd+6 - Image Editor</p>
                 <p>Cmd+Shift+P - Command palette</p>
                 <p>Cmd+Shift+F - Search in project</p>
                 <p>Cmd+P - Quick open file</p>

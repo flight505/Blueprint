@@ -903,6 +903,64 @@ export interface CheckpointData {
   updatedAt: string;
 }
 
+// Image Editor types (Nano Banana)
+export type ImageEditorMimeType = 'image/png' | 'image/jpeg' | 'image/jpg' | 'image/gif' | 'image/webp';
+
+export interface ImageEditRequest {
+  /** Base64-encoded image data (without data URL prefix) */
+  imageBase64: string;
+  /** MIME type of the image */
+  mimeType: ImageEditorMimeType;
+  /** Natural language editing instructions */
+  instructions: string;
+}
+
+export interface ImageEditResponse {
+  /** Whether the operation succeeded */
+  success: boolean;
+  /** Generated image as base64 data URL (data:image/png;base64,...) */
+  generatedImage: string | null;
+  /** AI response text (explanation or commentary) */
+  responseText: string | null;
+  /** Error message if failed */
+  error?: string;
+  /** Processing time in milliseconds */
+  processingTimeMs: number;
+}
+
+export interface ImageEditHistoryItem {
+  id: string;
+  projectId: string;
+  /** Base64 data URL of the image */
+  imageDataUrl: string;
+  /** The prompt used for this edit */
+  prompt: string;
+  /** AI response text */
+  responseText: string | null;
+  /** Timestamp of the edit */
+  createdAt: number;
+}
+
+// Stored image edit from database
+export interface StoredImageEdit {
+  id: string;
+  projectId: string;
+  imageData: string;
+  prompt: string;
+  responseText: string | null;
+  processingTimeMs: number;
+  createdAt: string;
+}
+
+export interface ImageEditInput {
+  id: string;
+  projectId: string;
+  imageData: string;
+  prompt: string;
+  responseText?: string | null;
+  processingTimeMs?: number;
+}
+
 // Update service types
 export interface UpdateStatus {
   checking: boolean;
@@ -1184,6 +1242,36 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('gemini:streamChunk', handler);
     return () => ipcRenderer.removeListener('gemini:streamChunk', handler);
   },
+
+  // Image Editor (Nano Banana)
+  imageEditorInitialize: (): Promise<boolean> =>
+    ipcRenderer.invoke('imageEditor:initialize'),
+  imageEditorIsInitialized: (): Promise<boolean> =>
+    ipcRenderer.invoke('imageEditor:isInitialized'),
+  imageEditorProcessImage: (request: ImageEditRequest): Promise<ImageEditResponse> =>
+    ipcRenderer.invoke('imageEditor:processImage', request),
+  imageEditorValidateImage: (imageBase64: string, mimeType: string): Promise<{ valid: boolean; error?: string }> =>
+    ipcRenderer.invoke('imageEditor:validateImage', imageBase64, mimeType),
+  imageEditorGetModel: (): Promise<string> =>
+    ipcRenderer.invoke('imageEditor:getModel'),
+  imageEditorGetMaxImageSize: (): Promise<number> =>
+    ipcRenderer.invoke('imageEditor:getMaxImageSize'),
+  imageEditorGetSupportedMimeTypes: (): Promise<readonly string[]> =>
+    ipcRenderer.invoke('imageEditor:getSupportedMimeTypes'),
+  imageEditorGenerateHistoryId: (): Promise<string> =>
+    ipcRenderer.invoke('imageEditor:generateHistoryId'),
+
+  // Image Editor database (history persistence)
+  imageEditorSaveToHistory: (edit: ImageEditInput): Promise<void> =>
+    ipcRenderer.invoke('imageEditor:saveToHistory', edit),
+  imageEditorGetHistory: (projectId: string): Promise<StoredImageEdit[]> =>
+    ipcRenderer.invoke('imageEditor:getHistory', projectId),
+  imageEditorClearHistory: (projectId: string): Promise<number> =>
+    ipcRenderer.invoke('imageEditor:clearHistory', projectId),
+  imageEditorRevertToEdit: (projectId: string, editId: string): Promise<number> =>
+    ipcRenderer.invoke('imageEditor:revertToEdit', projectId, editId),
+  imageEditorGetHistoryCount: (projectId: string): Promise<number> =>
+    ipcRenderer.invoke('imageEditor:getHistoryCount', projectId),
 
   // Research router
   researchRouterGetProvider: (mode: ResearchMode, phase?: ProjectPhase): Promise<ResearchProvider> =>
@@ -1687,6 +1775,23 @@ declare global {
       geminiGetProgressCheckpoints: () => Promise<number[]>;
       onGeminiProgressCheckpoint: (callback: (progress: ProgressCheckpoint) => void) => () => void;
       onGeminiStreamChunk: (callback: (chunk: GeminiStreamChunk) => void) => () => void;
+
+      // Image Editor (Nano Banana)
+      imageEditorInitialize: () => Promise<boolean>;
+      imageEditorIsInitialized: () => Promise<boolean>;
+      imageEditorProcessImage: (request: ImageEditRequest) => Promise<ImageEditResponse>;
+      imageEditorValidateImage: (imageBase64: string, mimeType: string) => Promise<{ valid: boolean; error?: string }>;
+      imageEditorGetModel: () => Promise<string>;
+      imageEditorGetMaxImageSize: () => Promise<number>;
+      imageEditorGetSupportedMimeTypes: () => Promise<readonly string[]>;
+      imageEditorGenerateHistoryId: () => Promise<string>;
+
+      // Image Editor database (history persistence)
+      imageEditorSaveToHistory: (edit: ImageEditInput) => Promise<void>;
+      imageEditorGetHistory: (projectId: string) => Promise<StoredImageEdit[]>;
+      imageEditorClearHistory: (projectId: string) => Promise<number>;
+      imageEditorRevertToEdit: (projectId: string, editId: string) => Promise<number>;
+      imageEditorGetHistoryCount: (projectId: string) => Promise<number>;
 
       // Research router
       researchRouterGetProvider: (mode: ResearchMode, phase?: ProjectPhase) => Promise<ResearchProvider>;

@@ -1,6 +1,7 @@
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { useCallback, useEffect, useState, useRef } from 'react';
+import Image from '@tiptap/extension-image';
+import { useCallback, useEffect, useState, useRef, useImperativeHandle, forwardRef } from 'react';
 import { store$ } from '../../state/store';
 import { EditorContextMenu, useEditorContextMenu } from '../contextmenu';
 
@@ -25,6 +26,14 @@ export interface TiptapEditorProps {
   onSearch?: (text: string) => void;
 }
 
+/** Handle for programmatic editor access */
+export interface TiptapEditorHandle {
+  /** Insert an image at the current cursor position */
+  insertImage: (src: string, alt?: string) => void;
+  /** Get the editor instance */
+  getEditor: () => Editor | null;
+}
+
 /**
  * TiptapEditor - Rich text editor component built on Tiptap
  *
@@ -36,8 +45,9 @@ export interface TiptapEditorProps {
  * - Blockquotes
  * - Horizontal rules
  * - History (undo/redo)
+ * - Image insertion (base64 or URL)
  */
-export function TiptapEditor({
+export const TiptapEditor = forwardRef<TiptapEditorHandle, TiptapEditorProps>(function TiptapEditor({
   content = '',
   onChange,
   onEditorReady,
@@ -47,7 +57,7 @@ export function TiptapEditor({
   autoFocus = false,
   onEditWithAI,
   onSearch,
-}: TiptapEditorProps) {
+}, ref) {
   // Context menu hook
   const {
     isOpen: isContextMenuOpen,
@@ -82,6 +92,13 @@ export function TiptapEditor({
           },
         },
       }),
+      Image.configure({
+        inline: false,
+        allowBase64: true,
+        HTMLAttributes: {
+          class: 'editor-image',
+        },
+      }),
     ],
     content,
     editable,
@@ -100,6 +117,16 @@ export function TiptapEditor({
       }
     },
   });
+
+  // Expose imperative handle for programmatic access
+  useImperativeHandle(ref, () => ({
+    insertImage: (src: string, alt?: string) => {
+      if (editor) {
+        editor.chain().focus().setImage({ src, alt: alt || 'Edited image' }).run();
+      }
+    },
+    getEditor: () => editor,
+  }), [editor]);
 
   // Notify when editor is ready
   useEffect(() => {
@@ -242,7 +269,7 @@ export function TiptapEditor({
       />
     </div>
   );
-}
+});
 
 /**
  * Hook to access the editor instance from child components
@@ -288,6 +315,9 @@ export function useEditorContext(editor: Editor | null) {
     redo: () => editor?.chain().focus().redo().run(),
     canUndo: () => editor?.can().undo() ?? false,
     canRedo: () => editor?.can().redo() ?? false,
+    // Image insertion (from Image Editor)
+    insertImage: (src: string, alt?: string) =>
+      editor?.chain().focus().setImage({ src, alt: alt || 'Edited image' }).run(),
   };
 }
 

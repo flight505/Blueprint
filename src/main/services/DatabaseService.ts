@@ -101,6 +101,26 @@ export interface CheckpointInput {
   status: string;
 }
 
+// Image edit types for Nano Banana Image Editor
+export interface StoredImageEdit {
+  id: string;
+  projectId: string;
+  imageData: string; // Base64 data URL
+  prompt: string;
+  responseText: string | null;
+  processingTimeMs: number;
+  createdAt: string;
+}
+
+export interface ImageEditInput {
+  id: string;
+  projectId: string;
+  imageData: string;
+  prompt: string;
+  responseText?: string | null;
+  processingTimeMs?: number;
+}
+
 /**
  * Service for SQLite database operations
  */
@@ -194,6 +214,19 @@ export class DatabaseService {
       )
     `);
 
+    // Create image_edits table for Nano Banana Image Editor
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS image_edits (
+        id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        image_data TEXT NOT NULL,
+        prompt TEXT NOT NULL DEFAULT '',
+        response_text TEXT,
+        processing_time_ms INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      )
+    `);
+
     // Create indexes for common queries
     this.db.exec(`
       CREATE INDEX IF NOT EXISTS idx_sessions_project_path ON sessions(project_path);
@@ -203,6 +236,7 @@ export class DatabaseService {
       CREATE INDEX IF NOT EXISTS idx_recent_projects_last_opened ON recent_projects(last_opened_at);
       CREATE INDEX IF NOT EXISTS idx_checkpoints_project_id ON checkpoints(project_id);
       CREATE INDEX IF NOT EXISTS idx_checkpoints_project_path ON checkpoints(project_path);
+      CREATE INDEX IF NOT EXISTS idx_image_edits_project ON image_edits(project_id);
     `);
 
     console.log(`DatabaseService initialized at ${this.dbPath}`);
@@ -750,6 +784,117 @@ export class DatabaseService {
     const stmt = this.db.prepare('DELETE FROM checkpoints WHERE project_path = ?');
     const result = stmt.run(projectPath);
     return result.changes;
+  }
+
+  // ========== Image Edit Operations (Nano Banana) ==========
+
+  /**
+   * Save an image edit to history
+   */
+  saveImageEdit(edit: ImageEditInput): void {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare(`
+      INSERT INTO image_edits (id, project_id, image_data, prompt, response_text, processing_time_ms, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+    `);
+
+    stmt.run(
+      edit.id,
+      edit.projectId,
+      edit.imageData,
+      edit.prompt,
+      edit.responseText || null,
+      edit.processingTimeMs || 0
+    );
+  }
+
+  /**
+   * Get all image edits for a project, ordered by creation time (oldest first)
+   */
+  getImageEditsByProject(projectId: string): StoredImageEdit[] {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare(`
+      SELECT id, project_id as projectId, image_data as imageData, prompt,
+             response_text as responseText, processing_time_ms as processingTimeMs,
+             created_at as createdAt
+      FROM image_edits WHERE project_id = ?
+      ORDER BY created_at ASC
+    `);
+
+    return stmt.all(projectId) as StoredImageEdit[];
+  }
+
+  /**
+   * Get a single image edit by ID
+   */
+  getImageEdit(editId: string): StoredImageEdit | null {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare(`
+      SELECT id, project_id as projectId, image_data as imageData, prompt,
+             response_text as responseText, processing_time_ms as processingTimeMs,
+             created_at as createdAt
+      FROM image_edits WHERE id = ?
+    `);
+
+    return (stmt.get(editId) as StoredImageEdit) || null;
+  }
+
+  /**
+   * Delete an image edit by ID
+   */
+  deleteImageEdit(editId: string): boolean {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare('DELETE FROM image_edits WHERE id = ?');
+    const result = stmt.run(editId);
+    return result.changes > 0;
+  }
+
+  /**
+   * Delete all image edits after a specific edit (for revert functionality)
+   * Keeps the specified edit and all edits before it
+   */
+  deleteImageEditsAfter(projectId: string, editId: string): number {
+    if (!this.db) throw new Error('Database not initialized');
+
+    // Get the creation timestamp of the target edit
+    const targetEdit = this.getImageEdit(editId);
+    if (!targetEdit) return 0;
+
+    const stmt = this.db.prepare(`
+      DELETE FROM image_edits
+      WHERE project_id = ? AND created_at > ?
+    `);
+
+    const result = stmt.run(projectId, targetEdit.createdAt);
+    return result.changes;
+  }
+
+  /**
+   * Clear all image edits for a project
+   */
+  clearImageEdits(projectId: string): number {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare('DELETE FROM image_edits WHERE project_id = ?');
+    const result = stmt.run(projectId);
+    return result.changes;
+  }
+
+  /**
+   * Get the count of image edits for a project
+   */
+  getImageEditCount(projectId: string): number {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const result = this.db
+      .prepare('SELECT COUNT(*) as count FROM image_edits WHERE project_id = ?')
+      .get(projectId) as { count: number };
+
+    return result.count;
   }
 
   /**

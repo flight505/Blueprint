@@ -338,6 +338,19 @@ body {
   border-color: rgb(129, 140, 248);
 }
 
+/* Editor images (from Image Editor) */
+.tiptap-editor .editor-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.dark .tiptap-editor .editor-image {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.2);
+}
+
 /* Screen reader only - WCAG 2.2 */
 .sr-only {
   position: absolute;
