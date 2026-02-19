@@ -5,28 +5,28 @@ import { ModelSelector, type TaskClassification, type ModelInfo } from './ModelS
 
 // Mock models data
 const mockModels: ModelInfo[] = [
-  { id: 'claude-3-5-haiku-20241022', name: 'Haiku', complexity: 'simple', description: 'Fast, efficient model for quick tasks' },
-  { id: 'claude-sonnet-4-20250514', name: 'Sonnet', complexity: 'medium', description: 'Balanced performance and capability' },
-  { id: 'claude-opus-4-20250514', name: 'Opus', complexity: 'complex', description: 'Most capable for complex reasoning' },
+  { id: 'claude-haiku-4-5', name: 'Haiku', complexity: 'simple', description: 'Fast, efficient model for quick tasks' },
+  { id: 'claude-sonnet-4-6', name: 'Sonnet', complexity: 'medium', description: 'Balanced performance and capability' },
+  { id: 'claude-opus-4-6', name: 'Opus', complexity: 'complex', description: 'Most capable for complex reasoning' },
 ];
 
 // Mock classification results
 const mockClassifications: Record<string, TaskClassification> = {
   simple: {
     complexity: 'simple',
-    model: 'claude-3-5-haiku-20241022',
+    model: 'claude-haiku-4-5',
     confidence: 0.92,
     reasoning: 'Simple formatting task - Haiku is efficient for this',
   },
   medium: {
     complexity: 'medium',
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     confidence: 0.85,
     reasoning: 'Code generation requires balanced capability',
   },
   complex: {
     complexity: 'complex',
-    model: 'claude-opus-4-20250514',
+    model: 'claude-opus-4-6',
     confidence: 0.78,
     reasoning: 'Architecture design needs deep reasoning capability',
   },
@@ -110,7 +110,7 @@ type Story = StoryObj<typeof meta>;
  */
 export const AutoSelectSimple: Story = {
   args: {
-    selectedModel: 'claude-3-5-haiku-20241022',
+    selectedModel: 'claude-haiku-4-5',
     classification: mockClassifications.simple,
     showAutoSelect: true,
   },
@@ -121,7 +121,7 @@ export const AutoSelectSimple: Story = {
  */
 export const AutoSelectMedium: Story = {
   args: {
-    selectedModel: 'claude-sonnet-4-20250514',
+    selectedModel: 'claude-sonnet-4-6',
     classification: mockClassifications.medium,
     showAutoSelect: true,
   },
@@ -132,7 +132,7 @@ export const AutoSelectMedium: Story = {
  */
 export const AutoSelectComplex: Story = {
   args: {
-    selectedModel: 'claude-opus-4-20250514',
+    selectedModel: 'claude-opus-4-6',
     classification: mockClassifications.complex,
     showAutoSelect: true,
   },
@@ -143,7 +143,7 @@ export const AutoSelectComplex: Story = {
  */
 export const ManualSelection: Story = {
   args: {
-    selectedModel: 'claude-sonnet-4-20250514',
+    selectedModel: 'claude-sonnet-4-6',
     classification: null,
     showAutoSelect: true,
   },
@@ -154,7 +154,7 @@ export const ManualSelection: Story = {
  */
 export const Disabled: Story = {
   args: {
-    selectedModel: 'claude-sonnet-4-20250514',
+    selectedModel: 'claude-sonnet-4-6',
     classification: mockClassifications.medium,
     showAutoSelect: true,
     disabled: true,
@@ -170,7 +170,7 @@ export const Disabled: Story = {
  */
 export const CompactMode: Story = {
   args: {
-    selectedModel: 'claude-sonnet-4-20250514',
+    selectedModel: 'claude-sonnet-4-6',
     classification: mockClassifications.medium,
     showAutoSelect: true,
     compact: true,
@@ -182,7 +182,7 @@ export const CompactMode: Story = {
  */
 export const CompactNoClassification: Story = {
   args: {
-    selectedModel: 'claude-opus-4-20250514',
+    selectedModel: 'claude-opus-4-6',
     classification: null,
     showAutoSelect: true,
     compact: true,
@@ -194,7 +194,7 @@ export const CompactNoClassification: Story = {
  */
 export const CompactDisabled: Story = {
   args: {
-    selectedModel: 'claude-3-5-haiku-20241022',
+    selectedModel: 'claude-haiku-4-5',
     classification: mockClassifications.simple,
     showAutoSelect: true,
     compact: true,
@@ -211,7 +211,7 @@ export const CompactDisabled: Story = {
  */
 export const Interactive: StoryObj = {
   render: function InteractiveSelector() {
-    const [model, setModel] = useState<string>('claude-sonnet-4-20250514');
+    const [model, setModel] = useState<string>('claude-sonnet-4-6');
     const [classification] = useState<TaskClassification>(mockClassifications.medium);
 
     return (
@@ -235,7 +235,7 @@ export const Interactive: StoryObj = {
  */
 export const NoAutoSelect: Story = {
   args: {
-    selectedModel: 'claude-sonnet-4-20250514',
+    selectedModel: 'claude-sonnet-4-6',
     classification: null,
     showAutoSelect: false,
   },
@@ -250,7 +250,7 @@ export const NoAutoSelect: Story = {
  */
 export const OnGlassSurface: StoryObj = {
   render: function GlassModelSelector() {
-    const [model, setModel] = useState<string>('claude-sonnet-4-20250514');
+    const [model, setModel] = useState<string>('claude-sonnet-4-6');
 
     return (
       <div className="p-6 glass glass-border rounded-xl w-[420px]">
@@ -274,7 +274,7 @@ export const OnGlassSurface: StoryObj = {
  */
 export const InGlassToolbar: StoryObj = {
   render: function GlassToolbar() {
-    const [model, setModel] = useState<string>('claude-sonnet-4-20250514');
+    const [model, setModel] = useState<string>('claude-sonnet-4-6');
 
     return (
       <div className="flex items-center gap-4 px-4 py-2 glass-elevated glass-border rounded-lg">

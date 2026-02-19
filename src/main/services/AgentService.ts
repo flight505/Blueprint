@@ -8,12 +8,10 @@ import Anthropic from '@anthropic-ai/sdk';
 import type {
   Message,
   MessageParam,
-  MessageCreateParamsStreaming,
   ContentBlock,
   TextBlock,
-  RawMessageStreamEvent,
-} from '@anthropic-ai/sdk/resources/messages/messages';
-import { modelRouter, type TaskType } from './ModelRouter';
+} from '@anthropic-ai/sdk/resources/messages';
+import { modelRouter, CLAUDE_MODELS, type TaskType } from './ModelRouter';
 
 // Re-export types needed by consumers
 export type { MessageParam, Message, ContentBlock };
@@ -24,6 +22,7 @@ export interface AgentSession {
   createdAt: Date;
   messages: MessageParam[];
   model: string;
+  systemPrompt?: string;
 }
 
 export interface StreamChunk {
@@ -49,9 +48,20 @@ export interface SendMessageOptions {
   model?: string;
   /** If provided, auto-select model based on the message content */
   autoSelectModel?: boolean;
+  /** Enable extended thinking (adaptive for Opus 4.6, enabled with budget for older models) */
+  thinking?: boolean;
+  /** Budget tokens for thinking on older models (must be < maxTokens, min 1024) */
+  thinkingBudget?: number;
 }
 
 export type StreamCallback = (chunk: StreamChunk) => void;
+
+/**
+ * Check if a model supports adaptive thinking (Opus 4.6+)
+ */
+function supportsAdaptiveThinking(model: string): boolean {
+  return model === CLAUDE_MODELS.OPUS;
+}
 
 /**
  * Service for managing Claude AI agent sessions
@@ -122,14 +132,8 @@ export class AgentService {
       createdAt: new Date(),
       messages: [],
       model,
+      systemPrompt: options.systemPrompt,
     };
-
-    // Add system prompt if provided
-    if (options.systemPrompt) {
-      // System prompts are passed separately in the API, we store it in session metadata
-      (session as AgentSession & { systemPrompt?: string }).systemPrompt =
-        options.systemPrompt;
-    }
 
     this.sessions.set(session.id, session);
     return session;
@@ -154,6 +158,36 @@ export class AgentService {
    */
   listSessions(): AgentSession[] {
     return Array.from(this.sessions.values());
+  }
+
+  /**
+   * Build thinking parameters based on model and options
+   */
+  private buildThinkingParams(
+    model: string,
+    options: SendMessageOptions
+  ): { thinking?: { type: 'adaptive' } | { type: 'enabled'; budget_tokens: number }; maxTokens: number } {
+    let maxTokens = options.maxTokens || 4096;
+
+    if (!options.thinking) {
+      return { maxTokens };
+    }
+
+    if (supportsAdaptiveThinking(model)) {
+      // Opus 4.6: use adaptive thinking, no budget_tokens needed
+      return {
+        thinking: { type: 'adaptive' },
+        maxTokens: Math.max(maxTokens, 16000), // Ensure enough room for thinking + response
+      };
+    }
+
+    // Older models: use enabled with budget_tokens
+    const budgetTokens = options.thinkingBudget || 10000;
+    maxTokens = Math.max(maxTokens, budgetTokens + 4096); // budget must be < maxTokens
+    return {
+      thinking: { type: 'enabled', budget_tokens: budgetTokens },
+      maxTokens,
+    };
   }
 
   /**
@@ -189,19 +223,19 @@ export class AgentService {
       content: userMessage,
     });
 
-    const sessionWithSystem = session as AgentSession & {
-      systemPrompt?: string;
-    };
+    // Build thinking params
+    const { thinking, maxTokens } = this.buildThinkingParams(messageModel, options);
 
     // Create the message
     const response = await this.client.messages.create({
       model: messageModel,
-      max_tokens: options.maxTokens || 4096,
-      system: sessionWithSystem.systemPrompt,
+      max_tokens: maxTokens,
+      system: session.systemPrompt,
       messages: session.messages,
+      ...(thinking && { thinking }),
     });
 
-    // Add assistant response to history
+    // Add assistant response to history (preserve full content blocks)
     session.messages.push({
       role: 'assistant',
       content: response.content,
@@ -212,7 +246,7 @@ export class AgentService {
 
   /**
    * Send a message with streaming response
-   * Calls the callback for each chunk received
+   * Uses the SDK's .stream() helper for reliable streaming with .finalMessage()
    */
   async sendMessageStream(
     sessionId: string,
@@ -244,29 +278,22 @@ export class AgentService {
       content: userMessage,
     });
 
-    const sessionWithSystem = session as AgentSession & {
-      systemPrompt?: string;
-    };
-
-    const streamParams: MessageCreateParamsStreaming = {
-      model: messageModel,
-      max_tokens: options.maxTokens || 4096,
-      system: sessionWithSystem.systemPrompt,
-      messages: session.messages,
-      stream: true,
-    };
-
-    // Collect full response text for history
-    let fullText = '';
+    // Build thinking params
+    const { thinking, maxTokens } = this.buildThinkingParams(messageModel, options);
 
     try {
-      const stream = await this.client.messages.create(streamParams);
+      const stream = this.client.messages.stream({
+        model: messageModel,
+        max_tokens: maxTokens,
+        system: session.systemPrompt,
+        messages: session.messages,
+        ...(thinking && { thinking }),
+      });
 
-      for await (const event of stream as AsyncIterable<RawMessageStreamEvent>) {
+      for await (const event of stream) {
         if (event.type === 'content_block_delta') {
           const delta = event.delta;
           if ('text' in delta) {
-            fullText += delta.text;
             onChunk({ type: 'text', content: delta.text });
           } else if ('thinking' in delta) {
             onChunk({ type: 'thinking', content: delta.thinking });
@@ -286,13 +313,12 @@ export class AgentService {
         }
       }
 
-      // Add assistant response to history
-      if (fullText) {
-        session.messages.push({
-          role: 'assistant',
-          content: fullText,
-        });
-      }
+      // Get the complete final message and preserve full content blocks in history
+      const finalMessage = await stream.finalMessage();
+      session.messages.push({
+        role: 'assistant',
+        content: finalMessage.content,
+      });
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';

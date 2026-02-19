@@ -5,7 +5,7 @@
  * to generate concise summaries while preserving recent context in full.
  */
 import Anthropic from '@anthropic-ai/sdk';
-import type { MessageParam, TextBlock } from '@anthropic-ai/sdk/resources/messages/messages';
+import type { MessageParam, TextBlock } from '@anthropic-ai/sdk/resources/messages';
 import { CLAUDE_MODELS } from './ModelRouter';
 
 // Configuration constants

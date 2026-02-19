@@ -15,7 +15,8 @@ Tracking bug fixes, polish, and feature extensions before v1.1/v2.0.
 
 | ID | Description | Priority | Status |
 |----|-------------|----------|--------|
-| BF-001 | | | ⬚ |
+| BF-001 | **Streaming loses content blocks** — `AgentService.sendMessageStream` appends only text string to history instead of full `response.content` array. Loses tool_use, thinking, and compaction blocks. | High | ✅ |
+| BF-002 | **Stale model ID in Storybook** — `ModelSelector.stories.tsx` references retired `claude-3-5-haiku-20241022` | Low | ✅ |
 
 ---
 
@@ -34,7 +35,11 @@ Tracking bug fixes, polish, and feature extensions before v1.1/v2.0.
 
 | ID | Description | Priority | Status |
 |----|-------------|----------|--------|
-| FE-001 | | | ⬚ |
+| FE-001 | **Update model IDs to current aliases** — `ModelRouter.ts` uses deprecated date-suffixed Claude 4.0 IDs (`claude-*-4-20250514`). Update to current aliases: `claude-haiku-4-5`, `claude-sonnet-4-6`, `claude-opus-4-6`. Also update hardcoded IDs in `DatabaseService.ts`, `DiagramEditModal.tsx`, `ModelSelector.stories.tsx` | Critical | ✅ |
+| FE-002 | **Add adaptive thinking support** — Enable `thinking: { type: "adaptive" }` for Opus 4.6 in AgentService. Blueprint's planning use case would benefit significantly from extended thinking on complex tasks | High | ✅ |
+| FE-003 | **Upgrade streaming to `client.messages.stream()`** — Replace low-level `create({ stream: true })` + manual event casting with SDK's `.stream()` helper. Provides `.finalMessage()` for reliable history append | Medium | ✅ |
+| FE-004 | **Add structured outputs for data extraction** — Use `messages.parse()` with Zod schemas for confidence scoring, citation parsing, and phase planning. Guarantees valid JSON output | Medium | ⬚ |
+| FE-005 | **Evaluate server-side compaction** — API now offers beta server-side compaction (`compact-2026-01-12`) for Opus 4.6. Could augment or replace custom `ContextManager` Haiku summarization for long sessions | Low | ⬚ |
 
 ---
 
@@ -166,6 +171,9 @@ const response = await genAI.models.generateContent({
 |----|-------------|----------|--------|
 | TD-001 | Remove unused variables (setExportSections, initializeAgent, createSession) | Low | ⬚ |
 | TD-002 | Fix KaTeX font resolution warnings during build | Low | ⬚ |
+| TD-003 | **Update `@anthropic-ai/sdk` from 0.71.2 to 0.77.0** — 6 releases behind. New features: tool runner helpers, structured output improvements, compaction support | High | ✅ |
+| TD-004 | **Fix `systemPrompt` type hack in AgentService** — Uses `(session as AgentSession & { systemPrompt?: string })` cast. Add `systemPrompt` as proper optional field on `AgentSession` interface | Low | ✅ |
+| TD-005 | **Use top-level SDK imports** — Deep imports from `@anthropic-ai/sdk/resources/messages/messages` may break across SDK versions. Use re-exports from `@anthropic-ai/sdk` instead | Medium | ✅ |
 
 ---
 

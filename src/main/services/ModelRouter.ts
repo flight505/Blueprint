@@ -9,9 +9,9 @@
 
 // Available Claude models with their identifiers
 export const CLAUDE_MODELS = {
-  HAIKU: 'claude-haiku-4-20250514',
-  SONNET: 'claude-sonnet-4-20250514',
-  OPUS: 'claude-opus-4-20250514',
+  HAIKU: 'claude-haiku-4-5',
+  SONNET: 'claude-sonnet-4-6',
+  OPUS: 'claude-opus-4-6',
 } as const;
 
 export type ModelId = (typeof CLAUDE_MODELS)[keyof typeof CLAUDE_MODELS];

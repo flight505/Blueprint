@@ -155,7 +155,7 @@ export class DatabaseService {
         id TEXT PRIMARY KEY,
         project_path TEXT NOT NULL,
         conversation_history TEXT NOT NULL DEFAULT '[]',
-        model TEXT NOT NULL DEFAULT 'claude-sonnet-4-20250514',
+        model TEXT NOT NULL DEFAULT 'claude-sonnet-4-6',
         created_at TEXT NOT NULL DEFAULT (datetime('now')),
         updated_at TEXT NOT NULL DEFAULT (datetime('now'))
       )

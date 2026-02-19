@@ -182,7 +182,7 @@ export function DiagramEditModal({
       // Create a session for diagram editing
       const session = await window.electronAPI.agentCreateSession({
         systemPrompt: DIAGRAM_SYSTEM_PROMPT,
-        model: 'claude-sonnet-4-20250514', // Use Sonnet for diagram generation
+        model: 'claude-sonnet-4-6', // Use Sonnet for diagram generation
       });
       setAiSessionId(session.id);
 
