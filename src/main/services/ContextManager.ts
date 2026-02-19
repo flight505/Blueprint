@@ -154,13 +154,6 @@ export class ContextManager {
   }
 
   /**
-   * Get active (non-compacted) events for a session
-   */
-  getActiveEvents(sessionId: string): ContextEvent[] {
-    return this.getEvents(sessionId);
-  }
-
-  /**
    * Get context statistics for a session
    */
   getStats(sessionId: string): ContextStats | null {
@@ -444,15 +437,6 @@ ${contextToSummarize}`,
     }
   }
 }
-
-// Re-export types for consumers
-export type {
-  ContextEvent as ContextEventType,
-  CompactionSummary as CompactionSummaryType,
-  SessionContext as SessionContextType,
-  CompactionResult as CompactionResultType,
-  ContextStats as ContextStatsType,
-};
 
 // Singleton instance for the main process
 export const contextManager = new ContextManager();

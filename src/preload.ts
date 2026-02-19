@@ -73,6 +73,31 @@ export interface SendMessageOptions {
   stream?: boolean;
 }
 
+export interface SendMessageParsedOptions {
+  maxTokens?: number;
+  model?: string;
+  autoSelectModel?: boolean;
+  systemPrompt?: string;
+}
+
+export type StructuredOutputSchemaName =
+  | 'confidence_analysis'
+  | 'citation_extraction'
+  | 'phase_plan'
+  | 'task_classification'
+  | 'document_summary'
+  | 'research_synthesis';
+
+export interface ParsedMessageResult<T = unknown> {
+  parsed: T;
+  rawText: string;
+  model: string;
+  usage: {
+    input_tokens: number;
+    output_tokens: number;
+  };
+}
+
 export interface MessageParam {
   role: 'user' | 'assistant';
   content: string | ContentBlock[];
@@ -1064,6 +1089,29 @@ contextBridge.exposeInMainWorld('electronAPI', {
   agentClearConversationHistory: (sessionId: string): Promise<boolean> =>
     ipcRenderer.invoke('agent:clearConversationHistory', sessionId),
 
+  // Structured output methods (messages.parse() + Zod)
+  agentSendMessageParsed: (
+    schemaName: StructuredOutputSchemaName,
+    userMessage: string,
+    options?: SendMessageParsedOptions
+  ): Promise<ParsedMessageResult> =>
+    ipcRenderer.invoke('agent:sendMessageParsed', schemaName, userMessage, options),
+  agentSendSessionMessageParsed: (
+    sessionId: string,
+    schemaName: StructuredOutputSchemaName,
+    userMessage: string,
+    options?: SendMessageParsedOptions
+  ): Promise<ParsedMessageResult> =>
+    ipcRenderer.invoke('agent:sendSessionMessageParsed', sessionId, schemaName, userMessage, options),
+  agentSendMessageParsedStream: (
+    schemaName: StructuredOutputSchemaName,
+    userMessage: string,
+    options?: SendMessageParsedOptions
+  ): Promise<ParsedMessageResult> =>
+    ipcRenderer.invoke('agent:sendMessageParsedStream', schemaName, userMessage, options),
+  agentListStructuredOutputSchemas: (): Promise<string[]> =>
+    ipcRenderer.invoke('agent:listStructuredOutputSchemas'),
+
   // Event listeners for streaming
   onAgentStreamChunk: (callback: (sessionId: string, chunk: StreamChunk) => void) => {
     const handler = (_event: Electron.IpcRendererEvent, sessionId: string, chunk: StreamChunk) => {
@@ -1072,6 +1120,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('agent:streamChunk', handler);
     // Return a cleanup function
     return () => ipcRenderer.removeListener('agent:streamChunk', handler);
+  },
+  onAgentParsedStreamChunk: (callback: (chunk: StreamChunk) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, chunk: StreamChunk) => {
+      callback(chunk);
+    };
+    ipcRenderer.on('agent:parsedStreamChunk', handler);
+    return () => ipcRenderer.removeListener('agent:parsedStreamChunk', handler);
   },
 
   // Database service
@@ -1158,8 +1213,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('contextManager:addEvent', sessionId, type, content, metadata),
   contextManagerGetEvents: (sessionId: string): Promise<ContextEvent[]> =>
     ipcRenderer.invoke('contextManager:getEvents', sessionId),
-  contextManagerGetActiveEvents: (sessionId: string): Promise<ContextEvent[]> =>
-    ipcRenderer.invoke('contextManager:getActiveEvents', sessionId),
   contextManagerGetStats: (sessionId: string): Promise<ContextStats | null> =>
     ipcRenderer.invoke('contextManager:getStats', sessionId),
   contextManagerShouldCompact: (sessionId: string): Promise<boolean> =>
@@ -1685,7 +1738,26 @@ declare global {
       agentResumeSession: (sessionId: string, messages: MessageParam[], model?: string) => Promise<AgentSession>;
       agentGetConversationHistory: (sessionId: string) => Promise<MessageParam[]>;
       agentClearConversationHistory: (sessionId: string) => Promise<boolean>;
+      // Structured output methods
+      agentSendMessageParsed: (
+        schemaName: StructuredOutputSchemaName,
+        userMessage: string,
+        options?: SendMessageParsedOptions
+      ) => Promise<ParsedMessageResult>;
+      agentSendSessionMessageParsed: (
+        sessionId: string,
+        schemaName: StructuredOutputSchemaName,
+        userMessage: string,
+        options?: SendMessageParsedOptions
+      ) => Promise<ParsedMessageResult>;
+      agentSendMessageParsedStream: (
+        schemaName: StructuredOutputSchemaName,
+        userMessage: string,
+        options?: SendMessageParsedOptions
+      ) => Promise<ParsedMessageResult>;
+      agentListStructuredOutputSchemas: () => Promise<string[]>;
       onAgentStreamChunk: (callback: (sessionId: string, chunk: StreamChunk) => void) => () => void;
+      onAgentParsedStreamChunk: (callback: (chunk: StreamChunk) => void) => () => void;
 
       // Database service
       dbIsInitialized: () => Promise<boolean>;
@@ -1736,7 +1808,6 @@ declare global {
         metadata?: Record<string, unknown>
       ) => Promise<ContextEvent>;
       contextManagerGetEvents: (sessionId: string) => Promise<ContextEvent[]>;
-      contextManagerGetActiveEvents: (sessionId: string) => Promise<ContextEvent[]>;
       contextManagerGetStats: (sessionId: string) => Promise<ContextStats | null>;
       contextManagerShouldCompact: (sessionId: string) => Promise<boolean>;
       contextManagerCompact: (sessionId: string) => Promise<CompactionResult>;

@@ -178,15 +178,32 @@ export class ModelRouter {
       }
     }
 
-    // Determine winning complexity
+    // Determine winning complexity.
+    // Tie-breaking: when multiple complexity levels have equal scores, the
+    // iteration order of Object.entries(scores) determines the winner (the
+    // last-seen level with the highest score wins due to strict `>`). In
+    // practice the insertion order is simple → medium → complex, so ties
+    // resolve to the *highest* complexity. To keep behaviour predictable we
+    // explicitly fall back to 'medium' (the safest default) on ties.
     let maxScore = -1;
     let winningComplexity: TaskComplexity = 'medium';
+    let isTied = false;
 
     for (const [complexity, score] of Object.entries(scores)) {
       if (score > maxScore) {
         maxScore = score;
         winningComplexity = complexity as TaskComplexity;
+        isTied = false;
+      } else if (score === maxScore) {
+        isTied = true;
       }
+    }
+
+    // On a tie, prefer 'medium' — it maps to Sonnet which is the safest
+    // default: capable enough for most tasks without the latency/cost of
+    // Opus or the reduced quality of Haiku.
+    if (isTied) {
+      winningComplexity = 'medium';
     }
 
     // Calculate confidence based on score margin

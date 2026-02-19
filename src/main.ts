@@ -2,7 +2,15 @@ import { app, BrowserWindow, ipcMain, dialog, session } from 'electron';
 import path from 'node:path';
 import { checkAllPermissions, openSystemPreferences } from './main/permissions';
 import { readDirectory, readFileContent, listAllFiles, searchInFiles, writeFile, FileNode, FileContent, QuickOpenFile, SearchResult, addAllowedBasePath, clearAllowedBasePaths, isPathAllowed } from './main/services/FileSystemService';
-import { agentService, type AgentSession, type StreamChunk, type CreateSessionOptions, type SendMessageOptions, type MessageParam } from './main/services/AgentService';
+import { agentService, type AgentSession, type StreamChunk, type CreateSessionOptions, type SendMessageOptions, type SendMessageParsedOptions, type MessageParam } from './main/services/AgentService';
+import {
+  ConfidenceAnalysisSchema,
+  CitationExtractionSchema,
+  PhasePlanSchema,
+  TaskClassificationSchema,
+  DocumentSummarySchema,
+  ResearchSynthesisSchema,
+} from './main/services/StructuredOutputSchemas';
 import { databaseService } from './main/services/DatabaseService';
 import type { SessionInput, DocumentInput, StoredSession, StoredDocument, PromptInput, StoredPrompt, RecentProjectInput, RecentProject } from './main/services/DatabaseService';
 import { secureStorageService, type ApiKeyType } from './main/services/SecureStorageService';
@@ -217,6 +225,74 @@ function registerIpcHandlers() {
     return agentService.clearConversationHistory(sessionId);
   });
 
+  // ========================================
+  // Structured Output handlers (messages.parse() + Zod)
+  // ========================================
+
+  // Schema registry for IPC: maps schema names to Zod schema objects
+  const structuredOutputSchemas = {
+    confidence_analysis: ConfidenceAnalysisSchema,
+    citation_extraction: CitationExtractionSchema,
+    phase_plan: PhasePlanSchema,
+    task_classification: TaskClassificationSchema,
+    document_summary: DocumentSummarySchema,
+    research_synthesis: ResearchSynthesisSchema,
+  } as const;
+
+  type SchemaName = keyof typeof structuredOutputSchemas;
+
+  ipcMain.handle('agent:sendMessageParsed', async (
+    _,
+    schemaName: string,
+    userMessage: string,
+    options?: SendMessageParsedOptions
+  ) => {
+    const schema = structuredOutputSchemas[schemaName as SchemaName];
+    if (!schema) {
+      throw new Error(`Unknown schema: "${schemaName}". Available schemas: ${Object.keys(structuredOutputSchemas).join(', ')}`);
+    }
+    return await agentService.sendMessageParsed(schema, userMessage, options);
+  });
+
+  ipcMain.handle('agent:sendSessionMessageParsed', async (
+    _,
+    sessionId: string,
+    schemaName: string,
+    userMessage: string,
+    options?: SendMessageParsedOptions
+  ) => {
+    const schema = structuredOutputSchemas[schemaName as SchemaName];
+    if (!schema) {
+      throw new Error(`Unknown schema: "${schemaName}". Available schemas: ${Object.keys(structuredOutputSchemas).join(', ')}`);
+    }
+    return await agentService.sendSessionMessageParsed(sessionId, schema, userMessage, options);
+  });
+
+  ipcMain.handle('agent:sendMessageParsedStream', async (
+    event,
+    schemaName: string,
+    userMessage: string,
+    options?: SendMessageParsedOptions
+  ) => {
+    const schema = structuredOutputSchemas[schemaName as SchemaName];
+    if (!schema) {
+      throw new Error(`Unknown schema: "${schemaName}". Available schemas: ${Object.keys(structuredOutputSchemas).join(', ')}`);
+    }
+    const webContents = event.sender;
+    return await agentService.sendMessageParsedStream(
+      schema,
+      userMessage,
+      (chunk: StreamChunk) => {
+        webContents.send('agent:parsedStreamChunk', chunk);
+      },
+      options
+    );
+  });
+
+  ipcMain.handle('agent:listStructuredOutputSchemas', () => {
+    return Object.keys(structuredOutputSchemas);
+  });
+
   // Database service handlers
   ipcMain.handle('db:isInitialized', (): boolean => {
     return databaseService.isInitialized();
@@ -366,10 +442,6 @@ function registerIpcHandlers() {
 
   ipcMain.handle('contextManager:getEvents', (_, sessionId: string): ContextEvent[] => {
     return contextManager.getEvents(sessionId);
-  });
-
-  ipcMain.handle('contextManager:getActiveEvents', (_, sessionId: string): ContextEvent[] => {
-    return contextManager.getActiveEvents(sessionId);
   });
 
   ipcMain.handle('contextManager:getStats', (_, sessionId: string): ContextStats | null => {

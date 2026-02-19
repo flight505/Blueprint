@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { enableReactTracking } from '@legendapp/state/config/enableReactTracking';
 import App from './App';
+import 'katex/dist/katex.min.css';
 import './index.css';
 
 // Enable automatic React tracking for observables

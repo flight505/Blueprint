@@ -2,7 +2,8 @@
  * AgentService - Manages Claude AI sessions in the main process
  *
  * Provides session creation, message streaming, and conversation management
- * using the Anthropic SDK.
+ * using the Anthropic SDK. Supports structured outputs via messages.parse()
+ * with Zod schemas for validated, typed responses.
  */
 import Anthropic from '@anthropic-ai/sdk';
 import type {
@@ -11,6 +12,9 @@ import type {
   ContentBlock,
   TextBlock,
 } from '@anthropic-ai/sdk/resources/messages';
+import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
+import type { ParsedMessage } from '@anthropic-ai/sdk/lib/parser';
+import type { ZodType, infer as zodInfer } from 'zod';
 import { modelRouter, CLAUDE_MODELS, type TaskType } from './ModelRouter';
 
 // Re-export types needed by consumers
@@ -55,6 +59,28 @@ export interface SendMessageOptions {
 }
 
 export type StreamCallback = (chunk: StreamChunk) => void;
+
+export interface SendMessageParsedOptions extends Omit<SendMessageOptions, 'stream'> {
+  /** System prompt override for the parsed request (does not modify session) */
+  systemPrompt?: string;
+}
+
+/**
+ * Result from a parsed structured output request
+ */
+export interface ParsedMessageResult<T> {
+  /** The parsed and validated output object */
+  parsed: T;
+  /** The raw text response from the model */
+  rawText: string;
+  /** Model used for the request */
+  model: string;
+  /** Token usage */
+  usage: {
+    input_tokens: number;
+    output_tokens: number;
+  };
+}
 
 /**
  * Models that support adaptive thinking (Opus 4.6, Sonnet 4.6).
@@ -338,6 +364,214 @@ export class AgentService {
       onChunk({ type: 'error', content: errorMessage });
       throw error;
     }
+  }
+
+  /**
+   * Send a message and parse the response into a validated Zod schema.
+   * Uses the SDK's messages.parse() with zodOutputFormat() for automatic
+   * JSON schema enforcement and Zod validation.
+   *
+   * This does NOT add the message to session history -- it is designed for
+   * stateless data extraction tasks. Use sendMessage() for conversational flows.
+   */
+  async sendMessageParsed<T extends ZodType>(
+    schema: T,
+    userMessage: string,
+    options: SendMessageParsedOptions = {}
+  ): Promise<ParsedMessageResult<zodInfer<T>>> {
+    if (!this.client) {
+      throw new Error('AgentService not initialized. Call initialize() first.');
+    }
+
+    // Determine the model
+    let model = options.model || modelRouter.getDefaultModel();
+    if (options.autoSelectModel && !options.model) {
+      const classification = modelRouter.classifyTask(userMessage);
+      model = classification.model;
+    }
+
+    const maxTokens = options.maxTokens || 4096;
+
+    const response: ParsedMessage<zodInfer<T>> = await this.client.messages.parse({
+      model,
+      max_tokens: maxTokens,
+      system: options.systemPrompt,
+      messages: [{ role: 'user', content: userMessage }],
+      output_config: {
+        format: zodOutputFormat(schema),
+      },
+    });
+
+    // Extract parsed output; throw if parsing failed
+    if (response.parsed_output === null || response.parsed_output === undefined) {
+      const rawText = AgentService.extractTextContent(response.content);
+      throw new Error(
+        `Structured output parsing returned null. Raw response: ${rawText.substring(0, 500)}`
+      );
+    }
+
+    return {
+      parsed: response.parsed_output,
+      rawText: AgentService.extractTextContent(response.content),
+      model: response.model,
+      usage: {
+        input_tokens: response.usage.input_tokens,
+        output_tokens: response.usage.output_tokens,
+      },
+    };
+  }
+
+  /**
+   * Send a message within a session and parse the response into a validated Zod schema.
+   * Unlike sendMessageParsed(), this method maintains session history.
+   */
+  async sendSessionMessageParsed<T extends ZodType>(
+    sessionId: string,
+    schema: T,
+    userMessage: string,
+    options: SendMessageParsedOptions = {}
+  ): Promise<ParsedMessageResult<zodInfer<T>>> {
+    if (!this.client) {
+      throw new Error('AgentService not initialized. Call initialize() first.');
+    }
+
+    const session = this.sessions.get(sessionId);
+    if (!session) {
+      throw new Error(`Session not found: ${sessionId}`);
+    }
+
+    // Determine the model
+    let messageModel = options.model || session.model;
+    if (options.autoSelectModel && !options.model) {
+      const classification = modelRouter.classifyTask(userMessage);
+      messageModel = classification.model;
+    }
+
+    const maxTokens = options.maxTokens || 4096;
+
+    // Add user message to history
+    session.messages.push({
+      role: 'user',
+      content: userMessage,
+    });
+
+    try {
+      const response: ParsedMessage<zodInfer<T>> = await this.client.messages.parse({
+        model: messageModel,
+        max_tokens: maxTokens,
+        system: options.systemPrompt || session.systemPrompt,
+        messages: session.messages,
+        output_config: {
+          format: zodOutputFormat(schema),
+        },
+      });
+
+      // Add assistant response to history
+      session.messages.push({
+        role: 'assistant',
+        content: response.content,
+      });
+
+      if (response.parsed_output === null || response.parsed_output === undefined) {
+        const rawText = AgentService.extractTextContent(response.content);
+        throw new Error(
+          `Structured output parsing returned null. Raw response: ${rawText.substring(0, 500)}`
+        );
+      }
+
+      return {
+        parsed: response.parsed_output,
+        rawText: AgentService.extractTextContent(response.content),
+        model: response.model,
+        usage: {
+          input_tokens: response.usage.input_tokens,
+          output_tokens: response.usage.output_tokens,
+        },
+      };
+    } catch (error) {
+      // Roll back user message on failure
+      if (session.messages.at(-1)?.role === 'user') {
+        session.messages.pop();
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Send a message with streaming and parse the final response into a Zod schema.
+   * Streams text chunks to the callback during generation, and returns the
+   * validated parsed result once complete.
+   */
+  async sendMessageParsedStream<T extends ZodType>(
+    schema: T,
+    userMessage: string,
+    onChunk: StreamCallback,
+    options: SendMessageParsedOptions = {}
+  ): Promise<ParsedMessageResult<zodInfer<T>>> {
+    if (!this.client) {
+      throw new Error('AgentService not initialized. Call initialize() first.');
+    }
+
+    let model = options.model || modelRouter.getDefaultModel();
+    if (options.autoSelectModel && !options.model) {
+      const classification = modelRouter.classifyTask(userMessage);
+      model = classification.model;
+    }
+
+    const maxTokens = options.maxTokens || 4096;
+
+    const stream = this.client.messages.stream({
+      model,
+      max_tokens: maxTokens,
+      system: options.systemPrompt,
+      messages: [{ role: 'user', content: userMessage }],
+      output_config: {
+        format: zodOutputFormat(schema),
+      },
+    });
+
+    for await (const event of stream) {
+      if (event.type === 'content_block_delta') {
+        const delta = event.delta;
+        if ('text' in delta) {
+          onChunk({ type: 'text', content: delta.text });
+        }
+      } else if (event.type === 'message_stop') {
+        onChunk({ type: 'done', content: '' });
+      }
+    }
+
+    const finalMessage = await stream.finalMessage();
+    const rawText = AgentService.extractTextContent(finalMessage.content);
+
+    // Parse the accumulated text using the Zod schema via zodOutputFormat
+    const outputFormat = zodOutputFormat(schema);
+    let parsed: zodInfer<T>;
+    try {
+      parsed = outputFormat.parse(rawText);
+    } catch (parseError) {
+      throw new Error(
+        `Structured output parsing failed: ${parseError instanceof Error ? parseError.message : String(parseError)}`
+      );
+    }
+
+    return {
+      parsed,
+      rawText,
+      model: finalMessage.model,
+      usage: {
+        input_tokens: finalMessage.usage.input_tokens,
+        output_tokens: finalMessage.usage.output_tokens,
+      },
+    };
+  }
+
+  /**
+   * Expose the Anthropic client for advanced use cases.
+   * Returns null if not initialized.
+   */
+  getClient(): Anthropic | null {
+    return this.client;
   }
 
   /**

@@ -168,7 +168,7 @@ function MainApp() {
 
   // Export modal state
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [exportSections, setExportSections] = useState<ExportSection[]>([]);
+  const [exportSections] = useState<ExportSection[]>([]);
 
   // New project wizard state (will be used by US-042)
   const [showNewProjectWizard, setShowNewProjectWizard] = useState(false);
@@ -178,8 +178,6 @@ function MainApp() {
     streamingContent,
     isStreaming,
     sendMessage: sendStreamingMessage,
-    initializeAgent,
-    createSession,
   } = useStreaming({
     onStreamComplete: (completedMessage) => {
       // Convert completed streaming message to chat message
