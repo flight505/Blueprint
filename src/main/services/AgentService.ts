@@ -57,10 +57,13 @@ export interface SendMessageOptions {
 export type StreamCallback = (chunk: StreamChunk) => void;
 
 /**
- * Check if a model supports adaptive thinking (Opus 4.6+)
+ * Models that support adaptive thinking (Opus 4.6, Sonnet 4.6).
+ * Haiku 4.5 and older models require type: 'enabled' with budget_tokens.
  */
+const ADAPTIVE_THINKING_MODELS: Set<string> = new Set([CLAUDE_MODELS.OPUS, CLAUDE_MODELS.SONNET]);
+
 function supportsAdaptiveThinking(model: string): boolean {
-  return model === CLAUDE_MODELS.OPUS;
+  return ADAPTIVE_THINKING_MODELS.has(model);
 }
 
 /**
@@ -226,22 +229,28 @@ export class AgentService {
     // Build thinking params
     const { thinking, maxTokens } = this.buildThinkingParams(messageModel, options);
 
-    // Create the message
-    const response = await this.client.messages.create({
-      model: messageModel,
-      max_tokens: maxTokens,
-      system: session.systemPrompt,
-      messages: session.messages,
-      ...(thinking && { thinking }),
-    });
+    try {
+      // Create the message
+      const response = await this.client.messages.create({
+        model: messageModel,
+        max_tokens: maxTokens,
+        system: session.systemPrompt,
+        messages: session.messages,
+        ...(thinking && { thinking }),
+      });
 
-    // Add assistant response to history (preserve full content blocks)
-    session.messages.push({
-      role: 'assistant',
-      content: response.content,
-    });
+      // Add assistant response to history (preserve full content blocks)
+      session.messages.push({
+        role: 'assistant',
+        content: response.content,
+      });
 
-    return response;
+      return response;
+    } catch (error) {
+      // Roll back user message on API failure to keep history consistent
+      session.messages.pop();
+      throw error;
+    }
   }
 
   /**
@@ -320,6 +329,10 @@ export class AgentService {
         content: finalMessage.content,
       });
     } catch (error) {
+      // Roll back user message on failure to keep history consistent
+      if (session.messages.at(-1)?.role === 'user') {
+        session.messages.pop();
+      }
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
       onChunk({ type: 'error', content: errorMessage });
@@ -333,13 +346,15 @@ export class AgentService {
   resumeSession(
     sessionId: string,
     messages: MessageParam[],
-    model?: string
+    model?: string,
+    systemPrompt?: string
   ): AgentSession {
     const session: AgentSession = {
       id: sessionId,
       createdAt: new Date(),
-      messages: messages,
+      messages,
       model: model || modelRouter.getDefaultModel(),
+      systemPrompt,
     };
 
     this.sessions.set(session.id, session);
