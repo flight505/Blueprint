@@ -4,6 +4,10 @@
  * Provides session creation, message streaming, and conversation management
  * using the Anthropic SDK. Supports structured outputs via messages.parse()
  * with Zod schemas for validated, typed responses.
+ *
+ * Server-side compaction (beta): When enabled, long conversations are
+ * automatically compacted by the API to stay within context limits.
+ * Compaction blocks are round-tripped transparently in subsequent requests.
  */
 import Anthropic from '@anthropic-ai/sdk';
 import type {
@@ -12,13 +16,59 @@ import type {
   ContentBlock,
   TextBlock,
 } from '@anthropic-ai/sdk/resources/messages';
+import type {
+  BetaMessage,
+  BetaMessageParam,
+  BetaContentBlock,
+  BetaCompactionBlock,
+  BetaCompactionBlockParam,
+} from '@anthropic-ai/sdk/resources/beta/messages/messages';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import type { ParsedMessage } from '@anthropic-ai/sdk/lib/parser';
 import type { ZodType, infer as zodInfer } from 'zod';
 import { modelRouter, CLAUDE_MODELS, type TaskType } from './ModelRouter';
+import { contextManager } from './ContextManager';
 
 // Re-export types needed by consumers
 export type { MessageParam, Message, ContentBlock };
+export type { BetaMessage, BetaMessageParam, BetaCompactionBlock };
+
+/** Beta header required for the context management API */
+const CONTEXT_MANAGEMENT_BETA = 'context-management-2025-06-27' as const;
+
+/**
+ * Configuration for server-side compaction.
+ * When enabled, the API will automatically compact long conversations.
+ */
+export interface CompactionConfig {
+  /** Enable server-side compaction via the beta API */
+  enabled: boolean;
+  /** Input token threshold that triggers compaction (default: 100000) */
+  triggerTokens?: number;
+  /** Additional instructions for the summarization model during compaction */
+  instructions?: string;
+  /**
+   * If true, the API pauses after compaction and returns the compaction block
+   * before generating the assistant response. The caller must re-send the
+   * request with the compaction block to get the actual response.
+   * Default: true (to give callers control over compaction events).
+   */
+  pauseAfterCompaction?: boolean;
+}
+
+/**
+ * Result from sendMessage / sendMessageStream when server-side compaction occurs.
+ * When stop_reason is 'compaction', the response contains compaction blocks
+ * instead of a normal assistant reply.
+ */
+export interface CompactionEvent {
+  /** Indicates this is a compaction event, not a normal response */
+  type: 'compaction';
+  /** The compaction blocks to round-trip in the next request */
+  compactionBlocks: BetaCompactionBlock[];
+  /** The full BetaMessage response (for inspection / logging) */
+  rawResponse: BetaMessage;
+}
 
 // Types for session management
 export interface AgentSession {
@@ -27,10 +77,20 @@ export interface AgentSession {
   messages: MessageParam[];
   model: string;
   systemPrompt?: string;
+  /** When true, message operations are automatically tracked in ContextManager */
+  trackContext?: boolean;
+  /** Server-side compaction configuration for this session */
+  compaction?: CompactionConfig;
+  /**
+   * Beta message history used when compaction is enabled.
+   * This is the authoritative message history for compaction sessions,
+   * containing BetaCompactionBlockParam blocks from prior compaction events.
+   */
+  betaMessages?: BetaMessageParam[];
 }
 
 export interface StreamChunk {
-  type: 'text' | 'thinking' | 'tool_use' | 'error' | 'done';
+  type: 'text' | 'thinking' | 'tool_use' | 'error' | 'done' | 'compaction';
   content: string;
   toolName?: string;
   toolInput?: unknown;
@@ -43,6 +103,10 @@ export interface CreateSessionOptions {
   taskType?: TaskType;
   /** If true, use ModelRouter to select optimal model */
   autoSelectModel?: boolean;
+  /** If true, automatically sync messages to ContextManager events */
+  trackContext?: boolean;
+  /** Enable server-side compaction for this session (beta API) */
+  compaction?: CompactionConfig;
 }
 
 export interface SendMessageOptions {
@@ -162,9 +226,18 @@ export class AgentService {
       messages: [],
       model,
       systemPrompt: options.systemPrompt,
+      trackContext: options.trackContext,
+      compaction: options.compaction,
+      betaMessages: options.compaction?.enabled ? [] : undefined,
     };
 
     this.sessions.set(session.id, session);
+
+    // Initialize ContextManager session if tracking is enabled
+    if (session.trackContext) {
+      contextManager.getOrCreateSession(session.id);
+    }
+
     return session;
   }
 
@@ -220,14 +293,99 @@ export class AgentService {
   }
 
   /**
-   * Send a message to a session and get a response
-   * Returns the full response message
+   * Bridge a message event to ContextManager if tracking is enabled for the session.
+   * Extracts text content from ContentBlock[] for assistant messages.
+   */
+  private trackContextEvent(
+    session: AgentSession,
+    type: 'user_message' | 'assistant_message',
+    content: string | ContentBlock[]
+  ): void {
+    if (!session.trackContext) return;
+
+    const text = typeof content === 'string'
+      ? content
+      : AgentService.extractTextContent(content);
+
+    contextManager.addEvent(session.id, type, text);
+  }
+
+  /**
+   * Build the context_management config for beta API calls.
+   */
+  private buildCompactionParams(config: CompactionConfig) {
+    return {
+      edits: [
+        {
+          type: 'compact_20260112' as const,
+          trigger: {
+            type: 'input_tokens' as const,
+            value: config.triggerTokens ?? 100000,
+          },
+          ...(config.instructions && { instructions: config.instructions }),
+          pause_after_compaction: config.pauseAfterCompaction ?? true,
+        },
+      ],
+    };
+  }
+
+  /**
+   * Extract BetaCompactionBlock items from a BetaMessage response content.
+   */
+  static extractCompactionBlocks(content: BetaContentBlock[]): BetaCompactionBlock[] {
+    return content.filter(
+      (block): block is BetaCompactionBlock => block.type === 'compaction'
+    );
+  }
+
+  /**
+   * Inject compaction blocks from a compaction event into the session's beta
+   * message history as an assistant turn containing the compaction block(s).
+   * This enables round-tripping: subsequent requests include the compacted context.
+   */
+  private injectCompactionBlocks(
+    session: AgentSession,
+    compactionBlocks: BetaCompactionBlock[]
+  ): void {
+    if (!session.betaMessages) return;
+
+    const blockParams: BetaCompactionBlockParam[] = compactionBlocks.map((b) => ({
+      type: 'compaction' as const,
+      content: b.content,
+    }));
+
+    // Add as an assistant turn containing the compaction summary
+    session.betaMessages.push({
+      role: 'assistant',
+      content: blockParams,
+    });
+  }
+
+  /**
+   * Extract text from BetaContentBlock array (similar to extractTextContent
+   * but for beta content blocks).
+   */
+  static extractBetaTextContent(content: BetaContentBlock[]): string {
+    return content
+      .filter((block): block is BetaContentBlock & { type: 'text'; text: string } => block.type === 'text')
+      .map((block) => block.text)
+      .join('');
+  }
+
+  /**
+   * Send a message to a session and get a response.
+   * Returns the full response message.
+   *
+   * When the session has compaction enabled, uses the beta API. If the API
+   * triggers compaction (stop_reason === 'compaction'), the compaction blocks
+   * are stored in the session for round-tripping and a CompactionEvent is
+   * thrown/returned via the returned union type.
    */
   async sendMessage(
     sessionId: string,
     userMessage: string,
     options: SendMessageOptions = {}
-  ): Promise<Message> {
+  ): Promise<Message | CompactionEvent> {
     if (!this.client) {
       throw new Error('AgentService not initialized. Call initialize() first.');
     }
@@ -246,14 +404,81 @@ export class AgentService {
       messageModel = classification.model;
     }
 
+    // Build thinking params
+    const { thinking, maxTokens } = this.buildThinkingParams(messageModel, options);
+
+    // ----- Compaction path: use beta API -----
+    if (session.compaction?.enabled) {
+      // Add user message to beta history
+      session.betaMessages!.push({
+        role: 'user',
+        content: userMessage,
+      });
+
+      // Also keep the regular messages array in sync for non-compaction consumers
+      session.messages.push({
+        role: 'user',
+        content: userMessage,
+      });
+
+      try {
+        const response = await this.client.beta.messages.create({
+          model: messageModel,
+          max_tokens: maxTokens,
+          system: session.systemPrompt,
+          messages: session.betaMessages!,
+          betas: [CONTEXT_MANAGEMENT_BETA],
+          context_management: this.buildCompactionParams(session.compaction),
+          ...(thinking && { thinking }),
+          stream: false,
+        });
+
+        // Check if this is a compaction event
+        if (response.stop_reason === 'compaction') {
+          const compactionBlocks = AgentService.extractCompactionBlocks(response.content);
+          this.injectCompactionBlocks(session, compactionBlocks);
+
+          return {
+            type: 'compaction',
+            compactionBlocks,
+            rawResponse: response,
+          };
+        }
+
+        // Normal response — store in both histories
+        session.betaMessages!.push({
+          role: 'assistant',
+          content: response.content,
+        });
+        session.messages.push({
+          role: 'assistant',
+          content: response.content as unknown as ContentBlock[],
+        });
+
+        // Bridge to ContextManager
+        this.trackContextEvent(session, 'user_message', userMessage);
+        this.trackContextEvent(
+          session,
+          'assistant_message',
+          response.content as unknown as ContentBlock[]
+        );
+
+        // Return as Message-compatible (BetaMessage is a superset)
+        return response as unknown as Message;
+      } catch (error) {
+        // Roll back user message on failure
+        session.betaMessages!.pop();
+        session.messages.pop();
+        throw error;
+      }
+    }
+
+    // ----- Standard path (no compaction) -----
     // Add user message to history
     session.messages.push({
       role: 'user',
       content: userMessage,
     });
-
-    // Build thinking params
-    const { thinking, maxTokens } = this.buildThinkingParams(messageModel, options);
 
     try {
       // Create the message
@@ -271,6 +496,10 @@ export class AgentService {
         content: response.content,
       });
 
+      // Bridge to ContextManager
+      this.trackContextEvent(session, 'user_message', userMessage);
+      this.trackContextEvent(session, 'assistant_message', response.content);
+
       return response;
     } catch (error) {
       // Roll back user message on API failure to keep history consistent
@@ -280,15 +509,19 @@ export class AgentService {
   }
 
   /**
-   * Send a message with streaming response
-   * Uses the SDK's .stream() helper for reliable streaming with .finalMessage()
+   * Send a message with streaming response.
+   * Uses the SDK's .stream() helper for reliable streaming with .finalMessage().
+   *
+   * When compaction is enabled for the session, uses the beta streaming API.
+   * If the API triggers compaction, a 'compaction' StreamChunk is emitted
+   * and a CompactionEvent is returned (instead of void).
    */
   async sendMessageStream(
     sessionId: string,
     userMessage: string,
     onChunk: StreamCallback,
     options: SendMessageOptions = {}
-  ): Promise<void> {
+  ): Promise<void | CompactionEvent> {
     if (!this.client) {
       throw new Error('AgentService not initialized. Call initialize() first.');
     }
@@ -307,14 +540,116 @@ export class AgentService {
       messageModel = classification.model;
     }
 
+    // Build thinking params
+    const { thinking, maxTokens } = this.buildThinkingParams(messageModel, options);
+
+    // ----- Compaction streaming path: use beta API -----
+    if (session.compaction?.enabled) {
+      session.betaMessages!.push({
+        role: 'user',
+        content: userMessage,
+      });
+      session.messages.push({
+        role: 'user',
+        content: userMessage,
+      });
+
+      try {
+        const stream = this.client.beta.messages.stream({
+          model: messageModel,
+          max_tokens: maxTokens,
+          system: session.systemPrompt,
+          messages: session.betaMessages!,
+          betas: [CONTEXT_MANAGEMENT_BETA],
+          context_management: this.buildCompactionParams(session.compaction),
+          ...(thinking && { thinking }),
+        });
+
+        for await (const event of stream) {
+          if (event.type === 'content_block_delta') {
+            const delta = event.delta;
+            if ('text' in delta) {
+              onChunk({ type: 'text', content: delta.text });
+            } else if ('thinking' in delta) {
+              onChunk({ type: 'thinking', content: (delta as { thinking: string }).thinking });
+            } else if (delta.type === 'compaction_delta') {
+              onChunk({
+                type: 'compaction',
+                content: (delta as { content: string | null }).content ?? '',
+              });
+            }
+          } else if (event.type === 'content_block_start') {
+            const block = event.content_block;
+            if (block.type === 'tool_use') {
+              onChunk({
+                type: 'tool_use',
+                content: '',
+                toolName: block.name,
+                toolInput: block.input,
+              });
+            }
+          } else if (event.type === 'message_stop') {
+            onChunk({ type: 'done', content: '' });
+          }
+        }
+
+        const finalMessage = await stream.finalMessage();
+
+        // Check if compaction occurred
+        if (finalMessage.stop_reason === 'compaction') {
+          const compactionBlocks = AgentService.extractCompactionBlocks(
+            finalMessage.content as unknown as BetaContentBlock[]
+          );
+          this.injectCompactionBlocks(session, compactionBlocks);
+
+          return {
+            type: 'compaction',
+            compactionBlocks,
+            rawResponse: finalMessage as unknown as BetaMessage,
+          };
+        }
+
+        // Normal response — store in both beta and regular message histories
+        const betaContent = finalMessage.content as unknown as BetaContentBlock[];
+        session.betaMessages!.push({
+          role: 'assistant',
+          content: betaContent,
+        });
+
+        // Filter compaction blocks for regular message history (they only apply to beta)
+        const messageContent = betaContent.filter(
+          (b) => b.type !== 'compaction'
+        ) as unknown as ContentBlock[];
+        session.messages.push({
+          role: 'assistant',
+          content: messageContent,
+        });
+
+        // Bridge to ContextManager
+        this.trackContextEvent(session, 'user_message', userMessage);
+        this.trackContextEvent(session, 'assistant_message', messageContent);
+      } catch (error) {
+        // Roll back user messages on failure
+        if (session.betaMessages!.at(-1)?.role === 'user') {
+          session.betaMessages!.pop();
+        }
+        if (session.messages.at(-1)?.role === 'user') {
+          session.messages.pop();
+        }
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+        onChunk({ type: 'error', content: errorMessage });
+        throw error;
+      }
+      return;
+    }
+
+    // ----- Standard streaming path (no compaction) -----
     // Add user message to history
     session.messages.push({
       role: 'user',
       content: userMessage,
     });
-
-    // Build thinking params
-    const { thinking, maxTokens } = this.buildThinkingParams(messageModel, options);
 
     try {
       const stream = this.client.messages.stream({
@@ -354,6 +689,10 @@ export class AgentService {
         role: 'assistant',
         content: finalMessage.content,
       });
+
+      // Bridge to ContextManager
+      this.trackContextEvent(session, 'user_message', userMessage);
+      this.trackContextEvent(session, 'assistant_message', finalMessage.content);
     } catch (error) {
       // Roll back user message on failure to keep history consistent
       if (session.messages.at(-1)?.role === 'user') {
@@ -472,6 +811,10 @@ export class AgentService {
         content: response.content,
       });
 
+      // Bridge to ContextManager
+      this.trackContextEvent(session, 'user_message', userMessage);
+      this.trackContextEvent(session, 'assistant_message', response.content);
+
       if (response.parsed_output === null || response.parsed_output === undefined) {
         const rawText = AgentService.extractTextContent(response.content);
         throw new Error(
@@ -581,7 +924,9 @@ export class AgentService {
     sessionId: string,
     messages: MessageParam[],
     model?: string,
-    systemPrompt?: string
+    systemPrompt?: string,
+    compaction?: CompactionConfig,
+    betaMessages?: BetaMessageParam[]
   ): AgentSession {
     const session: AgentSession = {
       id: sessionId,
@@ -589,10 +934,23 @@ export class AgentService {
       messages,
       model: model || modelRouter.getDefaultModel(),
       systemPrompt,
+      compaction,
+      betaMessages: compaction?.enabled
+        ? betaMessages ?? (messages as unknown as BetaMessageParam[])
+        : undefined,
     };
 
     this.sessions.set(session.id, session);
     return session;
+  }
+
+  /**
+   * Get the beta message history for a compaction-enabled session.
+   * Returns undefined if compaction is not enabled.
+   */
+  getCompactionHistory(sessionId: string): BetaMessageParam[] | undefined {
+    const session = this.sessions.get(sessionId);
+    return session?.betaMessages ? [...session.betaMessages] : undefined;
   }
 
   /**

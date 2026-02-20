@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain, dialog, session } from 'electron';
 import path from 'node:path';
 import { checkAllPermissions, openSystemPreferences } from './main/permissions';
 import { readDirectory, readFileContent, listAllFiles, searchInFiles, writeFile, FileNode, FileContent, QuickOpenFile, SearchResult, addAllowedBasePath, clearAllowedBasePaths, isPathAllowed } from './main/services/FileSystemService';
-import { agentService, type AgentSession, type StreamChunk, type CreateSessionOptions, type SendMessageOptions, type SendMessageParsedOptions, type MessageParam } from './main/services/AgentService';
+import { agentService, type AgentSession, type StreamChunk, type CreateSessionOptions, type SendMessageOptions, type SendMessageParsedOptions, type MessageParam, type CompactionEvent, type Message } from './main/services/AgentService';
 import {
   ConfidenceAnalysisSchema,
   CitationExtractionSchema,
@@ -186,15 +186,26 @@ function registerIpcHandlers() {
 
   ipcMain.handle('agent:sendMessage', async (_, sessionId: string, userMessage: string, options?: SendMessageOptions) => {
     const response = await agentService.sendMessage(sessionId, userMessage, options);
-    // Serialize the response for IPC
+
+    // Handle compaction events (server-side context compaction)
+    if (response.type === 'compaction') {
+      const compaction = response as CompactionEvent;
+      return {
+        type: 'compaction' as const,
+        compactionBlocks: compaction.compactionBlocks,
+      };
+    }
+
+    // Serialize the normal message response for IPC
+    const msg = response as Message;
     return {
-      id: response.id,
-      type: response.type,
-      role: response.role,
-      content: response.content,
-      model: response.model,
-      stop_reason: response.stop_reason,
-      usage: response.usage,
+      id: msg.id,
+      type: msg.type,
+      role: msg.role,
+      content: msg.content,
+      model: msg.model,
+      stop_reason: msg.stop_reason,
+      usage: msg.usage,
     };
   });
 

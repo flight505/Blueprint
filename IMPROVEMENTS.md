@@ -41,8 +41,8 @@ Tracking bug fixes, polish, and feature extensions before v1.1/v2.0.
 | FE-003 | **Upgrade streaming to `client.messages.stream()`** — Replace low-level `create({ stream: true })` + manual event casting with SDK's `.stream()` helper. Provides `.finalMessage()` for reliable history append | Medium | ✅ |
 | FE-004 | **Add structured outputs for data extraction** — Use `messages.parse()` with Zod schemas for confidence scoring, citation parsing, and phase planning. Added 6 schemas in `StructuredOutputSchemas.ts`, 3 new methods on AgentService, IPC handlers, and 20 tests | Medium | ✅ |
 | FE-005 | **Evaluate server-side compaction** — API now offers beta server-side compaction (`compact-2026-01-12`) for Opus 4.6. Could augment or replace custom `ContextManager` Haiku summarization for long sessions | Low | ✅ Evaluated — recommend augment, defer full migration (see notes below) |
-| FE-006 | **Wire structured outputs into existing services** — `ConfidenceScoringService`, `CitationVerificationService`, and `PhaseOrchestrator` still use manual JSON parsing. Migrate them to use `sendMessageParsed()` with the Zod schemas from `StructuredOutputSchemas.ts` | Medium | ⬚ |
-| FE-007 | **Implement server-side compaction in AgentService** — Add beta compaction to `sendMessage`/`sendMessageStream` for long conversations. Requires `client.beta.messages` API, `context_management.edits`, and `BetaCompactionBlock` handling. Defer until API exits beta | Low | ⬚ |
+| FE-006 | **Wire structured outputs into existing services** — Originally planned to migrate `ConfidenceScoringService`, `CitationVerificationService`, and `PhaseOrchestrator` to `sendMessageParsed()`. After code review: ConfidenceScoringService is pure heuristic (no LLM calls), CitationVerificationService uses OpenAlex/Crossref REST APIs (not Claude), PhaseOrchestrator uses ResearchRouter (Perplexity/Gemini). None parse JSON from Claude — item does not apply | Medium | ✅ N/A — services don't use Claude JSON parsing |
+| FE-007 | **Implement server-side compaction in AgentService** — Added opt-in beta compaction to `sendMessage`/`sendMessageStream`. Uses `client.beta.messages` API with `context-management-2025-06-27` header, `compact_20260112` edit type, configurable token threshold. Handles `CompactionEvent` return type, round-trips `BetaCompactionBlock` in session history, dual `messages`/`betaMessages` arrays. 28 tests | Low | ✅ |
 
 ### FE-005: Server-Side Compaction Evaluation
 
@@ -116,6 +116,50 @@ AgentService.ts manages its own `session.messages` array independently.
 
 4. **Estimated effort**: ~2-3 hours for a basic AgentService integration, ~1 day
    if adding UI indicators for compaction events and full testing.
+
+### PF-001: Renderer Bundle Audit
+
+<!--
+  Audited: 2026-02-20
+  Build tool: Vite (rollup)
+  Total renderer dir: 5.2 MB
+-->
+
+**Bundle Breakdown:**
+
+| Chunk | Raw Size | Gzip Size | Source |
+|-------|----------|-----------|--------|
+| Main bundle (index-*.js) | 2,080 KB | 617 KB | Everything not code-split |
+| Cytoscape (Mermaid dep) | 442 KB | 141 KB | Graph library |
+| D3 Treemap (Mermaid dep) | 375 KB | 93 KB | Layout algorithm |
+| Mermaid diagram chunks (7) | ~550 KB | ~170 KB | Lazy-loaded diagram types |
+| CSS bundle | 116 KB | 23 KB | Styles + Tailwind |
+| KaTeX fonts (60 files) | ~1,000 KB | N/A | woff2 + woff + ttf |
+
+**Estimated Main Bundle Composition:**
+
+| Library | Est. Size | Notes |
+|---------|-----------|-------|
+| Mermaid core | ~300-400 KB | Parser, renderer, theming |
+| KaTeX | ~250-300 KB | Math rendering engine |
+| TipTap + ProseMirror | ~200-250 KB | Editor framework |
+| React + React DOM | ~140 KB | Framework |
+| framer-motion | ~100-120 KB | Animation library |
+| react-markdown + plugins | ~80-100 KB | Markdown pipeline |
+| pptxgenjs + docx | ~50-80 KB | Export libraries |
+
+**Recommendations (by impact):**
+
+1. **Lazy-load Mermaid core** (saves ~400 KB): Dynamic `import('mermaid')` only when Mermaid blocks are rendered
+2. **Lazy-load KaTeX** (saves ~250 KB): Load on demand when math expressions are present
+3. **Lazy-load export libraries** (saves ~60 KB): Dynamic import in ExportModal
+4. **Add `manualChunks` to Vite** config: Split react-vendor, editor, markdown, animation for better caching
+5. **Trim KaTeX fonts**: Remove woff/ttf (keep woff2 only for Chromium), saves ~650 KB from assets
+6. **Evaluate framer-motion replacement**: CSS animations or lighter `motion` standalone (~30 KB)
+
+**Note:** For an Electron app, bundle size matters less than web apps, but the 2 MB
+parse-and-evaluate step still affects startup latency. Implementing items 1-3 could
+reduce the initial bundle to ~1.2-1.4 MB (raw) / ~400 KB (gzip).
 
 ---
 
@@ -237,7 +281,7 @@ const response = await genAI.models.generateContent({
 
 | ID | Description | Priority | Status |
 |----|-------------|----------|--------|
-| PF-001 | **Audit renderer bundle size** — Check for unnecessary dependencies pulled into the renderer bundle. Consider code splitting for heavy features (editor, export, image editor) | Medium | ⬚ |
+| PF-001 | **Audit renderer bundle size** — Main JS bundle is 2,080 KB (617 KB gzip). Heaviest: Mermaid core (~400 KB), KaTeX (~300 KB), TipTap (~250 KB), framer-motion (~120 KB). Mermaid already code-splits diagram types (~1 MB in lazy chunks). Recommendations: (1) lazy-load Mermaid core via dynamic import, (2) lazy-load KaTeX, (3) lazy-load export libs (pptxgenjs, docx), (4) add `manualChunks` to Vite config for vendor splitting, (5) trim KaTeX to woff2-only fonts. Total renderer dir: 5.2 MB | Medium | ✅ Audited — see notes below |
 
 ---
 
@@ -252,8 +296,8 @@ const response = await genAI.models.generateContent({
 | TD-005 | **Use top-level SDK imports** — Deep imports from `@anthropic-ai/sdk/resources/messages/messages` may break across SDK versions. Use re-exports from `@anthropic-ai/sdk` instead | Medium | ✅ |
 | TD-006 | **Remove redundant `getActiveEvents` in ContextManager** — Method was identical to `getEvents`. Removed method, IPC handler, and preload bridge | Low | ✅ |
 | TD-007 | **Remove aliased re-exports in ContextManager** — Bottom-of-file `export type { X as XType }` aliases were never imported anywhere. Removed the entire block | Low | ✅ |
-| TD-008 | **Remove `GlassSidebarSection` unused import in App.tsx** — Imported but never used in the component (only used in Storybook stories) | Low | ⬚ |
-| TD-009 | **Unify ContextManager and AgentService session state** — `ContextManager` tracks events in a parallel system disconnected from `AgentService.session.messages`. Consider merging or bridging these so context tracking and message history are aligned | Medium | ⬚ |
+| TD-008 | **Remove `GlassSidebarSection` unused import in App.tsx** — Imported but never used in the component (only used in Storybook stories). Removed from import | Low | ✅ |
+| TD-009 | **Bridge ContextManager and AgentService session state** — Added opt-in `trackContext: boolean` flag to `CreateSessionOptions` and `AgentSession`. When enabled, `sendMessage`, `sendMessageStream`, and `sendSessionMessageParsed` automatically sync user/assistant messages to ContextManager events. Bridge is additive — no changes to ContextManager or public API signatures. 15 tests | Medium | ✅ |
 
 ---
 
@@ -312,5 +356,14 @@ Items marked ✅ can be moved here after release:
 - TD-003: SDK updated from 0.71.2 to 0.77.0
 - TD-004: `systemPrompt` type hack fixed
 - TD-005: Deep SDK imports replaced with top-level
+- TD-006: Redundant `getActiveEvents` removed from ContextManager
+- TD-007: Aliased re-exports removed from ContextManager
+
+#### v1.0.3 — Nice-to-Haves (2026-02-20)
+- TD-008: Removed unused `GlassSidebarSection` import from App.tsx
+- TD-009: ContextManager ↔ AgentService bridge (opt-in `trackContext`, 15 tests)
+- FE-006: Evaluated — services don't parse Claude JSON (N/A)
+- FE-007: Server-side compaction in AgentService (beta API, 28 tests)
+- PF-001: Renderer bundle audited (2 MB main chunk, recommendations documented)
 - TD-006: Redundant `getActiveEvents` removed from ContextManager
 - TD-007: Aliased re-exports removed from ContextManager

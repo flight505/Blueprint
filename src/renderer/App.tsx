@@ -8,7 +8,7 @@ import { CitationVerificationPanel } from './components/citation';
 import { ReviewQueue } from './components/review';
 import { HallucinationDashboard } from './components/dashboard';
 import { TabBar, TabData } from './components/layout';
-import { GlassSidebar, GlassSidebarSection, type NavItem } from './components/sidebar';
+import { GlassSidebar, type NavItem } from './components/sidebar';
 import { CommandPalette, useCommandPalette, Command } from './components/command';
 import { FileQuickOpen, useFileQuickOpen } from './components/quickopen';
 import { InlineEditOverlay } from './components/inline-edit';
