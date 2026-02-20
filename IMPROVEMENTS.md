@@ -17,6 +17,8 @@ Tracking bug fixes, polish, and feature extensions before v1.1/v2.0.
 |----|-------------|----------|--------|
 | BF-001 | **Streaming loses content blocks** — `AgentService.sendMessageStream` appends only text string to history instead of full `response.content` array. Loses tool_use, thinking, and compaction blocks. | High | ✅ |
 | BF-002 | **Stale model ID in Storybook** — `ModelSelector.stories.tsx` references retired `claude-3-5-haiku-20241022` | Low | ✅ |
+| BF-003 | **Session history corrupted on API failure** — `sendMessage` and `sendMessageStream` push user message to history before API call. If the call fails, the orphan message corrupts subsequent requests. Added rollback (`session.messages.pop()`) on failure | High | ✅ |
+| BF-004 | **ModelRouter tie-breaking non-deterministic** — `classifyTask` uses strict `>` comparison so ties silently resolve to last-checked complexity (`complex`/Opus). Fixed to explicitly resolve ties to `medium` (Sonnet) | Medium | ✅ |
 
 ---
 
@@ -27,7 +29,6 @@ Tracking bug fixes, polish, and feature extensions before v1.1/v2.0.
 | UX-001 | macOS title bar and window dragging | High | ✅ |
 | UX-002 | Replace all emojis with Lucide icons for professional look | Medium | ✅ |
 | UX-003 | Glass UI sidebar with hover/active violet glow effects | Medium | ✅ |
-| UX-004 | | | ⬚ |
 
 ---
 
@@ -36,10 +37,12 @@ Tracking bug fixes, polish, and feature extensions before v1.1/v2.0.
 | ID | Description | Priority | Status |
 |----|-------------|----------|--------|
 | FE-001 | **Update model IDs to current aliases** — `ModelRouter.ts` uses deprecated date-suffixed Claude 4.0 IDs (`claude-*-4-20250514`). Update to current aliases: `claude-haiku-4-5`, `claude-sonnet-4-6`, `claude-opus-4-6`. Also update hardcoded IDs in `DatabaseService.ts`, `DiagramEditModal.tsx`, `ModelSelector.stories.tsx` | Critical | ✅ |
-| FE-002 | **Add adaptive thinking support** — Enable `thinking: { type: "adaptive" }` for Opus 4.6 in AgentService. Blueprint's planning use case would benefit significantly from extended thinking on complex tasks | High | ✅ |
+| FE-002 | **Add adaptive thinking support** — Enable `thinking: { type: "adaptive" }` for Opus 4.6 and Sonnet 4.6 in AgentService. Budget-based thinking for Haiku. Blueprint's planning use case benefits significantly from extended thinking on complex tasks | High | ✅ |
 | FE-003 | **Upgrade streaming to `client.messages.stream()`** — Replace low-level `create({ stream: true })` + manual event casting with SDK's `.stream()` helper. Provides `.finalMessage()` for reliable history append | Medium | ✅ |
-| FE-004 | **Add structured outputs for data extraction** — Use `messages.parse()` with Zod schemas for confidence scoring, citation parsing, and phase planning. Guarantees valid JSON output | Medium | ✅ |
+| FE-004 | **Add structured outputs for data extraction** — Use `messages.parse()` with Zod schemas for confidence scoring, citation parsing, and phase planning. Added 6 schemas in `StructuredOutputSchemas.ts`, 3 new methods on AgentService, IPC handlers, and 20 tests | Medium | ✅ |
 | FE-005 | **Evaluate server-side compaction** — API now offers beta server-side compaction (`compact-2026-01-12`) for Opus 4.6. Could augment or replace custom `ContextManager` Haiku summarization for long sessions | Low | ✅ Evaluated — recommend augment, defer full migration (see notes below) |
+| FE-006 | **Wire structured outputs into existing services** — `ConfidenceScoringService`, `CitationVerificationService`, and `PhaseOrchestrator` still use manual JSON parsing. Migrate them to use `sendMessageParsed()` with the Zod schemas from `StructuredOutputSchemas.ts` | Medium | ⬚ |
+| FE-007 | **Implement server-side compaction in AgentService** — Add beta compaction to `sendMessage`/`sendMessageStream` for long conversations. Requires `client.beta.messages` API, `context_management.edits`, and `BetaCompactionBlock` handling. Defer until API exits beta | Low | ⬚ |
 
 ### FE-005: Server-Side Compaction Evaluation
 
@@ -234,7 +237,7 @@ const response = await genAI.models.generateContent({
 
 | ID | Description | Priority | Status |
 |----|-------------|----------|--------|
-| PF-001 | | | ⬚ |
+| PF-001 | **Audit renderer bundle size** — Check for unnecessary dependencies pulled into the renderer bundle. Consider code splitting for heavy features (editor, export, image editor) | Medium | ⬚ |
 
 ---
 
@@ -242,11 +245,15 @@ const response = await genAI.models.generateContent({
 
 | ID | Description | Priority | Status |
 |----|-------------|----------|--------|
-| TD-001 | Remove unused variables (setExportSections, initializeAgent, createSession) | Low | ✅ |
-| TD-002 | Fix KaTeX font resolution warnings during build | Low | ✅ |
+| TD-001 | **Remove unused variables** — `setExportSections`, `initializeAgent`, `createSession` destructured but never used in `App.tsx` | Low | ✅ |
+| TD-002 | **Fix KaTeX font resolution warnings** — 60 build warnings from CSS `@import` inlining. Moved KaTeX CSS import from `index.css` to `index.tsx` JS entry point | Low | ✅ |
 | TD-003 | **Update `@anthropic-ai/sdk` from 0.71.2 to 0.77.0** — 6 releases behind. New features: tool runner helpers, structured output improvements, compaction support | High | ✅ |
 | TD-004 | **Fix `systemPrompt` type hack in AgentService** — Uses `(session as AgentSession & { systemPrompt?: string })` cast. Add `systemPrompt` as proper optional field on `AgentSession` interface | Low | ✅ |
 | TD-005 | **Use top-level SDK imports** — Deep imports from `@anthropic-ai/sdk/resources/messages/messages` may break across SDK versions. Use re-exports from `@anthropic-ai/sdk` instead | Medium | ✅ |
+| TD-006 | **Remove redundant `getActiveEvents` in ContextManager** — Method was identical to `getEvents`. Removed method, IPC handler, and preload bridge | Low | ✅ |
+| TD-007 | **Remove aliased re-exports in ContextManager** — Bottom-of-file `export type { X as XType }` aliases were never imported anywhere. Removed the entire block | Low | ✅ |
+| TD-008 | **Remove `GlassSidebarSection` unused import in App.tsx** — Imported but never used in the component (only used in Storybook stories) | Low | ⬚ |
+| TD-009 | **Unify ContextManager and AgentService session state** — `ContextManager` tracks events in a parallel system disconnected from `AgentService.session.messages`. Consider merging or bridging these so context tracking and message history are aligned | Medium | ⬚ |
 
 ---
 
@@ -266,14 +273,13 @@ const response = await genAI.models.generateContent({
 | ID | Description | Priority | Status |
 |----|-------------|----------|--------|
 | DC-001 | Create CLAUDE.md project configuration | Medium | ✅ |
-| DC-002 | | | ⬚ |
 
 ---
 
 ## Notes
 
 ### Adding Items
-Use the next available ID in each category (e.g., BF-002, UX-003).
+Use the next available ID in each category (e.g., BF-005, FE-008, TD-010).
 
 ### Priority Levels
 - **Critical** - Blocks usage, data loss risk
@@ -290,3 +296,21 @@ Items marked ✅ can be moved here after release:
 - UX-003: Glass UI sidebar with violet glow hover/active states
 - SH-001-004: Security hardening (path validation, IPC validation, CSP, encryption)
 - DC-001: CLAUDE.md documentation
+
+#### v1.0.2 — SDK Modernization (2026-02-20)
+- BF-001: Streaming content block preservation (`.finalMessage()`)
+- BF-002: Stale model ID in Storybook stories
+- BF-003: Session history rollback on API failure
+- BF-004: ModelRouter deterministic tie-breaking
+- FE-001: Model IDs updated to current aliases across 5 files
+- FE-002: Adaptive thinking for Opus 4.6 + Sonnet 4.6, budget thinking for Haiku
+- FE-003: Streaming upgraded to `client.messages.stream()`
+- FE-004: Structured outputs with Zod (6 schemas, `messages.parse()`, 20 tests)
+- FE-005: Server-side compaction evaluated (defer, documented)
+- TD-001: Unused variables removed from App.tsx
+- TD-002: KaTeX font warnings fixed (CSS import moved to JS entry)
+- TD-003: SDK updated from 0.71.2 to 0.77.0
+- TD-004: `systemPrompt` type hack fixed
+- TD-005: Deep SDK imports replaced with top-level
+- TD-006: Redundant `getActiveEvents` removed from ContextManager
+- TD-007: Aliased re-exports removed from ContextManager
