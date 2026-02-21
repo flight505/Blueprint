@@ -1,7 +1,5 @@
-import { app, BrowserWindow, ipcMain, dialog, session } from 'electron';
+import { app, BrowserWindow, ipcMain, session } from 'electron';
 import path from 'node:path';
-import { checkAllPermissions, openSystemPreferences } from './main/permissions';
-import { readDirectory, readFileContent, listAllFiles, searchInFiles, writeFile, FileNode, FileContent, QuickOpenFile, SearchResult, addAllowedBasePath, clearAllowedBasePaths, isPathAllowed } from './main/services/FileSystemService';
 import { agentService, type AgentSession, type StreamChunk, type CreateSessionOptions, type SendMessageOptions, type SendMessageParsedOptions, type MessageParam, type CompactionEvent, type Message } from './main/services/AgentService';
 import {
   ConfidenceAnalysisSchema,
@@ -12,9 +10,7 @@ import {
   ResearchSynthesisSchema,
 } from './main/services/StructuredOutputSchemas';
 import { databaseService } from './main/services/DatabaseService';
-import type { SessionInput, DocumentInput, StoredSession, StoredDocument, PromptInput, StoredPrompt, RecentProjectInput, RecentProject } from './main/services/DatabaseService';
-import { secureStorageService, type ApiKeyType } from './main/services/SecureStorageService';
-import { modelRouter, type TaskClassification, type TaskType, type ModelId, CLAUDE_MODELS } from './main/services/ModelRouter';
+import { secureStorageService } from './main/services/SecureStorageService';
 import { contextManager, type ContextEvent, type CompactionResult, type ContextStats, type CompactionSummary } from './main/services/ContextManager';
 import { openRouterService, type ResearchResponse, type ResearchOptions, type StreamChunk as OpenRouterStreamChunk } from './main/services/OpenRouterService';
 import { geminiService, type DeepResearchResponse, type DeepResearchOptions, type GeminiStreamChunk, type ProgressCheckpoint } from './main/services/GeminiService';
@@ -31,130 +27,10 @@ import { confidenceScoringService, type ParagraphConfidence, type DocumentConfid
 import { reviewQueueService, type DocumentReviewQueue, type ReviewItem, type ReviewScanOptions } from './main/services/ReviewQueueService';
 import { hallucinationDashboardService, type DocumentMetrics, type ProjectMetrics, type TrendData, type ExportOptions } from './main/services/HallucinationDashboardService';
 import { imageEditorService, type ImageEditRequest, type ImageEditResponse } from './main/services/ImageEditorService';
-
-// ========================================
-// Input Validation Utilities
-// ========================================
-
-/**
- * Validate that a value is a non-empty string
- */
-function validateString(value: unknown, paramName: string): string {
-  if (typeof value !== 'string') {
-    throw new Error(`Invalid parameter "${paramName}": expected string, got ${typeof value}`);
-  }
-  return value;
-}
-
-/**
- * Validate that a value is a non-empty string path
- */
-function validatePath(value: unknown, paramName: string): string {
-  const str = validateString(value, paramName);
-  if (str.length === 0) {
-    throw new Error(`Invalid parameter "${paramName}": path cannot be empty`);
-  }
-  // Check for null bytes (path injection)
-  if (str.includes('\0')) {
-    throw new Error(`Invalid parameter "${paramName}": path contains invalid characters`);
-  }
-  return str;
-}
-
-/**
- * Validate an optional object parameter
- */
-function validateObject<T>(value: unknown, paramName: string): T | undefined {
-  if (value === undefined || value === null) {
-    return undefined;
-  }
-  if (typeof value !== 'object') {
-    throw new Error(`Invalid parameter "${paramName}": expected object, got ${typeof value}`);
-  }
-  return value as T;
-}
+import { registerAllHandlers } from './main/ipc';
 
 // Register IPC handlers
 function registerIpcHandlers() {
-  // Permissions
-  ipcMain.handle('permissions:check', async () => {
-    return await checkAllPermissions();
-  });
-
-  ipcMain.handle('permissions:openSettings', async (_, pane: 'files' | 'network') => {
-    openSystemPreferences(pane);
-  });
-
-  // App info
-  ipcMain.handle('app:getVersion', () => {
-    return app.getVersion();
-  });
-
-  // File system
-  ipcMain.handle('fs:selectDirectory', async (): Promise<string | null> => {
-    const result = await dialog.showOpenDialog({
-      properties: ['openDirectory'],
-    });
-    if (result.canceled || !result.filePaths[0]) {
-      return null;
-    }
-    // Security: Add the selected directory as an allowed base path
-    const selectedPath = result.filePaths[0];
-    addAllowedBasePath(selectedPath);
-    return selectedPath;
-  });
-
-  ipcMain.handle('fs:setProjectPath', (_, projectPath: string): void => {
-    // Validate input
-    const validatedPath = validatePath(projectPath, 'projectPath');
-    // Security: Clear existing paths and set new project path as allowed
-    clearAllowedBasePaths();
-    addAllowedBasePath(validatedPath);
-  });
-
-  ipcMain.handle('fs:isPathAllowed', (_, filePath: string): boolean => {
-    const validatedPath = validatePath(filePath, 'filePath');
-    return isPathAllowed(validatedPath);
-  });
-
-  ipcMain.handle('fs:readDirectory', async (_, dirPath: unknown): Promise<FileNode[]> => {
-    // Validate input
-    const validatedPath = validatePath(dirPath, 'dirPath');
-    return await readDirectory(validatedPath);
-  });
-
-  ipcMain.handle('fs:readFile', async (_, filePath: unknown): Promise<FileContent> => {
-    // Validate input
-    const validatedPath = validatePath(filePath, 'filePath');
-    return await readFileContent(validatedPath);
-  });
-
-  ipcMain.handle('fs:listAllFiles', async (_, basePath: unknown): Promise<QuickOpenFile[]> => {
-    // Validate input
-    const validatedPath = validatePath(basePath, 'basePath');
-    return await listAllFiles(validatedPath);
-  });
-
-  ipcMain.handle('fs:searchInFiles', async (
-    _,
-    basePath: unknown,
-    query: unknown,
-    options?: unknown
-  ): Promise<SearchResult[]> => {
-    // Validate inputs
-    const validatedBasePath = validatePath(basePath, 'basePath');
-    const validatedQuery = validateString(query, 'query');
-    const validatedOptions = validateObject<{ useRegex?: boolean; caseSensitive?: boolean; maxResults?: number }>(options, 'options');
-    return await searchInFiles(validatedBasePath, validatedQuery, validatedOptions);
-  });
-
-  ipcMain.handle('fs:writeFile', async (_, filePath: unknown, content: unknown): Promise<void> => {
-    // Validate inputs
-    const validatedPath = validatePath(filePath, 'filePath');
-    const validatedContent = validateString(content, 'content');
-    return await writeFile(validatedPath, validatedContent);
-  });
-
   // Agent service handlers
   ipcMain.handle('agent:initialize', async (_, apiKey: string): Promise<boolean> => {
     return await agentService.initialize(apiKey);
@@ -304,134 +180,6 @@ function registerIpcHandlers() {
     return Object.keys(structuredOutputSchemas);
   });
 
-  // Database service handlers
-  ipcMain.handle('db:isInitialized', (): boolean => {
-    return databaseService.isInitialized();
-  });
-
-  ipcMain.handle('db:saveSession', (_, session: SessionInput): void => {
-    databaseService.saveSession(session);
-  });
-
-  ipcMain.handle('db:getSession', (_, sessionId: string): StoredSession | null => {
-    return databaseService.getSession(sessionId);
-  });
-
-  ipcMain.handle('db:getSessionByProjectPath', (_, projectPath: string): StoredSession | null => {
-    return databaseService.getSessionByProjectPath(projectPath);
-  });
-
-  ipcMain.handle('db:listSessions', (): StoredSession[] => {
-    return databaseService.listSessions();
-  });
-
-  ipcMain.handle('db:deleteSession', (_, sessionId: string): boolean => {
-    return databaseService.deleteSession(sessionId);
-  });
-
-  ipcMain.handle('db:saveDocument', (_, doc: DocumentInput): void => {
-    databaseService.saveDocument(doc);
-  });
-
-  ipcMain.handle('db:getDocument', (_, docId: string): StoredDocument | null => {
-    return databaseService.getDocument(docId);
-  });
-
-  ipcMain.handle('db:getDocumentsBySession', (_, sessionId: string): StoredDocument[] => {
-    return databaseService.getDocumentsBySession(sessionId);
-  });
-
-  ipcMain.handle('db:deleteDocument', (_, docId: string): boolean => {
-    return databaseService.deleteDocument(docId);
-  });
-
-  ipcMain.handle('db:searchDocumentsByEmbedding', (_, sessionId: string, queryEmbedding: number[], limit?: number): Array<StoredDocument & { similarity: number }> => {
-    return databaseService.searchDocumentsByEmbedding(sessionId, queryEmbedding, limit);
-  });
-
-  ipcMain.handle('db:getStats', (): { sessionCount: number; documentCount: number; dbSize: number } => {
-    return databaseService.getStats();
-  });
-
-  // Recent projects handlers
-  ipcMain.handle('recentProjects:add', (_, input: RecentProjectInput): RecentProject => {
-    return databaseService.addRecentProject(input);
-  });
-
-  ipcMain.handle('recentProjects:list', (_, limit?: number): RecentProject[] => {
-    return databaseService.listRecentProjects(limit);
-  });
-
-  ipcMain.handle('recentProjects:remove', (_, projectId: string): boolean => {
-    return databaseService.removeRecentProject(projectId);
-  });
-
-  ipcMain.handle('recentProjects:removeByPath', (_, path: string): boolean => {
-    return databaseService.removeRecentProjectByPath(path);
-  });
-
-  ipcMain.handle('recentProjects:clear', (): number => {
-    return databaseService.clearRecentProjects();
-  });
-
-  ipcMain.handle('recentProjects:getByPath', (_, path: string): RecentProject | null => {
-    return databaseService.getRecentProjectByPath(path);
-  });
-
-  // Secure storage handlers for API keys
-  ipcMain.handle('secureStorage:setApiKey', async (_, type: ApiKeyType, key: string): Promise<boolean> => {
-    return await secureStorageService.setApiKey(type, key);
-  });
-
-  ipcMain.handle('secureStorage:getApiKey', async (_, type: ApiKeyType): Promise<string | null> => {
-    return await secureStorageService.getApiKey(type);
-  });
-
-  ipcMain.handle('secureStorage:deleteApiKey', async (_, type: ApiKeyType): Promise<boolean> => {
-    return await secureStorageService.deleteApiKey(type);
-  });
-
-  ipcMain.handle('secureStorage:hasApiKey', (_, type: ApiKeyType): boolean => {
-    return secureStorageService.hasApiKey(type);
-  });
-
-  ipcMain.handle('secureStorage:listStoredKeys', (): ApiKeyType[] => {
-    return secureStorageService.listStoredKeys();
-  });
-
-  ipcMain.handle('secureStorage:isEncryptionAvailable', (): boolean => {
-    return secureStorageService.isEncryptionAvailable();
-  });
-
-  // Model router handlers
-  ipcMain.handle('modelRouter:classifyTask', (_, prompt: string, context?: { selectedText?: string; taskType?: TaskType }): TaskClassification => {
-    return modelRouter.classifyTask(prompt, context);
-  });
-
-  ipcMain.handle('modelRouter:getModelForComplexity', (_, complexity: 'simple' | 'medium' | 'complex'): ModelId => {
-    return modelRouter.getModelForComplexity(complexity);
-  });
-
-  ipcMain.handle('modelRouter:getModelByName', (_, name: 'haiku' | 'sonnet' | 'opus'): ModelId => {
-    return modelRouter.getModelByName(name);
-  });
-
-  ipcMain.handle('modelRouter:getAvailableModels', () => {
-    return modelRouter.getAvailableModels();
-  });
-
-  ipcMain.handle('modelRouter:setDefaultModel', (_, model: ModelId): void => {
-    modelRouter.setDefaultModel(model);
-  });
-
-  ipcMain.handle('modelRouter:getDefaultModel', (): ModelId => {
-    return modelRouter.getDefaultModel();
-  });
-
-  ipcMain.handle('modelRouter:getModelConstants', () => {
-    return CLAUDE_MODELS;
-  });
-
   // Context manager handlers
   ipcMain.handle('contextManager:initialize', async (_, apiKey: string): Promise<void> => {
     contextManager.initialize(apiKey);
@@ -493,23 +241,6 @@ function registerIpcHandlers() {
   ipcMain.handle('contextManager:getSummaries', (_, sessionId: string): CompactionSummary[] => {
     const context = contextManager.getOrCreateSession(sessionId);
     return context.summaries;
-  });
-
-  // Prompt library handlers
-  ipcMain.handle('prompt:save', (_, prompt: PromptInput): void => {
-    databaseService.savePrompt(prompt);
-  });
-
-  ipcMain.handle('prompt:get', (_, promptId: string): StoredPrompt | null => {
-    return databaseService.getPrompt(promptId);
-  });
-
-  ipcMain.handle('prompt:listAll', (): StoredPrompt[] => {
-    return databaseService.listPrompts();
-  });
-
-  ipcMain.handle('prompt:delete', (_, promptId: string): boolean => {
-    return databaseService.deletePrompt(promptId);
   });
 
   // OpenRouter service handlers (Perplexity via OpenRouter)
@@ -1472,6 +1203,7 @@ app.on('ready', async () => {
     geminiService.initialize(geminiKey);
   }
 
+  registerAllHandlers();
   registerIpcHandlers();
   createWindow();
 
