@@ -7,9 +7,8 @@
   "private": true,
   "scripts": {
     "start": "npm run build && electron .",
-    "dev": "concurrently -k \"npm run dev:vite\" \"npm run dev:watch\"",
+    "dev": "npm run build && concurrently -k \"npm run dev:vite\" \"sleep 2 && electron .\" \"tsc -w\"",
     "dev:vite": "vite --config vite.renderer.config.ts --port 5173",
-    "dev:watch": "tsc -w && electron .",
     "dev:electron": "electron .",
     "build": "npm run build:main && npm run build:preload && npm run build:renderer",
     "build:main": "vite build --config vite.main.config.ts",
