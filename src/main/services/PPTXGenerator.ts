@@ -2,22 +2,24 @@ import PptxGenJS from 'pptxgenjs';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { citationManager, type ReferenceListOptions } from './CitationManager';
+import type {
+  PPTXTheme,
+  PPTXGenerationOptions,
+  PPTXTitleSlideMetadata,
+  PPTXMetadata,
+  PPTXGenerationResult,
+  PPTXSection,
+} from '../../shared/types';
 
-/**
- * Theme colors for presentation
- */
-export interface PPTXTheme {
-  /** Primary color (headings, accents) */
-  primary: string;
-  /** Secondary color (subheadings) */
-  secondary: string;
-  /** Background color */
-  background: string;
-  /** Text color */
-  text: string;
-  /** Accent color for highlights */
-  accent: string;
-}
+// Re-export for consumers
+export type {
+  PPTXTheme,
+  PPTXGenerationOptions,
+  PPTXTitleSlideMetadata,
+  PPTXMetadata,
+  PPTXGenerationResult,
+  PPTXSection,
+} from '../../shared/types';
 
 /**
  * Predefined themes
@@ -59,73 +61,6 @@ export const PPTX_THEMES: Record<string, PPTXTheme> = {
     accent: '888888',
   },
 };
-
-/**
- * Options for PPTX generation
- */
-export interface PPTXGenerationOptions {
-  /** Theme name or custom theme */
-  theme?: string | PPTXTheme;
-  /** Include title slide */
-  includeTitleSlide?: boolean;
-  /** Title slide metadata */
-  titleSlide?: PPTXTitleSlideMetadata;
-  /** Include citations/references slide */
-  includeCitations?: boolean;
-  /** Citation format */
-  citationFormat?: 'ieee' | 'apa' | 'mla' | 'chicago';
-  /** Output directory (defaults to same as source) */
-  outputDir?: string;
-  /** Custom output filename (without extension) */
-  outputFilename?: string;
-  /** Presentation metadata */
-  metadata?: PPTXMetadata;
-  /** Slide size (16:9 or 4:3) */
-  slideSize?: '16:9' | '4:3';
-  /** Maximum bullets per slide before splitting */
-  maxBulletsPerSlide?: number;
-}
-
-/**
- * Title slide metadata
- */
-export interface PPTXTitleSlideMetadata {
-  title: string;
-  subtitle?: string;
-  author?: string;
-  date?: string;
-  organization?: string;
-}
-
-/**
- * Presentation metadata
- */
-export interface PPTXMetadata {
-  title?: string;
-  author?: string;
-  subject?: string;
-  company?: string;
-  keywords?: string[];
-}
-
-/**
- * Result of PPTX generation
- */
-export interface PPTXGenerationResult {
-  success: boolean;
-  outputPath?: string;
-  error?: string;
-  slideCount?: number;
-}
-
-/**
- * Section to include in the PPTX
- */
-export interface PPTXSection {
-  title: string;
-  content: string;
-  order: number;
-}
 
 /**
  * Parsed markdown element

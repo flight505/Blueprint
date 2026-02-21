@@ -15,76 +15,27 @@ import fs from 'node:fs';
 import { confidenceScoringService } from './ConfidenceScoringService';
 import { citationVerificationService, CitationQuery } from './CitationVerificationService';
 import { citationManager, Citation } from './CitationManager';
+import type {
+  DocumentMetrics,
+  ProjectMetrics,
+  TrendDataPoint,
+  TrendData,
+  DashboardExportOptions,
+} from '../../shared/types';
 
-// ==================== Types ====================
+// Re-export for consumers
+export type {
+  DocumentMetrics,
+  ProjectMetrics,
+  TrendDataPoint,
+  TrendData,
+  DashboardExportOptions,
+} from '../../shared/types';
 
-export interface DocumentMetrics {
-  documentPath: string;
-  documentName: string;
-  /** Average confidence score (0-1) */
-  averageConfidence: number;
-  /** Number of paragraphs */
-  totalParagraphs: number;
-  /** Number of low-confidence paragraphs */
-  lowConfidenceParagraphs: number;
-  /** Total citations in document */
-  totalCitations: number;
-  /** Number of verified citations */
-  verifiedCitations: number;
-  /** Number of partially verified citations */
-  partialCitations: number;
-  /** Number of unverified citations */
-  unverifiedCitations: number;
-  /** Verification rate (0-1) */
-  verificationRate: number;
-  /** Quality score (0-100) - composite of confidence and verification */
-  qualityScore: number;
-  /** Last analysis timestamp */
-  lastAnalyzedAt: string;
-}
+// ==================== Service-specific Types ====================
 
-export interface ProjectMetrics {
-  projectPath: string;
-  /** All analyzed documents */
-  documents: DocumentMetrics[];
-  /** Overall project confidence (weighted average) */
-  overallConfidence: number;
-  /** Overall citation verification rate */
-  overallVerificationRate: number;
-  /** Overall quality score (0-100) */
-  overallQualityScore: number;
-  /** Total documents analyzed */
-  totalDocuments: number;
-  /** Total paragraphs across all documents */
-  totalParagraphs: number;
-  /** Total low-confidence paragraphs */
-  totalLowConfidenceParagraphs: number;
-  /** Total citations */
-  totalCitations: number;
-  /** Total verified citations */
-  totalVerifiedCitations: number;
-  /** Last analysis timestamp */
-  lastAnalyzedAt: string;
-}
-
-export interface TrendDataPoint {
-  timestamp: string;
-  documentPath: string;
-  averageConfidence: number;
-  verificationRate: number;
-  qualityScore: number;
-}
-
-export interface TrendData {
-  projectPath: string;
-  dataPoints: TrendDataPoint[];
-  /** Moving averages (7-day) */
-  movingAverages: {
-    confidence: number;
-    verificationRate: number;
-    qualityScore: number;
-  };
-}
+// Local alias for backward compatibility
+export type ExportOptions = DashboardExportOptions;
 
 export interface VerificationReport {
   generatedAt: string;
@@ -92,14 +43,6 @@ export interface VerificationReport {
   projectMetrics: ProjectMetrics;
   documents: DocumentMetrics[];
   trendData: TrendDataPoint[];
-}
-
-export interface ExportOptions {
-  format: 'json' | 'csv';
-  includeTrends: boolean;
-  /** Date range filter (ISO strings) */
-  startDate?: string;
-  endDate?: string;
 }
 
 // ==================== Service Implementation ====================

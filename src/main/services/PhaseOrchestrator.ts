@@ -12,39 +12,22 @@ import { EventEmitter } from 'events';
 import { researchRouter, type ResearchMode, type ProjectPhase, type UnifiedStreamChunk } from './ResearchRouter';
 import { agentService, type AgentSession } from './AgentService';
 import { checkpointService, type CheckpointData } from './CheckpointService';
+import type {
+  PhaseStatus,
+  OrchestrationStatus,
+  PhaseState,
+  ProjectExecutionState,
+  PhaseOrchestratorConfig,
+} from '../../shared/types';
 
-// Phase status values
-export type PhaseStatus = 'pending' | 'in_progress' | 'completed' | 'failed' | 'paused' | 'skipped';
-
-// Orchestration status values
-export type OrchestrationStatus = 'idle' | 'running' | 'paused' | 'completed' | 'failed' | 'waiting_for_approval';
-
-// Phase state for tracking execution
-export interface PhaseState {
-  phase: ProjectPhase;
-  status: PhaseStatus;
-  startedAt?: Date;
-  completedAt?: Date;
-  error?: string;
-  output?: string;
-  progress: number; // 0-100
-}
-
-// Project execution state
-export interface ProjectExecutionState {
-  projectId: string;
-  projectName: string;
-  projectPath: string;
-  researchMode: ResearchMode;
-  phases: PhaseState[];
-  currentPhaseIndex: number;
-  status: OrchestrationStatus;
-  startedAt?: Date;
-  pausedAt?: Date;
-  completedAt?: Date;
-  /** Phase awaiting approval (if status is 'waiting_for_approval') */
-  awaitingApprovalPhaseIndex?: number;
-}
+// Re-export for consumers
+export type {
+  PhaseStatus,
+  OrchestrationStatus,
+  PhaseState,
+  ProjectExecutionState,
+  PhaseOrchestratorConfig,
+} from '../../shared/types';
 
 // Phase prompts for AI planning
 const PHASE_PROMPTS: Record<ProjectPhase, string> = {
@@ -125,15 +108,6 @@ const PHASE_DISPLAY_NAMES: Record<ProjectPhase, string> = {
   sprint_planning: 'Sprint Planning',
   general: 'General',
 };
-
-// Configuration for phase orchestrator
-export interface PhaseOrchestratorConfig {
-  projectId: string;
-  projectName: string;
-  projectPath: string;
-  researchMode: ResearchMode;
-  phases: ProjectPhase[];
-}
 
 // Events emitted by the orchestrator
 export interface PhaseOrchestratorEvents {

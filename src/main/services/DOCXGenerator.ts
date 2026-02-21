@@ -18,75 +18,22 @@ import {
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { citationManager, type ReferenceListOptions } from './CitationManager';
+import type {
+  DOCXGenerationOptions,
+  DOCXCoverPageMetadata,
+  DOCXMetadata,
+  DOCXGenerationResult,
+  DOCXSection,
+} from '../../shared/types';
 
-/**
- * Options for DOCX generation
- */
-export interface DOCXGenerationOptions {
-  /** Include table of contents */
-  includeToc?: boolean;
-  /** Include cover page with project metadata */
-  includeCoverPage?: boolean;
-  /** Cover page metadata */
-  coverPage?: DOCXCoverPageMetadata;
-  /** Include citations/references section */
-  includeCitations?: boolean;
-  /** Citation format (IEEE, APA, etc.) */
-  citationFormat?: 'ieee' | 'apa' | 'mla' | 'chicago';
-  /** Output directory (defaults to same as source) */
-  outputDir?: string;
-  /** Custom output filename (without extension) */
-  outputFilename?: string;
-  /** Document metadata */
-  documentMetadata?: DOCXMetadata;
-  /** Font family for body text */
-  fontFamily?: string;
-  /** Font size in points */
-  fontSize?: number;
-  /** Page size */
-  pageSize?: 'a4' | 'letter' | 'legal';
-}
-
-/**
- * Cover page metadata
- */
-export interface DOCXCoverPageMetadata {
-  title: string;
-  subtitle?: string;
-  author?: string;
-  date?: string;
-  organization?: string;
-}
-
-/**
- * Document metadata for document properties
- */
-export interface DOCXMetadata {
-  title?: string;
-  author?: string;
-  subject?: string;
-  description?: string;
-  keywords?: string[];
-  creator?: string;
-}
-
-/**
- * Result of DOCX generation
- */
-export interface DOCXGenerationResult {
-  success: boolean;
-  outputPath?: string;
-  error?: string;
-}
-
-/**
- * Section to include in the DOCX
- */
-export interface DOCXSection {
-  title: string;
-  content: string;
-  order: number;
-}
+// Re-export for consumers
+export type {
+  DOCXGenerationOptions,
+  DOCXCoverPageMetadata,
+  DOCXMetadata,
+  DOCXGenerationResult,
+  DOCXSection,
+} from '../../shared/types';
 
 /**
  * Parsed markdown element

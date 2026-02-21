@@ -13,62 +13,26 @@ import { app } from 'electron';
 import Database from 'better-sqlite3';
 import path from 'node:path';
 import fs from 'node:fs';
+import type {
+  CitationVerificationResult,
+  VerifiedCitationData,
+  CitationVerificationQuery,
+} from '../../shared/types';
 
-// ==================== Types ====================
+// Re-export for consumers
+export type {
+  CitationVerificationResult,
+  VerifiedCitationData,
+  CitationVerificationQuery,
+} from '../../shared/types';
 
-export interface VerificationResult {
-  /** Verification status */
-  status: 'verified' | 'partial' | 'unverified' | 'error';
-  /** Confidence score (0.0 - 1.0) */
-  confidence: number;
-  /** Which API verified this */
-  source: 'openalex' | 'crossref' | 'cache' | null;
-  /** Matched metadata from the API */
-  matchedData?: VerifiedCitationData;
-  /** Error message if verification failed */
-  error?: string;
-  /** Cache hit indicator */
-  fromCache: boolean;
-}
+// ==================== Local Type Aliases ====================
 
-export interface VerifiedCitationData {
-  /** DOI if found */
-  doi?: string;
-  /** Verified title */
-  title?: string;
-  /** Verified authors */
-  authors?: string[];
-  /** Publication year */
-  year?: number;
-  /** Publication date */
-  publicationDate?: string;
-  /** Journal/venue name */
-  venue?: string;
-  /** Publisher */
-  publisher?: string;
-  /** OpenAlex work ID */
-  openAlexId?: string;
-  /** Citation count */
-  citedByCount?: number;
-  /** Abstract (if available) */
-  abstract?: string;
-  /** Type of work (journal-article, book, etc.) */
-  type?: string;
-}
+// Local aliases for backward compatibility (shared types use different names)
+export type VerificationResult = CitationVerificationResult;
+export type CitationQuery = CitationVerificationQuery;
 
-export interface CitationQuery {
-  /** Title to search for */
-  title?: string;
-  /** Authors to search for */
-  authors?: string[];
-  /** DOI if known */
-  doi?: string;
-  /** Publication year (for filtering) */
-  year?: number;
-  /** URL of the source */
-  url?: string;
-}
-
+// Service-specific type (not in shared)
 export interface FieldMatchScore {
   field: string;
   inputValue: string;

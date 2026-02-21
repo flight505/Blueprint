@@ -3,81 +3,22 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import { citationManager, type ReferenceListOptions } from './CitationManager';
+import type {
+  PDFGenerationOptions,
+  CoverPageMetadata,
+  PDFMetadata,
+  PDFGenerationResult,
+  PDFSection,
+} from '../../shared/types';
 
-/**
- * Options for PDF generation
- */
-export interface PDFGenerationOptions {
-  /** Include table of contents */
-  includeToc?: boolean;
-  /** Include cover page with project metadata */
-  includeCoverPage?: boolean;
-  /** Cover page metadata */
-  coverPage?: CoverPageMetadata;
-  /** Include citations/references section */
-  includeCitations?: boolean;
-  /** Citation format (IEEE, APA, etc.) */
-  citationFormat?: 'ieee' | 'apa' | 'mla' | 'chicago';
-  /** Output directory (defaults to same as source) */
-  outputDir?: string;
-  /** Custom output filename (without extension) */
-  outputFilename?: string;
-  /** Page size (a4, letter, etc.) */
-  pageSize?: 'a4' | 'letter' | 'legal';
-  /** Margin size */
-  margin?: string;
-  /** Font size in points */
-  fontSize?: number;
-  /** Custom CSS for PDF styling */
-  customCss?: string;
-  /** Include page numbers */
-  pageNumbers?: boolean;
-  /** PDF metadata */
-  pdfMetadata?: PDFMetadata;
-}
-
-/**
- * Cover page metadata
- */
-export interface CoverPageMetadata {
-  title: string;
-  subtitle?: string;
-  author?: string;
-  date?: string;
-  organization?: string;
-  logo?: string; // Path to logo image
-}
-
-/**
- * PDF metadata for document properties
- */
-export interface PDFMetadata {
-  title?: string;
-  author?: string;
-  subject?: string;
-  keywords?: string[];
-  creator?: string;
-}
-
-/**
- * Result of PDF generation
- */
-export interface PDFGenerationResult {
-  success: boolean;
-  outputPath?: string;
-  error?: string;
-  pageCount?: number;
-}
-
-/**
- * Section to include in the PDF
- */
-export interface PDFSection {
-  title: string;
-  content: string;
-  order: number;
-  includeInToc?: boolean;
-}
+// Re-export for consumers
+export type {
+  PDFGenerationOptions,
+  CoverPageMetadata,
+  PDFMetadata,
+  PDFGenerationResult,
+  PDFSection,
+} from '../../shared/types';
 
 /**
  * PDFGenerator service handles PDF creation using Pandoc.

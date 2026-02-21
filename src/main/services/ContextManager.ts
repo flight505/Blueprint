@@ -7,59 +7,31 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { MessageParam, TextBlock } from '@anthropic-ai/sdk/resources/messages';
 import { CLAUDE_MODELS } from './ModelRouter';
+import type {
+  ContextEvent,
+  CompactionSummary,
+  CompactionResult,
+  ContextStats,
+} from '../../shared/types';
+
+// Re-export for consumers
+export type {
+  ContextEvent,
+  CompactionSummary,
+  CompactionResult,
+  ContextStats,
+} from '../../shared/types';
 
 // Configuration constants
 const COMPACTION_THRESHOLD = 20; // Events before triggering compaction
 const RECENT_EVENTS_TO_KEEP = 10; // Always keep last N events in full
 const SUMMARY_MAX_TOKENS = 1024; // Max tokens for summary generation
 
-// Types for context management
-export interface ContextEvent {
-  id: string;
-  timestamp: Date;
-  type: 'user_message' | 'assistant_message' | 'tool_use' | 'file_read' | 'decision' | 'other';
-  content: string;
-  metadata?: Record<string, unknown>;
-  tokenEstimate: number;
-}
-
-export interface CompactionSummary {
-  id: string;
-  createdAt: Date;
-  eventRange: {
-    startId: string;
-    endId: string;
-    startTimestamp: Date;
-    endTimestamp: Date;
-    eventCount: number;
-  };
-  summary: string;
-  tokensBefore: number;
-  tokensAfter: number;
-  compressionRatio: number;
-}
-
+// SessionContext is service-specific (not in shared types)
 export interface SessionContext {
   sessionId: string;
   events: ContextEvent[];
   summaries: CompactionSummary[];
-  totalTokens: number;
-  lastCompactionAt?: Date;
-}
-
-export interface CompactionResult {
-  success: boolean;
-  summary?: CompactionSummary;
-  tokensSaved: number;
-  error?: string;
-}
-
-export interface ContextStats {
-  sessionId: string;
-  totalEvents: number;
-  activeEvents: number;
-  compactedEvents: number;
-  summaryCount: number;
   totalTokens: number;
   lastCompactionAt?: Date;
 }

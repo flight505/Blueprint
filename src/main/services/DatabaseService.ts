@@ -9,17 +9,32 @@ import { app } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
+import type {
+  StoredSession,
+  SessionInput,
+  StoredPrompt,
+  PromptInput,
+  RecentProject,
+  RecentProjectInput,
+  DocumentInput,
+  StoredImageEdit,
+  ImageEditInput,
+} from '../../shared/types';
 
-// Re-export types for consumers
-export interface StoredSession {
-  id: string;
-  projectPath: string;
-  conversationHistory: string; // JSON serialized MessageParam[]
-  model: string;
-  createdAt: string;
-  updatedAt: string;
-}
+// Re-export shared types for consumers
+export type {
+  StoredSession,
+  SessionInput,
+  StoredPrompt,
+  PromptInput,
+  RecentProject,
+  RecentProjectInput,
+  DocumentInput,
+  StoredImageEdit,
+  ImageEditInput,
+} from '../../shared/types';
 
+// StoredDocument uses Buffer (Node.js) rather than ArrayBuffer (shared), so keep local
 export interface StoredDocument {
   id: string;
   sessionId: string;
@@ -30,55 +45,7 @@ export interface StoredDocument {
   updatedAt: string;
 }
 
-export interface SessionInput {
-  id: string;
-  projectPath: string;
-  conversationHistory: string;
-  model: string;
-}
-
-// Prompt types for prompt library
-export interface StoredPrompt {
-  id: string;
-  name: string;
-  template: string;
-  description: string | null;
-  isBuiltIn: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface PromptInput {
-  id: string;
-  name: string;
-  template: string;
-  description?: string;
-  isBuiltIn: boolean;
-}
-
-// Recent projects types
-export interface RecentProject {
-  id: string;
-  path: string;
-  name: string;
-  lastOpenedAt: string;
-  createdAt: string;
-}
-
-export interface RecentProjectInput {
-  path: string;
-  name: string;
-}
-
-export interface DocumentInput {
-  id: string;
-  sessionId: string;
-  filePath: string;
-  content: string;
-  embedding?: number[];
-}
-
-// Checkpoint types for phase save/resume
+// Checkpoint types for phase save/resume (not in shared types)
 export interface StoredCheckpoint {
   id: string;
   projectId: string;
@@ -99,26 +66,6 @@ export interface CheckpointInput {
   executionState: string;
   currentPhaseIndex: number;
   status: string;
-}
-
-// Image edit types for Nano Banana Image Editor
-export interface StoredImageEdit {
-  id: string;
-  projectId: string;
-  imageData: string; // Base64 data URL
-  prompt: string;
-  responseText: string | null;
-  processingTimeMs: number;
-  createdAt: string;
-}
-
-export interface ImageEditInput {
-  id: string;
-  projectId: string;
-  imageData: string;
-  prompt: string;
-  responseText?: string | null;
-  processingTimeMs?: number;
 }
 
 /**

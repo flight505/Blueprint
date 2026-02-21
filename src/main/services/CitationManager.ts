@@ -1,94 +1,20 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import type {
+  ManagedCitation,
+  CitationUsage,
+  CitationFile,
+  ReferenceListOptions,
+  FormattedReference,
+  AddCitationInput,
+} from '../../shared/types';
 
-/**
- * Citation metadata as stored in .citations.json sidecar files
- */
-export interface Citation {
-  id: string;
-  /** Citation number for IEEE format [1], [2], etc. */
-  number: number;
-  /** Source URL */
-  url: string;
-  /** Title of the source */
-  title: string;
-  /** Author(s) if available */
-  authors?: string[];
-  /** Publication date if available */
-  date?: string;
-  /** Publisher or website name */
-  publisher?: string;
-  /** Access date (when the citation was retrieved) */
-  accessedAt: string;
-  /** Provider that found this citation (perplexity, gemini, manual) */
-  source: 'perplexity' | 'gemini' | 'manual' | 'imported';
-  /** Locations in the document where this citation is used */
-  usages: CitationUsage[];
-}
+// Local alias for backward compatibility (shared uses ManagedCitation)
+export type Citation = ManagedCitation;
 
-/**
- * Where a citation is used in the document
- */
-export interface CitationUsage {
-  /** The claim or text that this citation supports */
-  claim: string;
-  /** Line number in the document (1-indexed) */
-  line?: number;
-  /** Character offset from start of document */
-  offset?: number;
-}
-
-/**
- * Structure of the .citations.json sidecar file
- */
-export interface CitationFile {
-  /** Version of the citation file format */
-  version: '1.0';
-  /** Path to the document this citation file belongs to */
-  documentPath: string;
-  /** When the citation file was last updated */
-  updatedAt: string;
-  /** All citations for this document */
-  citations: Citation[];
-  /** Next citation number to assign */
-  nextNumber: number;
-}
-
-/**
- * Options for generating a reference list
- */
-export interface ReferenceListOptions {
-  /** Format for the reference list */
-  format: 'ieee' | 'apa' | 'mla' | 'chicago';
-  /** Include URLs in the reference list */
-  includeUrls?: boolean;
-  /** Include access dates */
-  includeAccessDates?: boolean;
-}
-
-/**
- * A formatted reference for export
- */
-export interface FormattedReference {
-  number: number;
-  text: string;
-  url?: string;
-}
-
-/**
- * Input for adding a new citation
- */
-export interface AddCitationInput {
-  url: string;
-  title: string;
-  authors?: string[];
-  date?: string;
-  publisher?: string;
-  source: Citation['source'];
-  claim?: string;
-  line?: number;
-  offset?: number;
-}
+// Re-export for consumers
+export type { CitationUsage, CitationFile, ReferenceListOptions, FormattedReference, AddCitationInput } from '../../shared/types';
+export type { ManagedCitation } from '../../shared/types';
 
 /**
  * CitationManager handles citation storage, IEEE formatting, and reference list generation.

@@ -8,9 +8,10 @@
 import { safeStorage, app } from 'electron';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import type { ApiKeyType } from '../../shared/types';
 
-// Supported API key types
-export type ApiKeyType = 'anthropic' | 'openrouter' | 'gemini';
+// Re-export for consumers
+export type { ApiKeyType } from '../../shared/types';
 
 // Storage file path in userData
 const STORAGE_FILE = 'secure-keys.enc';

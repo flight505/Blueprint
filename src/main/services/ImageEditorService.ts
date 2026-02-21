@@ -7,6 +7,23 @@
 
 import { GoogleGenAI } from '@google/genai';
 import { secureStorageService } from './SecureStorageService';
+import type {
+  ImageEditorMimeType,
+  ImageEditRequest,
+  ImageEditResponse,
+  ImageEditHistoryItem,
+} from '../../shared/types';
+
+// Re-export for consumers
+export type {
+  ImageEditorMimeType,
+  ImageEditRequest,
+  ImageEditResponse,
+  ImageEditHistoryItem,
+} from '../../shared/types';
+
+// Local alias for backward compatibility
+export type SupportedMimeType = ImageEditorMimeType;
 
 // Gemini model for image editing (Nano Banana)
 const IMAGE_EDIT_MODEL = 'gemini-2.5-flash-preview-05-20';
@@ -22,52 +39,6 @@ const SUPPORTED_MIME_TYPES = [
   'image/gif',
   'image/webp',
 ] as const;
-
-export type SupportedMimeType = (typeof SUPPORTED_MIME_TYPES)[number];
-
-/**
- * Request to process an image with AI
- */
-export interface ImageEditRequest {
-  /** Base64-encoded image data (without data URL prefix) */
-  imageBase64: string;
-  /** MIME type of the image */
-  mimeType: SupportedMimeType;
-  /** Natural language editing instructions */
-  instructions: string;
-}
-
-/**
- * Response from image processing
- */
-export interface ImageEditResponse {
-  /** Whether the operation succeeded */
-  success: boolean;
-  /** Generated image as base64 data URL (data:image/png;base64,...) */
-  generatedImage: string | null;
-  /** AI response text (explanation or commentary) */
-  responseText: string | null;
-  /** Error message if failed */
-  error?: string;
-  /** Processing time in milliseconds */
-  processingTimeMs: number;
-}
-
-/**
- * Image edit history item (for persistence)
- */
-export interface ImageEditHistoryItem {
-  id: string;
-  projectId: string;
-  /** Base64 data URL of the image */
-  imageDataUrl: string;
-  /** The prompt used for this edit */
-  prompt: string;
-  /** AI response text */
-  responseText: string | null;
-  /** Timestamp of the edit */
-  createdAt: number;
-}
 
 /**
  * Service for AI-powered image editing using Gemini

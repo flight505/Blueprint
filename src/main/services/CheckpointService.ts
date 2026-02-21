@@ -8,18 +8,10 @@
  */
 
 import { databaseService, type StoredCheckpoint } from './DatabaseService';
-import type { ProjectExecutionState, OrchestrationStatus } from './PhaseOrchestrator';
+import type { ProjectExecutionState, OrchestrationStatus, CheckpointData } from '../../shared/types';
 
-// Checkpoint data structure for save/resume
-export interface CheckpointData {
-  id: string;
-  projectId: string;
-  projectPath: string;
-  projectName: string;
-  executionState: ProjectExecutionState;
-  createdAt: string;
-  updatedAt: string;
-}
+// Re-export for consumers
+export type { CheckpointData } from '../../shared/types';
 
 // Checkpoint summary for listing
 export interface CheckpointSummary {

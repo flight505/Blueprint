@@ -8,106 +8,35 @@
  * - Accept/Edit/Remove actions for each flagged item
  */
 
-import { confidenceScoringService, ParagraphConfidence, DocumentConfidence } from './ConfidenceScoringService';
+import { confidenceScoringService } from './ConfidenceScoringService';
 import { citationVerificationService } from './CitationVerificationService';
 import { citationManager } from './CitationManager';
+import type {
+  ParagraphConfidence,
+  DocumentConfidence,
+  ReviewItemType,
+  ReviewItemStatus,
+  ReviewItemAction,
+  LowConfidenceReviewItem,
+  CitationReviewItem,
+  ReviewItem,
+  ReviewSource,
+  DocumentReviewQueue,
+  ReviewScanOptions,
+} from '../../shared/types';
 
-// Review item types
-export type ReviewItemType = 'low_confidence' | 'unverified_citation' | 'partial_citation';
-
-export type ReviewItemStatus = 'pending' | 'accepted' | 'edited' | 'removed' | 'dismissed';
-
-export interface ReviewItemAction {
-  type: 'accept' | 'edit' | 'remove' | 'dismiss';
-  timestamp: Date;
-  editedText?: string;
-  reason?: string;
-}
-
-/**
- * Review item for low-confidence content
- */
-export interface LowConfidenceReviewItem {
-  id: string;
-  type: 'low_confidence';
-  documentPath: string;
-  paragraphIndex: number;
-  originalText: string;
-  confidence: number;
-  indicators: string[];
-  sources: ReviewSource[];
-  status: ReviewItemStatus;
-  action?: ReviewItemAction;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-/**
- * Review item for unverified/partial citations
- */
-export interface CitationReviewItem {
-  id: string;
-  type: 'unverified_citation' | 'partial_citation';
-  documentPath: string;
-  citationId: string;
-  citationNumber: number;
-  citationTitle: string;
-  citationUrl: string;
-  verificationStatus: 'unverified' | 'partial' | 'error';
-  verificationConfidence: number;
-  sources: ReviewSource[];
-  usages: Array<{
-    claim: string;
-    line?: number;
-    offset?: number;
-  }>;
-  status: ReviewItemStatus;
-  action?: ReviewItemAction;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export type ReviewItem = LowConfidenceReviewItem | CitationReviewItem;
-
-/**
- * Source information for side-by-side comparison
- */
-export interface ReviewSource {
-  id: string;
-  type: 'citation' | 'context' | 'generated';
-  title?: string;
-  url?: string;
-  content: string;
-  relevanceScore?: number;
-}
-
-/**
- * Review queue for a document
- */
-export interface DocumentReviewQueue {
-  documentPath: string;
-  items: ReviewItem[];
-  stats: {
-    total: number;
-    pending: number;
-    accepted: number;
-    edited: number;
-    removed: number;
-    dismissed: number;
-    lowConfidenceCount: number;
-    unverifiedCitationCount: number;
-  };
-  lastUpdated: Date;
-}
-
-/**
- * Options for scanning a document
- */
-export interface ReviewScanOptions {
-  confidenceThreshold?: number;
-  includePartialCitations?: boolean;
-  maxItems?: number;
-}
+// Re-export for consumers
+export type {
+  ReviewItemType,
+  ReviewItemStatus,
+  ReviewItemAction,
+  LowConfidenceReviewItem,
+  CitationReviewItem,
+  ReviewItem,
+  ReviewSource,
+  DocumentReviewQueue,
+  ReviewScanOptions,
+} from '../../shared/types';
 
 /**
  * Service for managing the human review queue

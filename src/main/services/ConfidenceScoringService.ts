@@ -6,6 +6,23 @@
  * extraction when/if the Anthropic API supports logprobs.
  */
 
+import type {
+  ConfidenceBreakdown,
+  ParagraphConfidence,
+  DocumentConfidence,
+  ConfidenceScoringConfig,
+  ConfidenceStreamUpdate,
+} from '../../shared/types';
+
+// Re-export for consumers
+export type {
+  ConfidenceBreakdown,
+  ParagraphConfidence,
+  DocumentConfidence,
+  ConfidenceScoringConfig,
+  ConfidenceStreamUpdate,
+} from '../../shared/types';
+
 // Confidence score thresholds
 const DEFAULT_LOW_CONFIDENCE_THRESHOLD = 0.6;
 
@@ -58,63 +75,6 @@ const CITATION_PATTERNS = [
   /https?:\/\//,       // URL references
 ];
 
-/**
- * Score breakdown for a paragraph
- */
-export interface ConfidenceBreakdown {
-  hedgingScore: number;      // Penalty from hedging words (0-1)
-  assertionScore: number;    // Boost from assertion words (0-1)
-  factualScore: number;      // Boost from factual indicators (0-1)
-  citationScore: number;     // Boost from citations (0-1)
-  lengthScore: number;       // Score based on paragraph length (0-1)
-  questionPenalty: number;   // Penalty from questions (0-1)
-}
-
-/**
- * Confidence score for a paragraph
- */
-export interface ParagraphConfidence {
-  paragraphIndex: number;
-  text: string;
-  confidence: number;        // Final score (0-1)
-  breakdown: ConfidenceBreakdown;
-  isLowConfidence: boolean;
-  indicators: string[];      // Human-readable reasons
-}
-
-/**
- * Document-level confidence analysis
- */
-export interface DocumentConfidence {
-  documentPath?: string;
-  overallConfidence: number;
-  paragraphs: ParagraphConfidence[];
-  lowConfidenceParagraphs: ParagraphConfidence[];
-  summary: {
-    totalParagraphs: number;
-    lowConfidenceCount: number;
-    averageConfidence: number;
-    lowestConfidence: number;
-    highestConfidence: number;
-  };
-}
-
-/**
- * Configuration for confidence scoring
- */
-export interface ConfidenceScoringConfig {
-  lowConfidenceThreshold: number;
-  enableTokenProbabilities: boolean;  // For future use when logprobs available
-  weights: {
-    hedging: number;
-    assertion: number;
-    factual: number;
-    citation: number;
-    length: number;
-    question: number;
-  };
-}
-
 const DEFAULT_CONFIG: ConfidenceScoringConfig = {
   lowConfidenceThreshold: DEFAULT_LOW_CONFIDENCE_THRESHOLD,
   enableTokenProbabilities: false,
@@ -140,16 +100,6 @@ export interface TokenProbability {
     token: string;
     logprob: number;
   }>;
-}
-
-/**
- * Streaming confidence update
- */
-export interface ConfidenceStreamUpdate {
-  type: 'paragraph' | 'document';
-  paragraphIndex?: number;
-  confidence: number;
-  isLowConfidence: boolean;
 }
 
 /**

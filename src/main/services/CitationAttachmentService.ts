@@ -6,97 +6,25 @@
  */
 
 import { citationManager, type Citation, type CitationFile, type AddCitationInput } from './CitationManager';
+import type {
+  RAGSource,
+  ExtractedClaim,
+  AttachmentResult,
+  AttachmentOptions,
+  SourceClaimLink,
+} from '../../shared/types';
+
+// Re-export for consumers
+export type {
+  RAGSource,
+  ExtractedClaim,
+  AttachmentResult,
+  AttachmentOptions,
+  SourceClaimLink,
+} from '../../shared/types';
 
 /**
- * A source from RAG context that may be cited
- */
-export interface RAGSource {
-  /** Unique identifier for this source */
-  id: string;
-  /** Source URL */
-  url: string;
-  /** Title of the source document */
-  title: string;
-  /** Author(s) if available */
-  authors?: string[];
-  /** Publication date if available */
-  date?: string;
-  /** Publisher or website name */
-  publisher?: string;
-  /** The content snippet from this source */
-  content: string;
-  /** Relevance score (0-1) from RAG retrieval */
-  relevanceScore?: number;
-  /** Provider that retrieved this source */
-  provider: 'perplexity' | 'gemini' | 'manual' | 'imported';
-}
-
-/**
- * A claim extracted from generated text
- */
-export interface ExtractedClaim {
-  /** The claim text */
-  text: string;
-  /** Character offset in the generated text */
-  startOffset: number;
-  /** End character offset */
-  endOffset: number;
-  /** Line number (1-indexed) */
-  line?: number;
-  /** IDs of sources that support this claim */
-  sourceIds: string[];
-  /** Confidence that the claim is supported by the sources (0-1) */
-  confidence?: number;
-}
-
-/**
- * Result of attaching citations to generated text
- */
-export interface AttachmentResult {
-  /** Text with IEEE citation markers [n] inserted */
-  annotatedText: string;
-  /** Claims extracted and their source mappings */
-  claims: ExtractedClaim[];
-  /** Citations that were added to the document */
-  addedCitations: Citation[];
-  /** Total citations now in the document */
-  totalCitations: number;
-}
-
-/**
- * Options for citation attachment
- */
-export interface AttachmentOptions {
-  /** Whether to insert IEEE markers into text (default: true) */
-  insertMarkers?: boolean;
-  /** Minimum relevance score to attach a citation (0-1, default: 0.5) */
-  minRelevance?: number;
-  /** Maximum citations per claim (default: 3) */
-  maxCitationsPerClaim?: number;
-}
-
-/**
- * Source-claim link stored in citation file for persistence
- */
-export interface SourceClaimLink {
-  /** Citation ID */
-  citationId: string;
-  /** Citation number for IEEE reference */
-  citationNumber: number;
-  /** The claim text */
-  claimText: string;
-  /** Original character offset (may change with edits) */
-  originalOffset: number;
-  /** Original line number */
-  originalLine?: number;
-  /** Hash of surrounding text for re-finding after edits */
-  contextHash: string;
-  /** Confidence score */
-  confidence?: number;
-}
-
-/**
- * Extended citation file structure with source-claim links
+ * Extended citation file structure with source-claim links (service-specific)
  */
 export interface CitationFileWithLinks extends CitationFile {
   /** Source-claim links for traceability */

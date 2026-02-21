@@ -8,30 +8,18 @@
  */
 
 import { openRouterService, type ResearchResponse, type ResearchOptions, type StreamCallback } from './OpenRouterService';
-import { geminiService, type DeepResearchResponse, type DeepResearchOptions, type GeminiStreamCallback, type ProgressCheckpoint } from './GeminiService';
+import { geminiService, type DeepResearchResponse, type DeepResearchOptions, type GeminiStreamCallback } from './GeminiService';
+import type {
+  ResearchMode,
+  ProjectPhase,
+  ResearchProvider,
+  PhaseConfig,
+  UnifiedResearchResponse,
+  ProgressCheckpoint,
+} from '../../shared/types';
 
-// Research modes
-export type ResearchMode = 'quick' | 'balanced' | 'comprehensive';
-
-// Project phases that may require research
-export type ProjectPhase =
-  | 'market_research'
-  | 'competitive_analysis'
-  | 'technical_feasibility'
-  | 'architecture_design'
-  | 'risk_assessment'
-  | 'sprint_planning'
-  | 'general';
-
-// Provider types
-export type ResearchProvider = 'perplexity' | 'gemini';
-
-// Configuration for phase routing
-interface PhaseConfig {
-  quick: ResearchProvider;
-  balanced: ResearchProvider;
-  comprehensive: ResearchProvider;
-}
+// Re-export for consumers
+export type { ResearchMode, ProjectPhase, ResearchProvider, PhaseConfig, UnifiedResearchResponse, ProgressCheckpoint } from '../../shared/types';
 
 // Phase-specific provider routing configuration
 const PHASE_ROUTING: Record<ProjectPhase, PhaseConfig> = {
@@ -78,27 +66,6 @@ const PHASE_ROUTING: Record<ProjectPhase, PhaseConfig> = {
     comprehensive: 'gemini',
   },
 };
-
-// Result type for unified research response
-export interface UnifiedResearchResponse {
-  id: string;
-  content: string;
-  provider: ResearchProvider;
-  model: string;
-  citations?: Array<{
-    url: string;
-    title?: string;
-    snippet?: string;
-    domain?: string;
-  }>;
-  usage: {
-    promptTokens: number;
-    completionTokens: number;
-    totalTokens: number;
-  };
-  finishReason: string | null;
-  progress?: ProgressCheckpoint;
-}
 
 // Options for routed research
 export interface RoutedResearchOptions {

@@ -1,18 +1,9 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import type { FileNode, FileContent, QuickOpenFile, SearchMatch, SearchResult } from '../../shared/types';
 
-export interface FileNode {
-  name: string;
-  path: string;
-  type: 'file' | 'directory';
-  children?: FileNode[];
-}
-
-export interface FileContent {
-  path: string;
-  content: string;
-  encoding: string;
-}
+// Re-export for consumers
+export type { FileNode, FileContent, QuickOpenFile, SearchMatch, SearchResult } from '../../shared/types';
 
 // Security: Track allowed base directories
 let allowedBasePaths: Set<string> = new Set();
@@ -146,25 +137,6 @@ export async function readFileContent(filePath: string): Promise<FileContent> {
 
 export function getFileExtension(filePath: string): string {
   return path.extname(filePath).toLowerCase().slice(1);
-}
-
-export interface QuickOpenFile {
-  name: string;
-  path: string;
-  relativePath: string;
-}
-
-export interface SearchMatch {
-  line: number;
-  column: number;
-  content: string;
-  match: string;
-}
-
-export interface SearchResult {
-  filePath: string;
-  relativePath: string;
-  matches: SearchMatch[];
 }
 
 /**

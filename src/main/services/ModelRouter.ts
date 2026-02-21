@@ -7,6 +7,11 @@
  * - Opus: Complex tasks (planning, architecture, research)
  */
 
+import type { TaskComplexity, TaskType } from '../../shared/types';
+
+// Re-export for consumers
+export type { TaskComplexity, TaskType } from '../../shared/types';
+
 // Available Claude models with their identifiers
 export const CLAUDE_MODELS = {
   HAIKU: 'claude-haiku-4-5',
@@ -14,30 +19,16 @@ export const CLAUDE_MODELS = {
   OPUS: 'claude-opus-4-6',
 } as const;
 
+// Local ModelId is the concrete union of CLAUDE_MODELS values (more specific than shared ModelId which is string)
 export type ModelId = (typeof CLAUDE_MODELS)[keyof typeof CLAUDE_MODELS];
 
-export type TaskComplexity = 'simple' | 'medium' | 'complex';
-
+// TaskClassification uses local ModelId (concrete union) rather than shared ModelId (string)
 export interface TaskClassification {
   complexity: TaskComplexity;
   model: ModelId;
   confidence: number; // 0.0 - 1.0
   reasoning: string;
 }
-
-// Task type categories for classification
-export type TaskType =
-  | 'autocomplete'
-  | 'quick_suggestion'
-  | 'formatting'
-  | 'inline_edit'
-  | 'code_generation'
-  | 'refactoring'
-  | 'planning'
-  | 'architecture'
-  | 'research'
-  | 'analysis'
-  | 'unknown';
 
 // Complexity rules for different task types
 const TASK_TYPE_COMPLEXITY: Record<TaskType, TaskComplexity> = {

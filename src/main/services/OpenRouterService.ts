@@ -5,6 +5,20 @@
  * through the OpenRouter API gateway.
  */
 
+import type {
+  Citation,
+  ResearchResponse,
+  ResearchOptions,
+  OpenRouterStreamChunk,
+} from '../../shared/types';
+
+// Re-export for consumers
+export type { Citation, ResearchResponse, ResearchOptions, OpenRouterStreamChunk } from '../../shared/types';
+
+// Local alias for backward compatibility
+export type StreamChunk = OpenRouterStreamChunk;
+export type StreamCallback = (chunk: StreamChunk) => void;
+
 // OpenRouter API base URL
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1';
 
@@ -13,46 +27,6 @@ const PERPLEXITY_MODEL = 'perplexity/sonar-pro';
 
 // Request timeout (30 seconds as per acceptance criteria)
 const REQUEST_TIMEOUT_MS = 30000;
-
-// Types for OpenRouter/Perplexity responses
-export interface Citation {
-  url: string;
-  title?: string;
-  snippet?: string;
-  domain?: string;
-}
-
-export interface ResearchResponse {
-  id: string;
-  content: string;
-  citations: Citation[];
-  model: string;
-  usage: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
-  finishReason: string | null;
-}
-
-export interface ResearchOptions {
-  /** Maximum tokens for the response */
-  maxTokens?: number;
-  /** Temperature for generation (0-1) */
-  temperature?: number;
-  /** System prompt to guide research */
-  systemPrompt?: string;
-  /** Timeout in milliseconds (default 30000) */
-  timeout?: number;
-}
-
-export interface StreamChunk {
-  type: 'text' | 'citation' | 'error' | 'done';
-  content: string;
-  citation?: Citation;
-}
-
-export type StreamCallback = (chunk: StreamChunk) => void;
 
 // OpenRouter API response types
 interface OpenRouterChoice {
@@ -86,7 +60,7 @@ interface OpenRouterStreamChoice {
   finish_reason: string | null;
 }
 
-interface OpenRouterStreamChunk {
+interface OpenRouterRawStreamChunk {
   id: string;
   model: string;
   choices: OpenRouterStreamChoice[];
@@ -303,7 +277,7 @@ class OpenRouterService {
               }
 
               try {
-                const parsed = JSON.parse(data) as OpenRouterStreamChunk;
+                const parsed = JSON.parse(data) as OpenRouterRawStreamChunk;
                 const content = parsed.choices[0]?.delta?.content || '';
                 if (content) {
                   fullContent += content;

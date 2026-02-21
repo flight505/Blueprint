@@ -6,6 +6,18 @@
  */
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import type {
+  DeepResearchResponse,
+  ProgressCheckpoint,
+  GeminiStreamChunk,
+} from '../../shared/types';
+
+// Re-export for consumers
+export type {
+  DeepResearchResponse,
+  ProgressCheckpoint,
+  GeminiStreamChunk,
+} from '../../shared/types';
 
 // Gemini model for deep research
 const GEMINI_MODEL = 'gemini-2.0-flash';
@@ -16,19 +28,7 @@ const DEEP_RESEARCH_TIMEOUT_MS = 60 * 60 * 1000;
 // Progress checkpoint percentages
 const PROGRESS_CHECKPOINTS = [15, 30, 50, 75, 90, 100];
 
-// Types for Gemini responses
-export interface DeepResearchResponse {
-  id: string;
-  content: string;
-  model: string;
-  usage: {
-    promptTokens: number;
-    candidatesTokens: number;
-    totalTokens: number;
-  };
-  finishReason: string | null;
-}
-
+// DeepResearchOptions extends shared type with onProgress callback (service-specific)
 export interface DeepResearchOptions {
   /** Maximum tokens for the response */
   maxOutputTokens?: number;
@@ -40,23 +40,6 @@ export interface DeepResearchOptions {
   timeout?: number;
   /** Callback for progress updates */
   onProgress?: (progress: ProgressCheckpoint) => void;
-}
-
-export interface ProgressCheckpoint {
-  /** Progress percentage (15, 30, 50, 75, 90, 100) */
-  percentage: number;
-  /** Timestamp of checkpoint */
-  timestamp: Date;
-  /** Status message */
-  message: string;
-  /** Partial content if available */
-  partialContent?: string;
-}
-
-export interface GeminiStreamChunk {
-  type: 'text' | 'progress' | 'error' | 'done';
-  content: string;
-  progress?: ProgressCheckpoint;
 }
 
 export type GeminiStreamCallback = (chunk: GeminiStreamChunk) => void;
