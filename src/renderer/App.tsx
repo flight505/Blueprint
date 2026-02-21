@@ -9,7 +9,7 @@ import { ReviewQueue } from './components/review';
 import { HallucinationDashboard } from './components/dashboard';
 import { TabBar, TabData } from './components/layout';
 import { GlassSidebar, type NavItem } from './components/sidebar';
-import { CommandPalette, useCommandPalette, Command } from './components/command';
+import { CommandPalette, useCommandPalette } from './components/command';
 import { FileQuickOpen, useFileQuickOpen } from './components/quickopen';
 import { InlineEditOverlay } from './components/inline-edit';
 import { DiffPreview } from './components/diff';
@@ -22,20 +22,19 @@ import { useMermaidRenderer } from './hooks/useMermaid';
 import { useInlineEdit } from './hooks/useInlineEdit';
 import { useDiffPreview } from './hooks/useDiffPreview';
 import { useDiagramEdit } from './hooks/useDiagramEdit';
+import { useAppState, type Section, type OpenFile } from './hooks/useAppState';
+import { useAppNavigation } from './hooks/useAppNavigation';
+import { useAppCommands } from './hooks/useAppCommands';
 import { ChatContainer, ChatMessageData, AskUserQuestionData } from './components/chat';
 import { SearchPanel } from './components/search';
 import { ImageEditorPanel } from './components/image-editor';
-import { ExportModal, ExportSection } from './components/export';
+import { ExportModal } from './components/export';
 import { WelcomeScreen } from './components/welcome';
 import { NewProjectWizard, ProjectConfig } from './components/wizard';
 import { VirtualizedDocument } from './components/document';
-import { store$, toggleConfidenceIndicators } from './state/store';
-import { setConfidenceIndicatorEnabled } from './components/editor/extensions';
 import { NAV_ICONS, EXPORT_ICONS } from './components/icons';
 
 const MIN_PANE_WIDTH = 300;
-
-type Section = 'chat' | 'explorer' | 'search' | 'context' | 'planning' | 'image' | 'export' | 'history' | 'settings' | 'help';
 
 // Section labels for panel titles
 const SECTION_LABELS: Record<Section, string> = {
@@ -119,14 +118,6 @@ export default function App() {
   return <MainApp />;
 }
 
-interface OpenFile {
-  id: string;
-  path: string;
-  name: string;
-  content: string;
-  originalContent: string; // Track original content for unsaved detection
-}
-
 function MainApp() {
   // Apply theme class to document element
   useThemeEffect();
@@ -156,22 +147,30 @@ function MainApp() {
   } = useDiagramEdit();
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const [activeSection, setActiveSection] = useState<Section>('chat');
-  const [openFiles, setOpenFiles] = useState<OpenFile[]>([]);
-  const [activeFileId, setActiveFileId] = useState<string | null>(null);
 
-  // Chat state
-  const [chatMessages, setChatMessages] = useState<ChatMessageData[]>([]);
-  const [isChatLoading, setIsChatLoading] = useState(false);
-  const [agentSessionId, setAgentSessionId] = useState<string | null>(null);
-  const [activeQuestion, setActiveQuestion] = useState<AskUserQuestionData | null>(null);
+  // Centralized app state
+  const state = useAppState();
+  const {
+    activeSection, setActiveSection,
+    openFiles, setOpenFiles,
+    activeFileId, setActiveFileId,
+    chatMessages, setChatMessages,
+    isChatLoading, setIsChatLoading,
+    agentSessionId, setAgentSessionId,
+    activeQuestion, setActiveQuestion,
+    isExportModalOpen, setIsExportModalOpen,
+    exportSections,
+    showNewProjectWizard, setShowNewProjectWizard,
+    projectPath, setProjectPath,
+  } = state;
 
-  // Export modal state
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [exportSections] = useState<ExportSection[]>([]);
-
-  // New project wizard state (will be used by US-042)
-  const [showNewProjectWizard, setShowNewProjectWizard] = useState(false);
+  // File/tab navigation handlers
+  const { handleFileSelect, handleTabSelect, handleTabClose } = useAppNavigation({
+    openFiles,
+    setOpenFiles,
+    activeFileId,
+    setActiveFileId,
+  });
 
   // Streaming hook for real-time AI responses
   const {
@@ -193,7 +192,6 @@ function MainApp() {
     onError: (error) => {
       console.error('Streaming error:', error);
       setIsChatLoading(false);
-      // Could show error toast here
     },
   });
 
@@ -267,9 +265,6 @@ function MainApp() {
     }
   }, [agentSessionId, sendStreamingMessage, fallbackDemoResponse]);
 
-  // Project path state (for file browser and quick open)
-  const [projectPath, setProjectPath] = useState<string | null>(null);
-
   // Handle opening a project (sets path and saves to recent projects)
   const handleOpenProject = useCallback(async (path: string) => {
     setProjectPath(path);
@@ -336,283 +331,19 @@ function MainApp() {
     toggle: toggleQuickOpen,
   } = useFileQuickOpen();
 
-  // Define available commands
-  const commands: Command[] = useMemo(() => [
-    // Section navigation
-    {
-      id: 'nav:chat',
-      label: 'Go to Chat',
-      shortcut: 'Cmd+1',
-      category: 'Navigation',
-      action: () => setActiveSection('chat'),
-    },
-    {
-      id: 'nav:explorer',
-      label: 'Go to Explorer',
-      shortcut: 'Cmd+2',
-      category: 'Navigation',
-      action: () => setActiveSection('explorer'),
-    },
-    {
-      id: 'nav:search',
-      label: 'Go to Search',
-      shortcut: 'Cmd+3',
-      category: 'Navigation',
-      action: () => setActiveSection('search'),
-    },
-    {
-      id: 'nav:context',
-      label: 'Go to Context',
-      shortcut: 'Cmd+4',
-      category: 'Navigation',
-      action: () => setActiveSection('context'),
-    },
-    {
-      id: 'nav:planning',
-      label: 'Go to Planning',
-      shortcut: 'Cmd+5',
-      category: 'Navigation',
-      action: () => setActiveSection('planning'),
-    },
-    {
-      id: 'nav:image',
-      label: 'Go to Image Editor',
-      shortcut: 'Cmd+6',
-      category: 'Navigation',
-      action: () => setActiveSection('image'),
-    },
-    {
-      id: 'nav:export',
-      label: 'Go to Export',
-      shortcut: 'Cmd+7',
-      category: 'Navigation',
-      action: () => setActiveSection('export'),
-    },
-    {
-      id: 'nav:history',
-      label: 'Go to History',
-      shortcut: 'Cmd+8',
-      category: 'Navigation',
-      action: () => setActiveSection('history'),
-    },
-    {
-      id: 'nav:settings',
-      label: 'Open Settings',
-      shortcut: 'Cmd+,',
-      category: 'Navigation',
-      action: () => setActiveSection('settings'),
-    },
-    {
-      id: 'nav:help',
-      label: 'Open Help',
-      shortcut: 'Cmd+?',
-      category: 'Navigation',
-      action: () => setActiveSection('help'),
-    },
-    // View commands
-    {
-      id: 'view:toggle-theme',
-      label: 'Toggle Dark Mode',
-      category: 'View',
-      action: () => {
-        // Toggle theme via Legend State store
-        const currentTheme = localStorage.getItem('blueprint:ui')
-          ? JSON.parse(localStorage.getItem('blueprint:ui')!).theme
-          : 'system';
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        const ui = localStorage.getItem('blueprint:ui')
-          ? JSON.parse(localStorage.getItem('blueprint:ui')!)
-          : {};
-        ui.theme = newTheme;
-        localStorage.setItem('blueprint:ui', JSON.stringify(ui));
-        // Force refresh to apply theme
-        window.location.reload();
-      },
-    },
-    {
-      id: 'view:toggle-confidence',
-      label: 'Toggle Confidence Indicators',
-      category: 'View',
-      action: () => {
-        // Toggle confidence indicators
-        toggleConfidenceIndicators();
-        const newState = store$.ui.showConfidenceIndicators.get();
-        setConfidenceIndicatorEnabled(newState);
-      },
-    },
-    // File commands
-    {
-      id: 'file:close-tab',
-      label: 'Close Current Tab',
-      shortcut: 'Cmd+W',
-      category: 'File',
-      action: () => {
-        if (activeFileId) {
-          handleTabClose(activeFileId);
-        }
-      },
-    },
-    {
-      id: 'file:close-all-tabs',
-      label: 'Close All Tabs',
-      category: 'File',
-      action: () => {
-        setOpenFiles([]);
-        setActiveFileId(null);
-      },
-    },
-    // Chat commands
-    {
-      id: 'chat:clear',
-      label: 'Clear Chat History',
-      category: 'Chat',
-      action: () => {
-        setChatMessages([]);
-        setActiveQuestion(null);
-      },
-    },
-    {
-      id: 'chat:new-session',
-      label: 'Start New Chat Session',
-      category: 'Chat',
-      action: () => {
-        setChatMessages([]);
-        setActiveQuestion(null);
-        setAgentSessionId(null);
-        setActiveSection('chat');
-      },
-    },
-    // Quick open command
-    {
-      id: 'file:quick-open',
-      label: 'Quick Open File',
-      shortcut: 'Cmd+P',
-      category: 'File',
-      action: () => toggleQuickOpen(),
-    },
-    // Search command
-    {
-      id: 'search:in-project',
-      label: 'Search in Project',
-      shortcut: 'Cmd+Shift+F',
-      category: 'Search',
-      action: () => setActiveSection('search'),
-    },
-  ], [activeFileId, toggleQuickOpen]);
-
-  const handleFileSelect = useCallback(async (filePath: string) => {
-    // Check if file is already open
-    const existingFile = openFiles.find(f => f.path === filePath);
-    if (existingFile) {
-      setActiveFileId(existingFile.id);
-      return;
-    }
-
-    try {
-      const fileData = await window.electronAPI.readFile(filePath);
-      const fileName = filePath.split('/').pop() || 'Untitled';
-      const newFileId = `file-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-      const newFile: OpenFile = {
-        id: newFileId,
-        path: filePath,
-        name: fileName,
-        content: fileData.content,
-        originalContent: fileData.content,
-      };
-      setOpenFiles(prev => [...prev, newFile]);
-      setActiveFileId(newFileId);
-    } catch (error) {
-      console.error('Failed to open file:', error);
-    }
-  }, [openFiles]);
-
-  // Tab selection handler
-  const handleTabSelect = useCallback((tabId: string) => {
-    setActiveFileId(tabId);
-  }, []);
-
-  // Tab close handler
-  const handleTabClose = useCallback((tabId: string) => {
-    const tabIndex = openFiles.findIndex(f => f.id === tabId);
-    if (tabIndex === -1) return;
-
-    const newFiles = openFiles.filter(f => f.id !== tabId);
-    setOpenFiles(newFiles);
-
-    // Update active file if needed
-    if (activeFileId === tabId) {
-      if (newFiles.length > 0) {
-        // Select the previous tab, or the first one if closing the first tab
-        const newActiveIndex = Math.max(0, tabIndex - 1);
-        setActiveFileId(newFiles[newActiveIndex].id);
-      } else {
-        setActiveFileId(null);
-      }
-    }
-  }, [openFiles, activeFileId]);
-
-  // Keyboard shortcuts for Activity Bar navigation and Command Palette
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      // Only handle if Cmd (Mac) or Ctrl (Windows/Linux) is pressed
-      if (!e.metaKey && !e.ctrlKey) return;
-
-      // Cmd+Shift+P for Command Palette (check first, before other handlers)
-      if (e.shiftKey && (e.key === 'p' || e.key === 'P')) {
-        e.preventDefault();
-        toggleCommandPalette();
-        return;
-      }
-
-      // Cmd+Shift+F for Search
-      if (e.shiftKey && (e.key === 'f' || e.key === 'F')) {
-        e.preventDefault();
-        setActiveSection('search');
-        return;
-      }
-
-      // Cmd+P for File Quick Open
-      if (!e.shiftKey && (e.key === 'p' || e.key === 'P')) {
-        e.preventDefault();
-        toggleQuickOpen();
-        return;
-      }
-
-      const sectionByNumber: Record<string, Section> = {
-        '1': 'chat',
-        '2': 'explorer',
-        '3': 'search',
-        '4': 'context',
-        '5': 'planning',
-        '6': 'image',
-        '7': 'export',
-        '8': 'history',
-      };
-
-      if (e.key in sectionByNumber) {
-        e.preventDefault();
-        setActiveSection(sectionByNumber[e.key]);
-        return;
-      }
-
-      // Cmd+, for Settings
-      if (e.key === ',') {
-        e.preventDefault();
-        setActiveSection('settings');
-        return;
-      }
-
-      // Cmd+Shift+/ (which produces ?) for Help
-      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
-        e.preventDefault();
-        setActiveSection('help');
-        return;
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggleCommandPalette, toggleQuickOpen]);
+  // Command palette commands and keyboard shortcuts
+  const { commands } = useAppCommands({
+    activeFileId,
+    setActiveSection,
+    setOpenFiles,
+    setActiveFileId,
+    setChatMessages,
+    setActiveQuestion,
+    setAgentSessionId,
+    handleTabClose,
+    toggleCommandPalette,
+    toggleQuickOpen,
+  });
 
   return (
     <div
@@ -1088,4 +819,3 @@ function FileContentView({ file }: { file: OpenFile }) {
     </div>
   );
 }
-
