@@ -1,13 +1,6 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import PermissionsCheck from './components/PermissionsCheck';
-import FileBrowser from './components/explorer/FileBrowser';
-import ThemeToggle from './components/settings/ThemeToggle';
-import ApiKeySettings from './components/settings/ApiKeySettings';
-import { ContextPanel } from './components/context';
-import { CitationVerificationPanel } from './components/citation';
-import { ReviewQueue } from './components/review';
-import { HallucinationDashboard } from './components/dashboard';
-import { TabBar, TabData } from './components/layout';
+import { ContentArea, PanelArea } from './components/layout';
 import { GlassSidebar, type NavItem } from './components/sidebar';
 import { CommandPalette, useCommandPalette } from './components/command';
 import { FileQuickOpen, useFileQuickOpen } from './components/quickopen';
@@ -22,19 +15,13 @@ import { useMermaidRenderer } from './hooks/useMermaid';
 import { useInlineEdit } from './hooks/useInlineEdit';
 import { useDiffPreview } from './hooks/useDiffPreview';
 import { useDiagramEdit } from './hooks/useDiagramEdit';
-import { useAppState, type Section, type OpenFile } from './hooks/useAppState';
+import { useAppState, type Section } from './hooks/useAppState';
 import { useAppNavigation } from './hooks/useAppNavigation';
 import { useAppCommands } from './hooks/useAppCommands';
-import { ChatContainer, ChatMessageData, AskUserQuestionData } from './components/chat';
-import { SearchPanel } from './components/search';
-import { ImageEditorPanel } from './components/image-editor';
+import { ChatMessageData } from './components/chat';
 import { ExportModal } from './components/export';
-import { WelcomeScreen } from './components/welcome';
 import { NewProjectWizard, ProjectConfig } from './components/wizard';
-import { VirtualizedDocument } from './components/document';
-import { NAV_ICONS, EXPORT_ICONS } from './components/icons';
-
-const MIN_PANE_WIDTH = 300;
+import { NAV_ICONS } from './components/icons';
 
 // Section labels for panel titles
 const SECTION_LABELS: Record<Section, string> = {
@@ -354,7 +341,6 @@ function MainApp() {
       <div className="title-bar-drag-region h-9 flex-shrink-0 flex items-center bg-white/[0.02] backdrop-blur-sm border-b border-white/[0.06]">
         {/* Left spacing for traffic lights (macOS) - approximately 72px */}
         <div className="w-[72px] flex-shrink-0" />
-        {/* Optional: App title or window controls could go here */}
         <div className="flex-1 text-center text-xs text-gray-400 font-medium">
           Blueprint
         </div>
@@ -382,7 +368,7 @@ function MainApp() {
           panelTitle={SECTION_LABELS[activeSection]}
           panelWidth={320}
           panelContent={
-            <LeftPaneContent
+            <PanelArea
               section={activeSection}
               onFileSelect={handleFileSelect}
               chatMessages={chatMessages}
@@ -407,100 +393,76 @@ function MainApp() {
           version="1.0.0"
         />
 
-
-      {/* Right Pane - Content */}
-      <main
-        id="main-content"
-        className="flex-1 flex flex-col"
-        style={{ minWidth: MIN_PANE_WIDTH }}
-        aria-label="Document content"
-      >
-        <header className="h-10 flex items-center border-b border-white/[0.06] bg-white/[0.02] backdrop-blur-sm">
-          <TabBar
-            tabs={openFiles.map((file): TabData => ({
-              id: file.id,
-              label: file.name,
-              path: file.path,
-              hasUnsavedChanges: file.content !== file.originalContent,
-            }))}
-            activeTabId={activeFileId}
-            onTabSelect={handleTabSelect}
-            onTabClose={handleTabClose}
-            enableKeyboardShortcuts={openFiles.length > 0}
-          />
-        </header>
-        <div className="flex-1 overflow-y-auto">
-          {openFiles.length === 0 || activeFileId === null ? (
-            <WelcomeScreen
-              onNewProject={() => setShowNewProjectWizard(true)}
-              onOpenProject={handleOpenProject}
-            />
-          ) : (
-            <FileContentView file={openFiles.find(f => f.id === activeFileId)!} />
-          )}
-        </div>
-      </main>
-
-      {/* Command Palette */}
-      <CommandPalette
-        commands={commands}
-        isOpen={isCommandPaletteOpen}
-        onClose={closeCommandPalette}
-        recentCommandIds={recentCommandIds}
-        onCommandExecuted={recordCommandUsage}
-      />
-
-      {/* File Quick Open */}
-      <FileQuickOpen
-        isOpen={isQuickOpenOpen}
-        onClose={closeQuickOpen}
-        onFileSelect={handleFileSelect}
-        projectPath={projectPath}
-      />
-
-      {/* Inline Edit Overlay for AI-powered text editing */}
-      <InlineEditOverlay
-        isOpen={inlineEditState.isOpen}
-        position={inlineEditState.position}
-        selectedText={inlineEditState.selectedText}
-        selectionRange={inlineEditState.selectionRange}
-        onSubmit={handleInlineEditSubmit}
-        onClose={closeInlineEdit}
-        isGenerating={inlineEditState.isGenerating}
-      />
-
-      {/* Diff Preview for reviewing AI edits (with animation) */}
-      <AnimatedModal
-        isOpen={diffPreviewState.isOpen}
-        onClose={rejectDiffEdit}
-        className="max-w-3xl w-full mx-4"
-      >
-        <DiffPreview
-          original={diffPreviewState.original}
-          proposed={diffPreviewState.proposed}
-          onAccept={acceptDiffEdit}
-          onReject={rejectDiffEdit}
-          mode="side-by-side"
+        {/* Right Pane - Content */}
+        <ContentArea
+          openFiles={openFiles}
+          activeFileId={activeFileId}
+          onTabSelect={handleTabSelect}
+          onTabClose={handleTabClose}
+          onNewProject={() => setShowNewProjectWizard(true)}
+          onOpenProject={handleOpenProject}
         />
-      </AnimatedModal>
 
-      {/* Diagram Edit Modal for editing Mermaid diagrams */}
-      <DiagramEditModal
-        isOpen={diagramEditState.isOpen}
-        initialCode={diagramEditState.code}
-        nodePos={diagramEditState.nodePos}
-        onSave={saveDiagramEdit}
-        onClose={closeDiagramEdit}
-      />
+        {/* Command Palette */}
+        <CommandPalette
+          commands={commands}
+          isOpen={isCommandPaletteOpen}
+          onClose={closeCommandPalette}
+          recentCommandIds={recentCommandIds}
+          onCommandExecuted={recordCommandUsage}
+        />
 
-      {/* Export Modal for generating PDF, DOCX, PPTX */}
-      <ExportModal
-        isOpen={isExportModalOpen}
-        onClose={() => setIsExportModalOpen(false)}
-        sections={exportSections}
-        projectPath={projectPath}
-        projectTitle="Blueprint Project"
-      />
+        {/* File Quick Open */}
+        <FileQuickOpen
+          isOpen={isQuickOpenOpen}
+          onClose={closeQuickOpen}
+          onFileSelect={handleFileSelect}
+          projectPath={projectPath}
+        />
+
+        {/* Inline Edit Overlay for AI-powered text editing */}
+        <InlineEditOverlay
+          isOpen={inlineEditState.isOpen}
+          position={inlineEditState.position}
+          selectedText={inlineEditState.selectedText}
+          selectionRange={inlineEditState.selectionRange}
+          onSubmit={handleInlineEditSubmit}
+          onClose={closeInlineEdit}
+          isGenerating={inlineEditState.isGenerating}
+        />
+
+        {/* Diff Preview for reviewing AI edits (with animation) */}
+        <AnimatedModal
+          isOpen={diffPreviewState.isOpen}
+          onClose={rejectDiffEdit}
+          className="max-w-3xl w-full mx-4"
+        >
+          <DiffPreview
+            original={diffPreviewState.original}
+            proposed={diffPreviewState.proposed}
+            onAccept={acceptDiffEdit}
+            onReject={rejectDiffEdit}
+            mode="side-by-side"
+          />
+        </AnimatedModal>
+
+        {/* Diagram Edit Modal for editing Mermaid diagrams */}
+        <DiagramEditModal
+          isOpen={diagramEditState.isOpen}
+          initialCode={diagramEditState.code}
+          nodePos={diagramEditState.nodePos}
+          onSave={saveDiagramEdit}
+          onClose={closeDiagramEdit}
+        />
+
+        {/* Export Modal for generating PDF, DOCX, PPTX */}
+        <ExportModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+          sections={exportSections}
+          projectPath={projectPath}
+          projectTitle="Blueprint Project"
+        />
 
         {/* New Project Wizard */}
         <NewProjectWizard
@@ -512,310 +474,6 @@ function MainApp() {
         {/* Confidence Indicator Tooltip (global, positioned via events) */}
         <ConfidenceTooltip />
       </div>
-    </div>
-  );
-}
-
-interface LeftPaneContentProps {
-  section: Section;
-  onFileSelect: (path: string) => void;
-  chatMessages: ChatMessageData[];
-  isChatLoading: boolean;
-  onSendMessage: (content: string) => void;
-  streamingContent?: string;
-  isStreaming?: boolean;
-  activeQuestion?: AskUserQuestionData | null;
-  onAnswerQuestion?: (questionId: string, answer: string | string[]) => void;
-  agentSessionId?: string | null;
-  projectPath?: string | null;
-  onProjectPathChange?: (path: string | null) => void;
-  onOpenExportModal?: () => void;
-  activeDocumentPath?: string | null;
-  onScrollToCitation?: (citationNumber: number, line?: number, offset?: number) => void;
-}
-
-function LeftPaneContent({
-  section,
-  onFileSelect,
-  chatMessages,
-  isChatLoading,
-  onSendMessage,
-  streamingContent,
-  isStreaming,
-  activeQuestion,
-  onAnswerQuestion,
-  agentSessionId,
-  projectPath,
-  onProjectPathChange,
-  onOpenExportModal,
-  activeDocumentPath,
-  onScrollToCitation,
-}: LeftPaneContentProps) {
-  // Context section tab state
-  const [contextTab, setContextTab] = useState<'context' | 'citations' | 'review' | 'dashboard'>('context');
-
-  switch (section) {
-    case 'chat':
-      return (
-        <ChatContainer
-          messages={chatMessages}
-          onSendMessage={onSendMessage}
-          isLoading={isChatLoading}
-          placeholder="Type a message to start planning..."
-          streamingContent={streamingContent}
-          isStreaming={isStreaming}
-          activeQuestion={activeQuestion}
-          onAnswerQuestion={onAnswerQuestion}
-        />
-      );
-    case 'explorer':
-      return (
-        <FileBrowser
-          onFileSelect={onFileSelect}
-          projectPath={projectPath}
-          onProjectPathChange={onProjectPathChange}
-        />
-      );
-    case 'search':
-      return (
-        <SearchPanel
-          projectPath={projectPath ?? null}
-          onFileSelect={onFileSelect}
-        />
-      );
-    case 'context':
-      return (
-        <div className="flex flex-col h-full">
-          {/* Tab switcher */}
-          <div className="flex border-b border-white/[0.06] bg-white/[0.02]">
-            <button
-              onClick={() => setContextTab('context')}
-              className={`flex-1 px-4 py-2 text-sm font-medium transition-all duration-150 ${
-                contextTab === 'context'
-                  ? 'text-purple-400 border-b-2 border-purple-400 shadow-[0_2px_8px_rgba(167,139,250,0.15)]'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
-              }`}
-              aria-selected={contextTab === 'context'}
-              role="tab"
-            >
-              Context
-            </button>
-            <button
-              onClick={() => setContextTab('citations')}
-              className={`flex-1 px-4 py-2 text-sm font-medium transition-all duration-150 ${
-                contextTab === 'citations'
-                  ? 'text-purple-400 border-b-2 border-purple-400 shadow-[0_2px_8px_rgba(167,139,250,0.15)]'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
-              }`}
-              aria-selected={contextTab === 'citations'}
-              role="tab"
-            >
-              Citations
-            </button>
-            <button
-              onClick={() => setContextTab('review')}
-              className={`flex-1 px-4 py-2 text-sm font-medium transition-all duration-150 ${
-                contextTab === 'review'
-                  ? 'text-purple-400 border-b-2 border-purple-400 shadow-[0_2px_8px_rgba(167,139,250,0.15)]'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
-              }`}
-              aria-selected={contextTab === 'review'}
-              role="tab"
-            >
-              Review
-            </button>
-            <button
-              onClick={() => setContextTab('dashboard')}
-              className={`flex-1 px-4 py-2 text-sm font-medium transition-all duration-150 ${
-                contextTab === 'dashboard'
-                  ? 'text-purple-400 border-b-2 border-purple-400 shadow-[0_2px_8px_rgba(167,139,250,0.15)]'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
-              }`}
-              aria-selected={contextTab === 'dashboard'}
-              role="tab"
-            >
-              Dashboard
-            </button>
-          </div>
-          {/* Tab content */}
-          <div className="flex-1 overflow-hidden">
-            {contextTab === 'context' ? (
-              <ContextPanel
-                sessionId={agentSessionId}
-                maxTokens={200000}
-              />
-            ) : contextTab === 'citations' ? (
-              <CitationVerificationPanel
-                documentPath={activeDocumentPath ?? null}
-                onScrollToCitation={onScrollToCitation}
-              />
-            ) : contextTab === 'review' ? (
-              <ReviewQueue
-                documentPath={activeDocumentPath ?? null}
-              />
-            ) : (
-              <HallucinationDashboard
-                projectPath={projectPath}
-              />
-            )}
-          </div>
-        </div>
-      );
-    case 'planning':
-      return (
-        <div className="flex-1 overflow-y-auto p-4">
-          <div className="text-gray-500 dark:text-gray-400">
-            <p className="text-sm font-medium mb-2">Planning Dashboard</p>
-            <p className="text-xs">Create a new project to see planning phases</p>
-          </div>
-        </div>
-      );
-    case 'image':
-      return (
-        <ImageEditorPanel
-          projectId={projectPath ?? undefined}
-        />
-      );
-    case 'export':
-      return (
-        <div className="flex-1 overflow-y-auto p-4">
-          <div className="space-y-4">
-            <div className="text-gray-400">
-              <p className="text-sm font-medium mb-2 text-gray-200">Export Documents</p>
-              <p className="text-xs mb-4">Generate PDF, DOCX, or PPTX from your project</p>
-            </div>
-
-            {/* Export format options */}
-            <div className="grid grid-cols-1 gap-3">
-              <button
-                onClick={onOpenExportModal}
-                className="p-4 rounded-lg border border-white/[0.06] bg-white/[0.04] hover:bg-white/[0.07] hover:border-purple-400/30 hover:shadow-[0_0_12px_rgba(167,139,250,0.12)] transition-all duration-200 text-left group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="text-gray-300 group-hover:scale-110 transition-transform">
-                    <EXPORT_ICONS.pdf size={24} />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm text-gray-100">PDF Document</p>
-                    <p className="text-xs text-gray-400">Professional format with precise layout</p>
-                  </div>
-                </div>
-              </button>
-
-              <button
-                onClick={onOpenExportModal}
-                className="p-4 rounded-lg border border-white/[0.06] bg-white/[0.04] hover:bg-white/[0.07] hover:border-purple-400/30 hover:shadow-[0_0_12px_rgba(167,139,250,0.12)] transition-all duration-200 text-left group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="text-gray-300 group-hover:scale-110 transition-transform">
-                    <EXPORT_ICONS.docx size={24} />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm text-gray-100">Word Document</p>
-                    <p className="text-xs text-gray-400">Editable DOCX for collaboration</p>
-                  </div>
-                </div>
-              </button>
-
-              <button
-                onClick={onOpenExportModal}
-                className="p-4 rounded-lg border border-white/[0.06] bg-white/[0.04] hover:bg-white/[0.07] hover:border-purple-400/30 hover:shadow-[0_0_12px_rgba(167,139,250,0.12)] transition-all duration-200 text-left group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="text-gray-300 group-hover:scale-110 transition-transform">
-                    <EXPORT_ICONS.pptx size={24} />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm text-gray-100">PowerPoint</p>
-                    <p className="text-xs text-gray-400">Presentation slides for meetings</p>
-                  </div>
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-      );
-    case 'history':
-      return (
-        <div className="flex-1 overflow-y-auto p-4">
-          <div className="text-gray-500 dark:text-gray-400">
-            <p className="text-sm font-medium mb-2">Session History</p>
-            <p className="text-xs">No previous sessions</p>
-          </div>
-        </div>
-      );
-    case 'settings':
-      return (
-        <div className="flex-1 overflow-y-auto p-4">
-          <div className="space-y-6">
-            <ApiKeySettings />
-            <hr className="border-gray-200 dark:border-gray-700" />
-            <ThemeToggle />
-          </div>
-        </div>
-      );
-    case 'help':
-      return (
-        <div className="flex-1 overflow-y-auto p-4">
-          <div className="space-y-4">
-            <div>
-              <p className="text-sm font-medium mb-2">Keyboard Shortcuts</p>
-              <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
-                <p>Cmd+1-8 - Switch sections</p>
-                <p>Cmd+6 - Image Editor</p>
-                <p>Cmd+Shift+P - Command palette</p>
-                <p>Cmd+Shift+F - Search in project</p>
-                <p>Cmd+P - Quick open file</p>
-                <p>Cmd+K - Inline edit</p>
-              </div>
-            </div>
-            <div>
-              <p className="text-sm font-medium mb-2">Documentation</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">View docs at github.com/flight505/Blueprint</p>
-            </div>
-          </div>
-        </div>
-      );
-  }
-}
-
-
-/** Threshold for using virtualized rendering (in lines) */
-const VIRTUALIZATION_THRESHOLD = 1000;
-
-function FileContentView({ file }: { file: OpenFile }) {
-  const ext = file.name.split('.').pop()?.toLowerCase() || '';
-  const isCode = ['ts', 'tsx', 'js', 'jsx', 'json', 'css', 'scss', 'html', 'yml', 'yaml', 'py', 'rb', 'go', 'rs', 'md'].includes(ext);
-
-  // Count lines to determine if we need virtualization
-  const lineCount = useMemo(() => file.content.split('\n').length, [file.content]);
-  const useVirtualization = lineCount >= VIRTUALIZATION_THRESHOLD;
-
-  // Use virtualized document for large files (1000+ lines)
-  if (useVirtualization) {
-    return (
-      <div className="h-full">
-        <VirtualizedDocument
-          content={file.content}
-          fileName={file.name}
-          showLineNumbers={true}
-        />
-      </div>
-    );
-  }
-
-  // Standard rendering for smaller files
-  return (
-    <div className="p-4 h-full">
-      <pre
-        className={`text-sm font-mono overflow-auto h-full p-4 rounded-lg ${
-          isCode
-            ? 'bg-gray-100 dark:bg-gray-800'
-            : 'bg-white dark:bg-gray-900'
-        }`}
-      >
-        <code>{file.content}</code>
-      </pre>
     </div>
   );
 }
