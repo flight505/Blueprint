@@ -63,6 +63,9 @@ release/
 # Auto-update cache (US-055)
 .updater-cache/
 
+# Git worktrees
+.worktrees/
+
 # Temporary files
 tmp/
 temp/
