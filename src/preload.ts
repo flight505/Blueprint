@@ -1,1036 +1,240 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
-export interface PermissionStatus {
-  granted: boolean;
-  error?: string;
-}
-
-export interface PermissionsResult {
-  fileAccess: PermissionStatus;
-  networkAccess: PermissionStatus;
-}
-
-export interface FileNode {
-  name: string;
-  path: string;
-  type: 'file' | 'directory';
-  children?: FileNode[];
-}
-
-export interface FileContent {
-  path: string;
-  content: string;
-  encoding: string;
-}
-
-export interface QuickOpenFile {
-  name: string;
-  path: string;
-  relativePath: string;
-}
-
-export interface SearchMatch {
-  line: number;
-  column: number;
-  content: string;
-  match: string;
-}
-
-export interface SearchResult {
-  filePath: string;
-  relativePath: string;
-  matches: SearchMatch[];
-}
-
-export interface SearchOptions {
-  useRegex?: boolean;
-  caseSensitive?: boolean;
-  maxResults?: number;
-}
-
-// Agent types (matching main process)
-export interface AgentSession {
-  id: string;
-  createdAt: Date;
-  messages: MessageParam[];
-  model: string;
-}
-
-export interface StreamChunk {
-  type: 'text' | 'thinking' | 'tool_use' | 'error' | 'done';
-  content: string;
-  toolName?: string;
-  toolInput?: unknown;
-}
-
-export interface CreateSessionOptions {
-  model?: string;
-  systemPrompt?: string;
-}
-
-export interface SendMessageOptions {
-  maxTokens?: number;
-  stream?: boolean;
-}
-
-export interface SendMessageParsedOptions {
-  maxTokens?: number;
-  model?: string;
-  autoSelectModel?: boolean;
-  systemPrompt?: string;
-}
-
-export type StructuredOutputSchemaName =
-  | 'confidence_analysis'
-  | 'citation_extraction'
-  | 'phase_plan'
-  | 'task_classification'
-  | 'document_summary'
-  | 'research_synthesis';
-
-export interface ParsedMessageResult<T = unknown> {
-  parsed: T;
-  rawText: string;
-  model: string;
-  usage: {
-    input_tokens: number;
-    output_tokens: number;
-  };
-}
-
-export interface MessageParam {
-  role: 'user' | 'assistant';
-  content: string | ContentBlock[];
-}
-
-export interface ContentBlock {
-  type: string;
-  text?: string;
-  [key: string]: unknown;
-}
-
-export interface MessageResponse {
-  id: string;
-  type: string;
-  role: string;
-  content: ContentBlock[];
-  model: string;
-  stop_reason: string | null;
-  usage: {
-    input_tokens: number;
-    output_tokens: number;
-  };
-}
-
-// Database types
-export interface StoredSession {
-  id: string;
-  projectPath: string;
-  conversationHistory: string;
-  model: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface StoredDocument {
-  id: string;
-  sessionId: string;
-  filePath: string;
-  content: string;
-  embedding: ArrayBuffer | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface SessionInput {
-  id: string;
-  projectPath: string;
-  conversationHistory: string;
-  model: string;
-}
-
-export interface DocumentInput {
-  id: string;
-  sessionId: string;
-  filePath: string;
-  content: string;
-  embedding?: number[];
-}
-
-export interface DbStats {
-  sessionCount: number;
-  documentCount: number;
-  dbSize: number;
-}
-
-// Recent projects types
-export interface RecentProject {
-  id: string;
-  path: string;
-  name: string;
-  lastOpenedAt: string;
-  createdAt: string;
-}
-
-export interface RecentProjectInput {
-  path: string;
-  name: string;
-}
-
-// Secure storage types
-export type ApiKeyType = 'anthropic' | 'openrouter' | 'gemini';
-
-// Model router types
-export type TaskComplexity = 'simple' | 'medium' | 'complex';
-export type ModelId = string;
-export type TaskType =
-  | 'autocomplete'
-  | 'quick_suggestion'
-  | 'formatting'
-  | 'inline_edit'
-  | 'code_generation'
-  | 'refactoring'
-  | 'planning'
-  | 'architecture'
-  | 'research'
-  | 'analysis'
-  | 'unknown';
-
-export interface TaskClassification {
-  complexity: TaskComplexity;
-  model: ModelId;
-  confidence: number;
-  reasoning: string;
-}
-
-export interface ModelInfo {
-  id: ModelId;
-  name: string;
-  complexity: TaskComplexity;
-  description: string;
-}
-
-export interface ClaudeModels {
-  HAIKU: string;
-  SONNET: string;
-  OPUS: string;
-}
-
-// Context manager types
-export type ContextEventType = 'user_message' | 'assistant_message' | 'tool_use' | 'file_read' | 'decision' | 'other';
-
-export interface ContextEvent {
-  id: string;
-  timestamp: Date;
-  type: ContextEventType;
-  content: string;
-  metadata?: Record<string, unknown>;
-  tokenEstimate: number;
-}
-
-export interface CompactionSummary {
-  id: string;
-  createdAt: Date;
-  eventRange: {
-    startId: string;
-    endId: string;
-    startTimestamp: Date;
-    endTimestamp: Date;
-    eventCount: number;
-  };
-  summary: string;
-  tokensBefore: number;
-  tokensAfter: number;
-  compressionRatio: number;
-}
-
-export interface CompactionResult {
-  success: boolean;
-  summary?: CompactionSummary;
-  tokensSaved: number;
-  error?: string;
-}
-
-export interface ContextStats {
-  sessionId: string;
-  totalEvents: number;
-  activeEvents: number;
-  compactedEvents: number;
-  summaryCount: number;
-  totalTokens: number;
-  lastCompactionAt?: Date;
-}
-
-export interface ContextConfiguration {
-  compactionThreshold: number;
-  recentEventsToKeep: number;
-}
-
-// Prompt library types
-export interface StoredPrompt {
-  id: string;
-  name: string;
-  template: string;
-  description: string | null;
-  isBuiltIn: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface PromptInput {
-  id: string;
-  name: string;
-  template: string;
-  description?: string;
-  isBuiltIn: boolean;
-}
-
-// OpenRouter/Perplexity types
-export interface Citation {
-  url: string;
-  title?: string;
-  snippet?: string;
-  domain?: string;
-}
-
-export interface ResearchResponse {
-  id: string;
-  content: string;
-  citations: Citation[];
-  model: string;
-  usage: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
-  finishReason: string | null;
-}
-
-export interface ResearchOptions {
-  maxTokens?: number;
-  temperature?: number;
-  systemPrompt?: string;
-  timeout?: number;
-}
-
-export interface OpenRouterStreamChunk {
-  type: 'text' | 'citation' | 'error' | 'done';
-  content: string;
-  citation?: Citation;
-}
-
-// Gemini/Deep Research types
-export interface DeepResearchResponse {
-  id: string;
-  content: string;
-  model: string;
-  usage: {
-    promptTokens: number;
-    candidatesTokens: number;
-    totalTokens: number;
-  };
-  finishReason: string | null;
-}
-
-export interface DeepResearchOptions {
-  maxOutputTokens?: number;
-  temperature?: number;
-  systemInstruction?: string;
-  timeout?: number;
-}
-
-export interface ProgressCheckpoint {
-  percentage: number;
-  timestamp: Date;
-  message: string;
-  partialContent?: string;
-}
-
-export interface GeminiStreamChunk {
-  type: 'text' | 'progress' | 'error' | 'done';
-  content: string;
-  progress?: ProgressCheckpoint;
-}
-
-// Research router types
-export type ResearchMode = 'quick' | 'balanced' | 'comprehensive';
-export type ProjectPhase =
-  | 'market_research'
-  | 'competitive_analysis'
-  | 'technical_feasibility'
-  | 'architecture_design'
-  | 'risk_assessment'
-  | 'sprint_planning'
-  | 'general';
-export type ResearchProvider = 'perplexity' | 'gemini';
-
-export interface PhaseConfig {
-  quick: ResearchProvider;
-  balanced: ResearchProvider;
-  comprehensive: ResearchProvider;
-}
-
-export interface UnifiedResearchResponse {
-  id: string;
-  content: string;
-  provider: ResearchProvider;
-  model: string;
-  citations?: Array<{
-    url: string;
-    title?: string;
-    snippet?: string;
-    domain?: string;
-  }>;
-  usage: {
-    promptTokens: number;
-    completionTokens: number;
-    totalTokens: number;
-  };
-  finishReason: string | null;
-  progress?: ProgressCheckpoint;
-}
-
-export interface RoutedResearchOptions {
-  mode?: ResearchMode;
-  phase?: ProjectPhase;
-  forceProvider?: ResearchProvider;
-  systemPrompt?: string;
-  maxTokens?: number;
-  temperature?: number;
-  timeout?: number;
-}
-
-export interface UnifiedStreamChunk {
-  type: 'text' | 'citation' | 'progress' | 'error' | 'done';
-  content: string;
-  provider: ResearchProvider;
-  citation?: {
-    url: string;
-    title?: string;
-    snippet?: string;
-    domain?: string;
-  };
-  progress?: ProgressCheckpoint;
-}
-
-// Citation management types (stored in .citations.json sidecar files)
-export interface ManagedCitation {
-  id: string;
-  number: number;
-  url: string;
-  title: string;
-  authors?: string[];
-  date?: string;
-  publisher?: string;
-  accessedAt: string;
-  source: 'perplexity' | 'gemini' | 'manual' | 'imported';
-  usages: CitationUsage[];
-}
-
-export interface CitationUsage {
-  claim: string;
-  line?: number;
-  offset?: number;
-}
-
-export interface CitationFile {
-  version: '1.0';
-  documentPath: string;
-  updatedAt: string;
-  citations: ManagedCitation[];
-  nextNumber: number;
-}
-
-export interface ReferenceListOptions {
-  format: 'ieee' | 'apa' | 'mla' | 'chicago';
-  includeUrls?: boolean;
-  includeAccessDates?: boolean;
-}
-
-export interface FormattedReference {
-  number: number;
-  text: string;
-  url?: string;
-}
-
-export interface AddCitationInput {
-  url: string;
-  title: string;
-  authors?: string[];
-  date?: string;
-  publisher?: string;
-  source: ManagedCitation['source'];
-  claim?: string;
-  line?: number;
-  offset?: number;
-}
-
-// Citation verification types
-export interface CitationVerificationResult {
-  status: 'verified' | 'partial' | 'unverified' | 'error';
-  confidence: number;
-  source: 'openalex' | 'crossref' | 'cache' | null;
-  matchedData?: VerifiedCitationData;
-  error?: string;
-  fromCache: boolean;
-}
-
-export interface VerifiedCitationData {
-  doi?: string;
-  title?: string;
-  authors?: string[];
-  year?: number;
-  publicationDate?: string;
-  venue?: string;
-  publisher?: string;
-  openAlexId?: string;
-  citedByCount?: number;
-  abstract?: string;
-  type?: string;
-}
-
-export interface CitationVerificationQuery {
-  title?: string;
-  authors?: string[];
-  doi?: string;
-  year?: number;
-  url?: string;
-}
-
-export interface CitationVerificationCacheStats {
-  totalEntries: number;
-  expiredEntries: number;
-  cacheSize: number;
-}
-
-// Citation attachment types
-export interface RAGSource {
-  id: string;
-  url: string;
-  title: string;
-  authors?: string[];
-  date?: string;
-  publisher?: string;
-  content: string;
-  relevanceScore?: number;
-  provider: 'perplexity' | 'gemini' | 'manual' | 'imported';
-}
-
-export interface ExtractedClaim {
-  text: string;
-  startOffset: number;
-  endOffset: number;
-  line?: number;
-  sourceIds: string[];
-  confidence?: number;
-}
-
-export interface AttachmentResult {
-  annotatedText: string;
-  claims: ExtractedClaim[];
-  addedCitations: ManagedCitation[];
-  totalCitations: number;
-}
-
-export interface AttachmentOptions {
-  insertMarkers?: boolean;
-  minRelevance?: number;
-  maxCitationsPerClaim?: number;
-}
-
-export interface SourceClaimLink {
-  citationId: string;
-  citationNumber: number;
-  claimText: string;
-  originalOffset: number;
-  originalLine?: number;
-  contextHash: string;
-  confidence?: number;
-}
-
-// Confidence Scoring types
-export interface ConfidenceBreakdown {
-  hedgingScore: number;
-  assertionScore: number;
-  factualScore: number;
-  citationScore: number;
-  lengthScore: number;
-  questionPenalty: number;
-}
-
-export interface ParagraphConfidence {
-  paragraphIndex: number;
-  text: string;
-  confidence: number;
-  breakdown: ConfidenceBreakdown;
-  isLowConfidence: boolean;
-  indicators: string[];
-}
-
-export interface DocumentConfidence {
-  documentPath?: string;
-  overallConfidence: number;
-  paragraphs: ParagraphConfidence[];
-  lowConfidenceParagraphs: ParagraphConfidence[];
-  summary: {
-    totalParagraphs: number;
-    lowConfidenceCount: number;
-    averageConfidence: number;
-    lowestConfidence: number;
-    highestConfidence: number;
-  };
-}
-
-export interface ConfidenceScoringConfig {
-  lowConfidenceThreshold: number;
-  enableTokenProbabilities: boolean;
-  weights: {
-    hedging: number;
-    assertion: number;
-    factual: number;
-    citation: number;
-    length: number;
-    question: number;
-  };
-}
-
-export interface ConfidenceStreamUpdate {
-  type: 'paragraph' | 'document';
-  paragraphIndex?: number;
-  confidence: number;
-  isLowConfidence: boolean;
-}
-
-// Review Queue types
-export type ReviewItemType = 'low_confidence' | 'unverified_citation' | 'partial_citation';
-export type ReviewItemStatus = 'pending' | 'accepted' | 'edited' | 'removed' | 'dismissed';
-
-export interface ReviewItemAction {
-  type: 'accept' | 'edit' | 'remove' | 'dismiss';
-  timestamp: Date;
-  editedText?: string;
-  reason?: string;
-}
-
-export interface ReviewSource {
-  id: string;
-  type: 'citation' | 'context' | 'generated';
-  title?: string;
-  url?: string;
-  content: string;
-  relevanceScore?: number;
-}
-
-export interface LowConfidenceReviewItem {
-  id: string;
-  type: 'low_confidence';
-  documentPath: string;
-  paragraphIndex: number;
-  originalText: string;
-  confidence: number;
-  indicators: string[];
-  sources: ReviewSource[];
-  status: ReviewItemStatus;
-  action?: ReviewItemAction;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface CitationReviewItem {
-  id: string;
-  type: 'unverified_citation' | 'partial_citation';
-  documentPath: string;
-  citationId: string;
-  citationNumber: number;
-  citationTitle: string;
-  citationUrl: string;
-  verificationStatus: 'unverified' | 'partial' | 'error';
-  verificationConfidence: number;
-  sources: ReviewSource[];
-  usages: Array<{
-    claim: string;
-    line?: number;
-    offset?: number;
-  }>;
-  status: ReviewItemStatus;
-  action?: ReviewItemAction;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export type ReviewItem = LowConfidenceReviewItem | CitationReviewItem;
-
-export interface DocumentReviewQueue {
-  documentPath: string;
-  items: ReviewItem[];
-  stats: {
-    total: number;
-    pending: number;
-    accepted: number;
-    edited: number;
-    removed: number;
-    dismissed: number;
-    lowConfidenceCount: number;
-    unverifiedCitationCount: number;
-  };
-  lastUpdated: Date;
-}
-
-export interface ReviewScanOptions {
-  confidenceThreshold?: number;
-  includePartialCitations?: boolean;
-  maxItems?: number;
-}
-
-// Hallucination Dashboard types
-export interface DocumentMetrics {
-  documentPath: string;
-  documentName: string;
-  averageConfidence: number;
-  totalParagraphs: number;
-  lowConfidenceParagraphs: number;
-  totalCitations: number;
-  verifiedCitations: number;
-  partialCitations: number;
-  unverifiedCitations: number;
-  verificationRate: number;
-  qualityScore: number;
-  lastAnalyzedAt: string;
-}
-
-export interface ProjectMetrics {
-  projectPath: string;
-  documents: DocumentMetrics[];
-  overallConfidence: number;
-  overallVerificationRate: number;
-  overallQualityScore: number;
-  totalDocuments: number;
-  totalParagraphs: number;
-  totalLowConfidenceParagraphs: number;
-  totalCitations: number;
-  totalVerifiedCitations: number;
-  lastAnalyzedAt: string;
-}
-
-export interface TrendDataPoint {
-  timestamp: string;
-  documentPath: string;
-  averageConfidence: number;
-  verificationRate: number;
-  qualityScore: number;
-}
-
-export interface TrendData {
-  projectPath: string;
-  dataPoints: TrendDataPoint[];
-  movingAverages: {
-    confidence: number;
-    verificationRate: number;
-    qualityScore: number;
-  };
-}
-
-export interface DashboardExportOptions {
-  format: 'json' | 'csv';
-  includeTrends: boolean;
-  startDate?: string;
-  endDate?: string;
-}
-
-// PDF generation types
-export interface PDFGenerationOptions {
-  includeToc?: boolean;
-  includeCoverPage?: boolean;
-  coverPage?: CoverPageMetadata;
-  includeCitations?: boolean;
-  citationFormat?: 'ieee' | 'apa' | 'mla' | 'chicago';
-  outputDir?: string;
-  outputFilename?: string;
-  pageSize?: 'a4' | 'letter' | 'legal';
-  margin?: string;
-  fontSize?: number;
-  customCss?: string;
-  pageNumbers?: boolean;
-  pdfMetadata?: PDFMetadata;
-}
-
-export interface CoverPageMetadata {
-  title: string;
-  subtitle?: string;
-  author?: string;
-  date?: string;
-  organization?: string;
-  logo?: string;
-}
-
-export interface PDFMetadata {
-  title?: string;
-  author?: string;
-  subject?: string;
-  keywords?: string[];
-  creator?: string;
-}
-
-export interface PDFGenerationResult {
-  success: boolean;
-  outputPath?: string;
-  error?: string;
-  pageCount?: number;
-}
-
-export interface PDFSection {
-  title: string;
-  content: string;
-  order: number;
-  includeInToc?: boolean;
-}
-
-// DOCX generation types
-export interface DOCXGenerationOptions {
-  includeToc?: boolean;
-  includeCoverPage?: boolean;
-  coverPage?: DOCXCoverPageMetadata;
-  includeCitations?: boolean;
-  citationFormat?: 'ieee' | 'apa' | 'mla' | 'chicago';
-  outputDir?: string;
-  outputFilename?: string;
-  documentMetadata?: DOCXMetadata;
-  fontFamily?: string;
-  fontSize?: number;
-  pageSize?: 'a4' | 'letter' | 'legal';
-}
-
-export interface DOCXCoverPageMetadata {
-  title: string;
-  subtitle?: string;
-  author?: string;
-  date?: string;
-  organization?: string;
-}
-
-export interface DOCXMetadata {
-  title?: string;
-  author?: string;
-  subject?: string;
-  description?: string;
-  keywords?: string[];
-  creator?: string;
-}
-
-export interface DOCXGenerationResult {
-  success: boolean;
-  outputPath?: string;
-  error?: string;
-}
-
-export interface DOCXSection {
-  title: string;
-  content: string;
-  order: number;
-}
-
-// PPTX generation types
-export interface PPTXTheme {
-  primary: string;
-  secondary: string;
-  background: string;
-  text: string;
-  accent: string;
-}
-
-export interface PPTXGenerationOptions {
-  theme?: string | PPTXTheme;
-  includeTitleSlide?: boolean;
-  titleSlide?: PPTXTitleSlideMetadata;
-  includeCitations?: boolean;
-  citationFormat?: 'ieee' | 'apa' | 'mla' | 'chicago';
-  outputDir?: string;
-  outputFilename?: string;
-  metadata?: PPTXMetadata;
-  slideSize?: '16:9' | '4:3';
-  maxBulletsPerSlide?: number;
-}
-
-export interface PPTXTitleSlideMetadata {
-  title: string;
-  subtitle?: string;
-  author?: string;
-  date?: string;
-  organization?: string;
-}
-
-export interface PPTXMetadata {
-  title?: string;
-  author?: string;
-  subject?: string;
-  company?: string;
-  keywords?: string[];
-}
-
-export interface PPTXGenerationResult {
-  success: boolean;
-  outputPath?: string;
-  error?: string;
-  slideCount?: number;
-}
-
-export interface PPTXSection {
-  title: string;
-  content: string;
-  order: number;
-}
-
-// Phase orchestrator types
-export type PhaseStatus = 'pending' | 'in_progress' | 'completed' | 'failed' | 'paused' | 'skipped';
-export type OrchestrationStatus = 'idle' | 'running' | 'paused' | 'completed' | 'failed' | 'waiting_for_approval';
-
-export interface PhaseState {
-  phase: ProjectPhase;
-  status: PhaseStatus;
-  startedAt?: Date;
-  completedAt?: Date;
-  error?: string;
-  output?: string;
-  progress: number;
-}
-
-export interface ProjectExecutionState {
-  projectId: string;
-  projectName: string;
-  projectPath: string;
-  researchMode: ResearchMode;
-  phases: PhaseState[];
-  currentPhaseIndex: number;
-  status: OrchestrationStatus;
-  startedAt?: Date;
-  pausedAt?: Date;
-  completedAt?: Date;
-  /** Phase awaiting approval (if status is 'waiting_for_approval') */
-  awaitingApprovalPhaseIndex?: number;
-}
-
-export interface PhaseOrchestratorConfig {
-  projectId: string;
-  projectName: string;
-  projectPath: string;
-  researchMode: ResearchMode;
-  phases: ProjectPhase[];
-}
-
-// Checkpoint data structure for save/resume
-export interface CheckpointData {
-  id: string;
-  projectId: string;
-  projectPath: string;
-  projectName: string;
-  executionState: ProjectExecutionState;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Image Editor types (Nano Banana)
-export type ImageEditorMimeType = 'image/png' | 'image/jpeg' | 'image/jpg' | 'image/gif' | 'image/webp';
-
-export interface ImageEditRequest {
-  /** Base64-encoded image data (without data URL prefix) */
-  imageBase64: string;
-  /** MIME type of the image */
-  mimeType: ImageEditorMimeType;
-  /** Natural language editing instructions */
-  instructions: string;
-}
-
-export interface ImageEditResponse {
-  /** Whether the operation succeeded */
-  success: boolean;
-  /** Generated image as base64 data URL (data:image/png;base64,...) */
-  generatedImage: string | null;
-  /** AI response text (explanation or commentary) */
-  responseText: string | null;
-  /** Error message if failed */
-  error?: string;
-  /** Processing time in milliseconds */
-  processingTimeMs: number;
-}
-
-export interface ImageEditHistoryItem {
-  id: string;
-  projectId: string;
-  /** Base64 data URL of the image */
-  imageDataUrl: string;
-  /** The prompt used for this edit */
-  prompt: string;
-  /** AI response text */
-  responseText: string | null;
-  /** Timestamp of the edit */
-  createdAt: number;
-}
-
-// Stored image edit from database
-export interface StoredImageEdit {
-  id: string;
-  projectId: string;
-  imageData: string;
-  prompt: string;
-  responseText: string | null;
-  processingTimeMs: number;
-  createdAt: string;
-}
-
-export interface ImageEditInput {
-  id: string;
-  projectId: string;
-  imageData: string;
-  prompt: string;
-  responseText?: string | null;
-  processingTimeMs?: number;
-}
-
-// Update service types
-export interface UpdateStatus {
-  checking: boolean;
-  available: boolean;
-  downloaded: boolean;
-  downloading: boolean;
-  error: string | null;
-  progress: number;
-  updateInfo: UpdateInfo | null;
-}
-
-export interface UpdateInfo {
-  version: string;
-  files: Array<{
-    url: string;
-    sha512: string;
-    size: number;
-  }>;
-  path?: string;
-  sha512?: string;
-  releaseDate: string;
-  releaseName?: string;
-  releaseNotes?: string | Array<{ version: string; note: string }>;
-}
-
-export interface UpdateProgressInfo {
-  total: number;
-  delta: number;
-  transferred: number;
-  percent: number;
-  bytesPerSecond: number;
-}
-
-export type UpdateEventType =
-  | 'checking-for-update'
-  | 'update-available'
-  | 'update-not-available'
-  | 'download-progress'
-  | 'update-downloaded'
-  | 'error';
-
-export interface UpdateEvent {
-  type: UpdateEventType;
-  data?: UpdateInfo | UpdateProgressInfo | Error;
-}
+// Re-export all shared types for renderer consumption
+export type {
+  // common
+  PermissionStatus,
+  PermissionsResult,
+  ApiKeyType,
+  // filesystem
+  FileNode,
+  FileContent,
+  QuickOpenFile,
+  SearchMatch,
+  SearchResult,
+  SearchOptions,
+  // agent
+  AgentSession,
+  StreamChunk,
+  CreateSessionOptions,
+  SendMessageOptions,
+  SendMessageParsedOptions,
+  StructuredOutputSchemaName,
+  ParsedMessageResult,
+  MessageParam,
+  ContentBlock,
+  MessageResponse,
+  // database
+  StoredSession,
+  StoredDocument,
+  SessionInput,
+  DocumentInput,
+  DbStats,
+  RecentProject,
+  RecentProjectInput,
+  StoredPrompt,
+  PromptInput,
+  StoredImageEdit,
+  ImageEditInput,
+  // models
+  TaskComplexity,
+  ModelId,
+  TaskType,
+  TaskClassification,
+  ModelInfo,
+  ClaudeModels,
+  // context
+  ContextEventType,
+  ContextEvent,
+  CompactionSummary,
+  CompactionResult,
+  ContextStats,
+  ContextConfiguration,
+  // research
+  Citation,
+  ResearchResponse,
+  ResearchOptions,
+  OpenRouterStreamChunk,
+  DeepResearchResponse,
+  DeepResearchOptions,
+  ProgressCheckpoint,
+  GeminiStreamChunk,
+  ResearchMode,
+  ProjectPhase,
+  ResearchProvider,
+  PhaseConfig,
+  UnifiedResearchResponse,
+  RoutedResearchOptions,
+  UnifiedStreamChunk,
+  // citation
+  ManagedCitation,
+  CitationUsage,
+  CitationFile,
+  ReferenceListOptions,
+  FormattedReference,
+  AddCitationInput,
+  CitationVerificationResult,
+  VerifiedCitationData,
+  CitationVerificationQuery,
+  CitationVerificationCacheStats,
+  RAGSource,
+  ExtractedClaim,
+  AttachmentResult,
+  AttachmentOptions,
+  SourceClaimLink,
+  // confidence & review
+  ConfidenceBreakdown,
+  ParagraphConfidence,
+  DocumentConfidence,
+  ConfidenceScoringConfig,
+  ConfidenceStreamUpdate,
+  ReviewItemType,
+  ReviewItemStatus,
+  ReviewItemAction,
+  ReviewSource,
+  LowConfidenceReviewItem,
+  CitationReviewItem,
+  ReviewItem,
+  DocumentReviewQueue,
+  ReviewScanOptions,
+  // orchestrator, dashboard, export, updates
+  DocumentMetrics,
+  ProjectMetrics,
+  TrendDataPoint,
+  TrendData,
+  DashboardExportOptions,
+  PDFGenerationOptions,
+  CoverPageMetadata,
+  PDFMetadata,
+  PDFGenerationResult,
+  PDFSection,
+  DOCXGenerationOptions,
+  DOCXCoverPageMetadata,
+  DOCXMetadata,
+  DOCXGenerationResult,
+  DOCXSection,
+  PPTXTheme,
+  PPTXGenerationOptions,
+  PPTXTitleSlideMetadata,
+  PPTXMetadata,
+  PPTXGenerationResult,
+  PPTXSection,
+  PhaseStatus,
+  OrchestrationStatus,
+  PhaseState,
+  ProjectExecutionState,
+  PhaseOrchestratorConfig,
+  CheckpointData,
+  ImageEditorMimeType,
+  ImageEditRequest,
+  ImageEditResponse,
+  ImageEditHistoryItem,
+  UpdateStatus,
+  UpdateInfo,
+  UpdateProgressInfo,
+  UpdateEventType,
+  UpdateEvent,
+} from './shared/types';
+
+// Import types locally for use in contextBridge wiring and global declaration
+import type {
+  PermissionsResult,
+  FileNode,
+  FileContent,
+  QuickOpenFile,
+  SearchOptions,
+  SearchResult,
+  CreateSessionOptions,
+  AgentSession,
+  SendMessageOptions,
+  MessageResponse,
+  MessageParam,
+  StreamChunk,
+  StructuredOutputSchemaName,
+  SendMessageParsedOptions,
+  ParsedMessageResult,
+  SessionInput,
+  StoredSession,
+  DocumentInput,
+  StoredDocument,
+  DbStats,
+  RecentProjectInput,
+  RecentProject,
+  ApiKeyType,
+  TaskType,
+  TaskClassification,
+  TaskComplexity,
+  ModelId,
+  ModelInfo,
+  ClaudeModels,
+  ContextEventType,
+  ContextEvent,
+  ContextStats,
+  CompactionResult,
+  CompactionSummary,
+  ContextConfiguration,
+  PromptInput,
+  StoredPrompt,
+  ResearchOptions,
+  ResearchResponse,
+  OpenRouterStreamChunk,
+  DeepResearchOptions,
+  DeepResearchResponse,
+  ProgressCheckpoint,
+  GeminiStreamChunk,
+  ImageEditRequest,
+  ImageEditResponse,
+  ImageEditInput,
+  StoredImageEdit,
+  ResearchMode,
+  ProjectPhase,
+  ResearchProvider,
+  PhaseConfig,
+  RoutedResearchOptions,
+  UnifiedResearchResponse,
+  UnifiedStreamChunk,
+  CitationFile,
+  AddCitationInput,
+  ManagedCitation,
+  CitationUsage,
+  ReferenceListOptions,
+  FormattedReference,
+  CitationVerificationQuery,
+  CitationVerificationResult,
+  CitationVerificationCacheStats,
+  RAGSource,
+  AttachmentOptions,
+  AttachmentResult,
+  SourceClaimLink,
+  ParagraphConfidence,
+  DocumentConfidence,
+  ConfidenceScoringConfig,
+  ConfidenceStreamUpdate,
+  ReviewScanOptions,
+  DocumentReviewQueue,
+  ReviewItem,
+  DocumentMetrics,
+  ProjectMetrics,
+  TrendData,
+  DashboardExportOptions,
+  PDFGenerationOptions,
+  PDFGenerationResult,
+  PDFSection,
+  DOCXGenerationOptions,
+  DOCXGenerationResult,
+  DOCXSection,
+  PPTXGenerationOptions,
+  PPTXGenerationResult,
+  PPTXSection,
+  PPTXTheme,
+  PhaseOrchestratorConfig,
+  ProjectExecutionState,
+  PhaseState,
+  CheckpointData,
+  UpdateInfo,
+  UpdateStatus,
+  UpdateEvent,
+} from './shared/types';
 
 // Expose protected methods to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
