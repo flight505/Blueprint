@@ -44,10 +44,42 @@ pnpm dist:linux       # Build Linux app
 ## Project Structure
 ```
 src/
-├── main.ts                    # Electron main process entry
-├── preload.ts                 # Preload script (IPC bridge)
+├── main.ts                    # App lifecycle only (~148 lines)
+├── preload.ts                 # IPC bridge (~1,242 lines, imports shared types)
+├── shared/
+│   └── types/                 # Shared type definitions (10 domain files)
+│       ├── index.ts           # Barrel export
+│       ├── agent.types.ts     # Agent/chat types
+│       ├── citation.types.ts  # Citation tracking types
+│       ├── common.types.ts    # Shared enums, base types
+│       ├── confidence.types.ts # Confidence scoring types
+│       ├── context.types.ts   # Context management types
+│       ├── database.types.ts  # Database operation types
+│       ├── filesystem.types.ts # File system types
+│       ├── models.types.ts    # Model routing types
+│       ├── orchestrator.types.ts # Phase orchestration types
+│       └── research.types.ts  # Research routing types
 ├── main/
 │   ├── permissions.ts         # macOS permissions
+│   ├── ipc/                   # IPC handlers (16 domain modules)
+│   │   ├── index.ts           # registerAllHandlers()
+│   │   ├── validation.ts      # Shared IPC input validation
+│   │   ├── agent.ipc.ts       # Chat/agent streaming
+│   │   ├── citation.ipc.ts    # Citation management
+│   │   ├── confidence.ipc.ts  # Confidence scoring
+│   │   ├── context.ipc.ts     # Context window management
+│   │   ├── dashboard.ipc.ts   # Metrics dashboard
+│   │   ├── database.ipc.ts    # SQLite operations
+│   │   ├── export.ipc.ts      # Document export
+│   │   ├── filesystem.ipc.ts  # File system operations
+│   │   ├── imageEditor.ipc.ts # Image editing
+│   │   ├── models.ipc.ts      # Model routing
+│   │   ├── orchestrator.ipc.ts # Phase orchestration
+│   │   ├── research.ipc.ts    # Research routing
+│   │   ├── review.ipc.ts      # Review operations
+│   │   ├── settings.ipc.ts    # App settings
+│   │   ├── system.ipc.ts      # System/window operations
+│   │   └── update.ipc.ts      # App updates
 │   └── services/              # Backend services
 │       ├── AgentService.ts           # Claude API integration
 │       ├── DatabaseService.ts        # SQLite operations
@@ -76,15 +108,30 @@ src/
         ├── citation/          # Citation verification panel
         ├── dashboard/         # Hallucination metrics
         └── export/            # Export modal
+
+docs/
+├── architecture.md            # Single-file codebase guide
+├── design.md                  # UI/UX design decisions
+├── roadmap.md                 # Development roadmap & status
+└── plans/                     # Active refactoring plans
+    ├── 2026-02-21-refactoring-design.md
+    └── 2026-02-21-refactoring-plan.md
 ```
 
 ## Architecture Patterns
 
 ### IPC Communication
-All main↔renderer communication uses typed IPC handlers:
+All main-renderer communication uses typed IPC handlers organized by domain:
 ```typescript
-// Main process (src/main.ts)
-ipcMain.handle('service:method', async (_, arg) => { ... });
+// IPC module (src/main/ipc/agent.ipc.ts)
+export function registerAgentHandlers(mainWindow: BrowserWindow) {
+  ipcMain.handle('agent:chat', async (_, arg) => { ... });
+}
+
+// Index (src/main/ipc/index.ts)
+export function registerAllHandlers(mainWindow: BrowserWindow) { ... }
+
+// Main process (src/main.ts) — just calls registerAllHandlers()
 
 // Preload (src/preload.ts)
 contextBridge.exposeInMainWorld('electronAPI', {
