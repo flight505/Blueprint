@@ -43,23 +43,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y xvfb
 
       - name: Build Electron app
-        run: pnpm start &
-        env:
-          CI: true
-          # Give the app time to build before tests run
-          # The electron-forge start command builds and launches
-
-      - name: Wait for app build
-        run: sleep 30
-
-      - name: Kill the running app
-        if: runner.os != 'Windows'
-        run: pkill -f electron || true
-
-      - name: Kill the running app (Windows)
-        if: runner.os == 'Windows'
-        run: taskkill /F /IM electron.exe || exit 0
-        shell: cmd
+        run: pnpm build
 
       # Run E2E tests
       - name: Run E2E tests (Linux)
