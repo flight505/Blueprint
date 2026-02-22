@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import PermissionsCheck from './components/PermissionsCheck';
-import { ContentArea, PanelArea } from './components/layout';
+import { ContentArea, PanelArea, ResizeHandle } from './components/layout';
 import { GlassSidebar, type NavItem } from './components/sidebar';
 import { CommandPalette, useCommandPalette } from './components/command';
 import { FileQuickOpen, useFileQuickOpen } from './components/quickopen';
@@ -39,19 +39,19 @@ const SECTION_LABELS: Record<Section, string> = {
 
 // Convert section config to NavItem array for GlassSidebar
 const PRIMARY_NAV_ITEMS: NavItem[] = [
-  { id: 'chat', icon: <NAV_ICONS.chat size={18} />, label: 'Chat', shortcut: '⌘1' },
-  { id: 'explorer', icon: <NAV_ICONS.explorer size={18} />, label: 'Explorer', shortcut: '⌘2' },
-  { id: 'search', icon: <NAV_ICONS.search size={18} />, label: 'Search', shortcut: '⌘3' },
-  { id: 'context', icon: <NAV_ICONS.context size={18} />, label: 'Context', shortcut: '⌘4' },
-  { id: 'planning', icon: <NAV_ICONS.planning size={18} />, label: 'Planning', shortcut: '⌘5' },
-  { id: 'image', icon: <NAV_ICONS.image size={18} />, label: 'Image', shortcut: '⌘6' },
-  { id: 'export', icon: <NAV_ICONS.export size={18} />, label: 'Export', shortcut: '⌘7' },
-  { id: 'history', icon: <NAV_ICONS.history size={18} />, label: 'History', shortcut: '⌘8' },
+  { id: 'chat', icon: <NAV_ICONS.chat size={18} strokeWidth={1.5} />, label: 'Chat', shortcut: '⌘1' },
+  { id: 'explorer', icon: <NAV_ICONS.explorer size={18} strokeWidth={1.5} />, label: 'Explorer', shortcut: '⌘2' },
+  { id: 'search', icon: <NAV_ICONS.search size={18} strokeWidth={1.5} />, label: 'Search', shortcut: '⌘3' },
+  { id: 'context', icon: <NAV_ICONS.context size={18} strokeWidth={1.5} />, label: 'Context', shortcut: '⌘4' },
+  { id: 'planning', icon: <NAV_ICONS.planning size={18} strokeWidth={1.5} />, label: 'Planning', shortcut: '⌘5' },
+  { id: 'image', icon: <NAV_ICONS.image size={18} strokeWidth={1.5} />, label: 'Image', shortcut: '⌘6' },
+  { id: 'export', icon: <NAV_ICONS.export size={18} strokeWidth={1.5} />, label: 'Export', shortcut: '⌘7' },
+  { id: 'history', icon: <NAV_ICONS.history size={18} strokeWidth={1.5} />, label: 'History', shortcut: '⌘8' },
 ];
 
 const UTILITY_NAV_ITEMS: NavItem[] = [
-  { id: 'settings', icon: <NAV_ICONS.settings size={18} />, label: 'Settings', shortcut: '⌘,' },
-  { id: 'help', icon: <NAV_ICONS.help size={18} />, label: 'Help', shortcut: '⌘?' },
+  { id: 'settings', icon: <NAV_ICONS.settings size={18} strokeWidth={1.5} />, label: 'Settings', shortcut: '⌘,' },
+  { id: 'help', icon: <NAV_ICONS.help size={18} strokeWidth={1.5} />, label: 'Help', shortcut: '⌘?' },
 ];
 
 type OnboardingStep = 'permissions' | 'complete';
@@ -134,6 +134,17 @@ function MainApp() {
   } = useDiagramEdit();
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Resizable panel width with localStorage persistence
+  const [panelWidth, setPanelWidth] = useState(() => {
+    const saved = localStorage.getItem('blueprint:panelWidth');
+    return saved ? parseInt(saved, 10) : 320;
+  });
+
+  const handlePanelWidthChange = useCallback((width: number) => {
+    setPanelWidth(width);
+    localStorage.setItem('blueprint:panelWidth', String(width));
+  }, []);
 
   // Centralized app state
   const state = useAppState();
@@ -366,7 +377,7 @@ function MainApp() {
           activeId={activeSection}
           onItemSelect={(id) => setActiveSection(id as Section)}
           panelTitle={SECTION_LABELS[activeSection]}
-          panelWidth={320}
+          panelWidth={panelWidth}
           panelContent={
             <PanelArea
               section={activeSection}
@@ -391,6 +402,12 @@ function MainApp() {
             />
           }
           version="1.0.0"
+        />
+
+        {/* Drag handle to resize panel */}
+        <ResizeHandle
+          currentWidth={panelWidth}
+          onWidthChange={handlePanelWidthChange}
         />
 
         {/* Right Pane - Content */}

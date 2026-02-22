@@ -93,7 +93,7 @@ export function PanelArea({
           <div className="flex border-b border-white/[0.06] bg-white/[0.02]">
             <button
               onClick={() => setContextTab('context')}
-              className={`flex-1 px-4 py-2 text-sm font-medium transition-all duration-150 ${
+              className={`flex-1 px-3 py-1.5 text-xs font-medium transition-all duration-150 ${
                 contextTab === 'context'
                   ? 'text-purple-400 border-b-2 border-purple-400 shadow-[0_2px_8px_rgba(167,139,250,0.15)]'
                   : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
@@ -105,7 +105,7 @@ export function PanelArea({
             </button>
             <button
               onClick={() => setContextTab('citations')}
-              className={`flex-1 px-4 py-2 text-sm font-medium transition-all duration-150 ${
+              className={`flex-1 px-3 py-1.5 text-xs font-medium transition-all duration-150 ${
                 contextTab === 'citations'
                   ? 'text-purple-400 border-b-2 border-purple-400 shadow-[0_2px_8px_rgba(167,139,250,0.15)]'
                   : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
@@ -117,7 +117,7 @@ export function PanelArea({
             </button>
             <button
               onClick={() => setContextTab('review')}
-              className={`flex-1 px-4 py-2 text-sm font-medium transition-all duration-150 ${
+              className={`flex-1 px-3 py-1.5 text-xs font-medium transition-all duration-150 ${
                 contextTab === 'review'
                   ? 'text-purple-400 border-b-2 border-purple-400 shadow-[0_2px_8px_rgba(167,139,250,0.15)]'
                   : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
@@ -129,7 +129,7 @@ export function PanelArea({
             </button>
             <button
               onClick={() => setContextTab('dashboard')}
-              className={`flex-1 px-4 py-2 text-sm font-medium transition-all duration-150 ${
+              className={`flex-1 px-3 py-1.5 text-xs font-medium transition-all duration-150 ${
                 contextTab === 'dashboard'
                   ? 'text-purple-400 border-b-2 border-purple-400 shadow-[0_2px_8px_rgba(167,139,250,0.15)]'
                   : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'

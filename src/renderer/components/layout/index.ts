@@ -4,3 +4,4 @@ export { ContentArea } from './ContentArea';
 export type { ContentAreaProps } from './ContentArea';
 export { PanelArea } from './PanelArea';
 export type { PanelAreaProps } from './PanelArea';
+export { ResizeHandle } from './ResizeHandle';

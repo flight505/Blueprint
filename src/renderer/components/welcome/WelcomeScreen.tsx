@@ -34,10 +34,10 @@ export function WelcomeScreen({ onNewProject, onOpenProject }: WelcomeScreenProp
       <div className="max-w-2xl mx-auto flex-1">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 text-gray-100">
+          <h1 className="text-2xl font-semibold mb-2 text-gray-100">
             Blueprint
           </h1>
-          <p className="text-gray-300">
+          <p className="text-sm text-gray-400">
             AI-powered project planning with Claude Agent SDK
           </p>
         </div>
@@ -47,13 +47,13 @@ export function WelcomeScreen({ onNewProject, onOpenProject }: WelcomeScreenProp
           <WelcomeCard
             title="New Project"
             description="Start a new planning project with the wizard"
-            icon={<Sparkles size={28} />}
+            icon={<Sparkles size={24} />}
             onClick={onNewProject}
           />
           <WelcomeCard
             title="Open Project"
             description="Open an existing project folder"
-            icon={<FolderOpen size={28} />}
+            icon={<FolderOpen size={24} />}
             onClick={handleOpenProject}
           />
         </div>
@@ -65,7 +65,7 @@ export function WelcomeScreen({ onNewProject, onOpenProject }: WelcomeScreenProp
 
         {/* Getting Started */}
         <div className="bg-white/[0.04] backdrop-blur-sm rounded-lg p-6 mb-8 border border-white/[0.06]">
-          <h2 className="text-lg font-semibold mb-4 text-gray-100">
+          <h2 className="text-sm font-medium mb-4 text-gray-100">
             Getting Started
           </h2>
           <div className="space-y-3 text-sm text-gray-300">
@@ -133,8 +133,8 @@ function WelcomeCard({ title, description, icon, onClick }: WelcomeCardProps) {
       <span className="mb-2 block text-gray-300 group-hover:text-purple-400 group-hover:scale-110 transition-all">
         {icon}
       </span>
-      <h3 className="font-medium mb-1 text-gray-100">{title}</h3>
-      <p className="text-sm text-gray-400">{description}</p>
+      <h3 className="text-sm font-medium mb-1 text-gray-100">{title}</h3>
+      <p className="text-xs text-gray-400">{description}</p>
     </button>
   );
 }
