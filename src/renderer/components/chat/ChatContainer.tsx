@@ -3,6 +3,7 @@ import { ChatMessage, ChatMessageData } from './ChatMessage';
 import { StreamingChatMessage } from './StreamingChatMessage';
 import { AskUserQuestion, AskUserQuestionData } from './AskUserQuestion';
 import { SkeletonChatMessage } from '../skeleton';
+import { ArrowRight, Loader2 } from 'lucide-react';
 
 /** Union type for all chat items */
 export type ChatItem =
@@ -128,8 +129,9 @@ export function ChatContainer({
       </div>
 
       {/* Input area */}
-      <div className="p-4 border-t border-gray-700 bg-gray-800">
-        <div className="flex items-end gap-2">
+      <div className="px-3 py-3">
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.04]">
+          {/* Textarea */}
           <textarea
             ref={textareaRef}
             value={inputValue}
@@ -138,21 +140,28 @@ export function ChatContainer({
             placeholder={placeholder}
             disabled={isLoading}
             rows={1}
-            className="flex-1 px-3 py-2 rounded-lg border border-gray-600 bg-gray-700 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none disabled:opacity-50 disabled:cursor-not-allowed placeholder-gray-400"
+            className="w-full px-3.5 pt-3 pb-1 bg-transparent text-gray-100 resize-none disabled:opacity-50 disabled:cursor-not-allowed placeholder-gray-500 text-sm focus:outline-none"
             aria-label="Message input"
           />
-          <button
-            onClick={handleSend}
-            disabled={!inputValue.trim() || isLoading}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            aria-label="Send message"
-          >
-            <span aria-hidden="true">Send</span>
-          </button>
+          {/* Action bar */}
+          <div className="flex items-center justify-between px-2 pb-2">
+            <p className="text-[11px] text-gray-500 pl-1.5">
+              Enter to send, Shift+Enter for new line
+            </p>
+            <button
+              onClick={handleSend}
+              disabled={!inputValue.trim() || isLoading}
+              className="flex items-center justify-center w-7 h-7 rounded-full bg-white/[0.10] border border-white/[0.08] text-gray-300 hover:bg-white/[0.18] hover:text-gray-100 disabled:opacity-30 disabled:pointer-events-none transition-all duration-150 shrink-0"
+              aria-label="Send message"
+            >
+              {isLoading ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <ArrowRight size={14} strokeWidth={2.5} />
+              )}
+            </button>
+          </div>
         </div>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-          Press Enter to send, Shift+Enter for new line
-        </p>
       </div>
     </div>
   );
