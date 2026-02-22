@@ -27,7 +27,7 @@ export const test = base.extend<{
 
     // Launch Electron with the built main.js
     const app = await electron.launch({
-      args: [mainPath],
+      args: ['--no-sandbox', mainPath],
       env: {
         ...process.env,
         NODE_ENV: 'test',
