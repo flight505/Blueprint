@@ -103,7 +103,7 @@ interface AppStore {
 
 // Default values
 const DEFAULT_UI_PREFERENCES: UIPreferences = {
-  theme: 'system',
+  theme: 'dark',
   leftPaneWidthPercent: 40,
   activeSection: 'chat',
   showConfidenceIndicators: false,

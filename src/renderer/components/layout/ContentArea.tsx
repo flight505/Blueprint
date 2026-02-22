@@ -41,7 +41,7 @@ export function ContentArea({
       style={{ minWidth: MIN_PANE_WIDTH }}
       aria-label="Document content"
     >
-      <header className="h-10 flex items-center border-b border-white/[0.06] bg-white/[0.02] backdrop-blur-sm">
+      <header className="h-10 flex items-center border-b border-border-default bg-surface backdrop-blur-sm">
         <TabBar
           tabs={openFiles.map((file): TabData => ({
             id: file.id,
@@ -96,8 +96,8 @@ function FileContentView({ file }: { file: OpenFile }) {
       <pre
         className={`text-sm font-mono overflow-auto h-full p-4 rounded-lg ${
           isCode
-            ? 'bg-gray-100 dark:bg-gray-800'
-            : 'bg-white dark:bg-gray-900'
+            ? 'bg-surface-raised'
+            : 'bg-surface'
         }`}
       >
         <code>{file.content}</code>

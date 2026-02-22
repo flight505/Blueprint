@@ -170,7 +170,7 @@ export function InlineEditOverlay({
   return (
     <div
       ref={overlayRef}
-      className="fixed z-50 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 w-96 p-4"
+      className="fixed z-50 bg-surface-overlay rounded-lg shadow-xl border border-border-default w-96 p-4"
       style={{
         left: adjustedPosition.x,
         top: adjustedPosition.y,
@@ -183,13 +183,13 @@ export function InlineEditOverlay({
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Sparkles size={18} className="text-purple-400" aria-hidden="true" />
-          <h3 className="font-medium text-gray-900 dark:text-gray-100">
+          <h3 className="font-medium text-fg">
             Edit with AI
           </h3>
         </div>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded"
+          className="text-fg-muted hover:text-fg p-1 rounded"
           aria-label="Close"
         >
           <X size={16} />
@@ -198,10 +198,10 @@ export function InlineEditOverlay({
 
       {/* Selected text preview */}
       <div className="mb-3">
-        <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">
+        <label className="text-xs text-fg-muted block mb-1">
           Selected text ({selectedText.length} chars)
         </label>
-        <div className="bg-gray-50 dark:bg-gray-900 rounded p-2 text-sm text-gray-700 dark:text-gray-300 max-h-20 overflow-y-auto">
+        <div className="bg-surface-raised rounded p-2 text-sm text-fg-secondary max-h-20 overflow-y-auto">
           {selectedText.length > 200 ? (
             <>
               {selectedText.slice(0, 100)}
@@ -217,7 +217,7 @@ export function InlineEditOverlay({
       {/* Instruction input with prompt library toggle */}
       <div className="mb-3">
         <div className="flex items-center justify-between mb-1">
-          <label htmlFor="edit-instruction" className="text-xs text-gray-500 dark:text-gray-400">
+          <label htmlFor="edit-instruction" className="text-xs text-fg-muted">
             How should this be edited?
           </label>
           <button
@@ -225,7 +225,7 @@ export function InlineEditOverlay({
             className={`text-xs px-2 py-0.5 rounded flex items-center gap-1 transition-colors ${
               showPromptLibrary
                 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                : 'bg-surface-raised text-fg-muted hover:bg-surface-hover'
             }`}
             aria-label={showPromptLibrary ? 'Hide prompt library' : 'Show prompt library'}
             aria-expanded={showPromptLibrary}
@@ -237,7 +237,7 @@ export function InlineEditOverlay({
 
         {/* Prompt Library Panel */}
         {showPromptLibrary && (
-          <div className="mb-2 border border-gray-200 dark:border-gray-700 rounded-lg p-2 bg-gray-50/50 dark:bg-gray-900/50">
+          <div className="mb-2 border border-border-default rounded-lg p-2 bg-surface-raised">
             <PromptLibrary
               selectedText={selectedText}
               onSelect={handlePromptSelect}
@@ -253,12 +253,12 @@ export function InlineEditOverlay({
           onChange={(e) => setInstruction(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="e.g., Make it more concise, Fix grammar, Translate to French..."
-          className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+          className="w-full px-3 py-2 rounded-lg border border-border-default bg-input text-fg placeholder-fg-muted resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
           rows={2}
           disabled={isGenerating}
           aria-describedby="instruction-hint"
         />
-        <p id="instruction-hint" className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+        <p id="instruction-hint" className="text-xs text-fg-muted mt-1">
           Press Enter to generate, Shift+Enter for newline
         </p>
       </div>
@@ -280,7 +280,7 @@ export function InlineEditOverlay({
       <div className="flex items-center justify-end gap-2">
         <button
           onClick={onClose}
-          className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 disabled:opacity-50"
+          className="px-3 py-1.5 text-sm text-fg-muted hover:text-fg disabled:opacity-50"
           disabled={isGenerating}
         >
           Cancel

@@ -92,21 +92,21 @@ export function ApprovalGate({
       aria-modal="true"
       aria-labelledby="approval-gate-title"
     >
-      <div className="bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-surface rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
+        <div className="flex items-center justify-between p-4 border-b border-border-default">
           <div className="flex items-center gap-3">
-            <span className="text-gray-400" aria-hidden="true">
+            <span className="text-fg-muted" aria-hidden="true">
               {getPhaseIcon(phaseState.phase)}
             </span>
             <div>
               <h2
                 id="approval-gate-title"
-                className="text-lg font-semibold text-gray-900 dark:text-gray-100"
+                className="text-lg font-semibold text-fg"
               >
                 Phase Complete: {PHASE_DISPLAY_NAMES[phaseState.phase]}
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-fg-muted">
                 Review the output and decide how to proceed
               </p>
             </div>
@@ -114,7 +114,7 @@ export function ApprovalGate({
           {onClose && (
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-200 rounded-lg hover:bg-gray-700 transition-colors"
+              className="p-2 text-fg-muted hover:text-fg rounded-lg hover:bg-surface-hover transition-colors"
               aria-label="Close approval gate"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -129,12 +129,12 @@ export function ApprovalGate({
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">
               <Check size={16} className="text-green-600 dark:text-green-400" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <span className="text-sm font-medium text-fg-secondary">
                 Phase completed successfully
               </span>
             </div>
             {phaseState.startedAt && phaseState.completedAt && (
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-fg-muted">
                 Duration:{' '}
                 {Math.round(
                   (new Date(phaseState.completedAt).getTime() -
@@ -147,21 +147,21 @@ export function ApprovalGate({
           </div>
 
           {/* Output Preview */}
-          <div className="rounded-lg border border-gray-700 bg-gray-900">
-            <div className="p-3 border-b border-gray-700">
-              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <div className="rounded-lg border border-border-default bg-surface-deep">
+            <div className="p-3 border-b border-border-default">
+              <h3 className="text-sm font-medium text-fg-secondary">
                 Output Preview
               </h3>
             </div>
             <div className="p-4 max-h-64 overflow-y-auto">
               {phaseState.output ? (
-                <pre className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap font-mono leading-relaxed">
+                <pre className="text-sm text-fg-secondary whitespace-pre-wrap font-mono leading-relaxed">
                   {phaseState.output.length > 1000
                     ? phaseState.output.substring(0, 1000) + '\n\n... (truncated for preview)'
                     : phaseState.output}
                 </pre>
               ) : (
-                <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                <p className="text-sm text-fg-muted italic">
                   No output available for preview
                 </p>
               )}
@@ -173,7 +173,7 @@ export function ApprovalGate({
             <div className="mt-4 p-4 rounded-lg border border-yellow-200 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20">
               <label
                 htmlFor="revision-feedback"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                className="block text-sm font-medium text-fg-secondary mb-2"
               >
                 What would you like to change?
               </label>
@@ -182,14 +182,14 @@ export function ApprovalGate({
                 value={feedback}
                 onChange={(e) => setFeedback(e.target.value)}
                 placeholder="Describe the changes or additions you'd like to see..."
-                className="w-full px-3 py-2 text-sm border border-gray-600 rounded-lg bg-gray-800 text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-yellow-500 focus:border-transparent resize-none"
+                className="w-full px-3 py-2 text-sm border border-border-default rounded-lg bg-surface text-fg placeholder-fg-muted focus:ring-2 focus:ring-yellow-500 focus:border-transparent resize-none"
                 rows={4}
                 autoFocus
               />
               <div className="flex justify-end gap-2 mt-3">
                 <button
                   onClick={handleCancelRevise}
-                  className="px-3 py-1.5 text-sm font-medium text-gray-300 hover:bg-gray-700 rounded-lg transition-colors"
+                  className="px-3 py-1.5 text-sm font-medium text-fg-secondary hover:bg-surface-hover rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
@@ -206,13 +206,13 @@ export function ApprovalGate({
         </div>
 
         {/* Footer with Actions */}
-        <div className="flex-shrink-0 p-4 border-t border-gray-700 bg-gray-800/50">
+        <div className="flex-shrink-0 p-4 border-t border-border-default bg-surface/50">
           <div className="flex items-center justify-between">
             {/* Next phase info */}
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-sm text-fg-muted">
               {!isLastPhase && nextPhase ? (
                 <span className="flex items-center gap-1">
-                  Next: <span className="text-gray-400">{getPhaseIcon(nextPhase)}</span> {PHASE_DISPLAY_NAMES[nextPhase]}
+                  Next: <span className="text-fg-muted">{getPhaseIcon(nextPhase)}</span> {PHASE_DISPLAY_NAMES[nextPhase]}
                 </span>
               ) : (
                 <span className="text-green-600 dark:text-green-400 flex items-center gap-1">

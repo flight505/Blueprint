@@ -295,7 +295,7 @@ export const WorkflowSimulation: StoryObj = {
 
     return (
       <div>
-        <div className="absolute top-4 left-4 z-50 bg-white dark:bg-gray-800 px-3 py-2 rounded-lg shadow text-sm">
+        <div className="absolute top-4 left-4 z-50 bg-surface-raised px-3 py-2 rounded-lg shadow text-sm">
           Phase {currentPhaseIndex + 1} of {phases.length}
         </div>
         <ApprovalGate

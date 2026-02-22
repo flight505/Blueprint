@@ -52,7 +52,7 @@ class HallucinationDashboardService {
   private dbPath: string;
 
   constructor() {
-    const userDataPath = app.getPath('userData');
+    const userDataPath = process.env.BLUEPRINT_USER_DATA || app.getPath('userData');
     this.dbPath = path.join(userDataPath, 'hallucination-metrics.db');
   }
 

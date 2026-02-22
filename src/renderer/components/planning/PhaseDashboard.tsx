@@ -197,9 +197,9 @@ export function PhaseDashboard({
       case 'paused':
         return 'text-yellow-600 dark:text-yellow-400';
       case 'skipped':
-        return 'text-gray-500 dark:text-gray-400';
+        return 'text-fg-muted';
       default:
-        return 'text-gray-400 dark:text-gray-500';
+        return 'text-fg-muted';
     }
   };
 
@@ -254,7 +254,7 @@ export function PhaseDashboard({
   // If no execution state and no config, show empty state
   if (!executionState && !projectConfig) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-500 dark:text-gray-400">
+      <div className="flex items-center justify-center h-64 text-fg-muted">
         <p>No active planning session. Create a new project to start.</p>
       </div>
     );
@@ -263,14 +263,14 @@ export function PhaseDashboard({
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex-shrink-0 p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex-shrink-0 p-4 border-b border-border-default">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <h2 className="text-lg font-semibold text-fg">
               {executionState?.projectName || projectConfig?.projectName || 'Project Planning'}
             </h2>
             {executionState && (
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-fg-muted">
                 Mode: {executionState.researchMode.charAt(0).toUpperCase() + executionState.researchMode.slice(1)}
               </p>
             )}
@@ -316,14 +316,14 @@ export function PhaseDashboard({
               <>
                 <button
                   onClick={handlePause}
-                  className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                  className="px-3 py-2 text-sm font-medium text-fg-secondary bg-surface-raised hover:bg-surface-hover rounded-lg transition-colors"
                   title="Pause after current phase"
                 >
                   ⏸ Pause
                 </button>
                 <button
                   onClick={handleSkip}
-                  className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                  className="px-3 py-2 text-sm font-medium text-fg-secondary bg-surface-raised hover:bg-surface-hover rounded-lg transition-colors"
                   title="Skip current phase"
                 >
                   ⏭ Skip
@@ -361,10 +361,10 @@ export function PhaseDashboard({
         {executionState && (
           <div className="mt-3">
             <div className="flex items-center justify-between text-sm mb-1">
-              <span className="text-gray-600 dark:text-gray-300">Overall Progress</span>
-              <span className="text-gray-900 dark:text-gray-100 font-medium">{overallProgress}%</span>
+              <span className="text-fg-secondary">Overall Progress</span>
+              <span className="text-fg font-medium">{overallProgress}%</span>
             </div>
-            <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div className="h-2 bg-surface-raised rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${
                   isComplete
@@ -430,7 +430,7 @@ export function PhaseDashboard({
               className={`rounded-lg border transition-colors ${
                 phaseState.status === 'in_progress'
                   ? 'border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/20'
-                  : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
+                  : 'border-border-default bg-surface-raised'
               }`}
             >
               {/* Phase header */}
@@ -440,11 +440,11 @@ export function PhaseDashboard({
                 }
                 className="w-full p-3 flex items-center gap-3 text-left"
               >
-                <span className="text-gray-400">{getPhaseIcon(phaseState.phase)}</span>
+                <span className="text-fg-muted">{getPhaseIcon(phaseState.phase)}</span>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                    <span className="font-medium text-fg">
                       {PHASE_DISPLAY_NAMES[phaseState.phase]}
                     </span>
                     <span className={`text-sm ${getStatusColor(phaseState.status)}`}>
@@ -454,7 +454,7 @@ export function PhaseDashboard({
 
                   {/* Phase progress bar */}
                   {phaseState.status === 'in_progress' && (
-                    <div className="mt-2 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div className="mt-2 h-1.5 bg-surface-raised rounded-full overflow-hidden">
                       <div
                         className="h-full bg-blue-500 rounded-full transition-all duration-300"
                         style={{ width: `${phaseState.progress}%` }}
@@ -470,7 +470,7 @@ export function PhaseDashboard({
                 </div>
 
                 <svg
-                  className={`w-5 h-5 text-gray-400 transition-transform ${
+                  className={`w-5 h-5 text-fg-muted transition-transform ${
                     expandedPhase === phaseState.phase ? 'rotate-180' : ''
                   }`}
                   fill="none"
@@ -484,18 +484,18 @@ export function PhaseDashboard({
               {/* Phase output (expanded) */}
               {expandedPhase === phaseState.phase && (
                 <div className="px-3 pb-3">
-                  <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg max-h-64 overflow-y-auto">
+                  <div className="p-3 bg-surface-raised rounded-lg max-h-64 overflow-y-auto">
                     {phaseState.status === 'in_progress' && currentContent ? (
-                      <pre className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap font-mono">
+                      <pre className="text-xs text-fg-secondary whitespace-pre-wrap font-mono">
                         {currentContent}
                       </pre>
                     ) : phaseState.output ? (
-                      <pre className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap font-mono">
+                      <pre className="text-xs text-fg-secondary whitespace-pre-wrap font-mono">
                         {phaseState.output.substring(0, 500)}
                         {phaseState.output.length > 500 && '...'}
                       </pre>
                     ) : (
-                      <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                      <p className="text-sm text-fg-muted italic">
                         {phaseState.status === 'pending'
                           ? 'Waiting to start...'
                           : phaseState.status === 'in_progress'

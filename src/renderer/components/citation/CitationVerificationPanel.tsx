@@ -83,9 +83,9 @@ function getStatusColor(status?: VerificationResult['status']): string {
     case 'unverified':
       return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
     case 'error':
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+      return 'bg-surface-raised text-fg-secondary';
     default:
-      return 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400';
+      return 'bg-surface-raised text-fg-muted';
   }
 }
 
@@ -265,11 +265,11 @@ export default function CitationVerificationPanel({
     return (
       <div
         key={citation.id}
-        className="border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+        className="border-b border-border-default last:border-b-0"
       >
         {/* Main row */}
         <div
-          className="px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+          className="px-4 py-3 cursor-pointer hover:bg-surface-hover transition-colors"
           onClick={() => toggleExpanded(citation.id)}
           role="button"
           tabIndex={0}
@@ -284,14 +284,14 @@ export default function CitationVerificationPanel({
         >
           <div className="flex items-start gap-3">
             {/* Citation number */}
-            <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 text-sm font-medium">
+            <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-surface-raised text-sm font-medium">
               [{citation.number}]
             </span>
 
             {/* Content */}
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2">
-                <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-2">
+                <h4 className="text-sm font-medium text-fg line-clamp-2">
                   {citation.title}
                 </h4>
                 <div className="flex-shrink-0 flex items-center gap-2">
@@ -310,7 +310,7 @@ export default function CitationVerificationPanel({
               </div>
 
               {/* Authors and source */}
-              <div className="mt-1 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+              <div className="mt-1 flex items-center gap-2 text-xs text-fg-muted">
                 {citation.authors && citation.authors.length > 0 && (
                   <span className="truncate max-w-[200px]">
                     {citation.authors.length > 2
@@ -327,7 +327,7 @@ export default function CitationVerificationPanel({
                 {result?.source && (
                   <>
                     <span aria-hidden="true">•</span>
-                    <span className="text-blue-600 dark:text-blue-400">
+                    <span className="text-accent">
                       {getSourceBadge(result.source)}
                     </span>
                   </>
@@ -336,7 +336,7 @@ export default function CitationVerificationPanel({
 
               {/* Usages count */}
               {citation.usages.length > 0 && (
-                <div className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                <div className="mt-1 text-xs text-fg-muted">
                   {citation.usages.length} usage{citation.usages.length !== 1 ? 's' : ''} in document
                 </div>
               )}
@@ -354,18 +354,18 @@ export default function CitationVerificationPanel({
           <div className="px-4 pb-3 pl-14 space-y-3">
             {/* Verification details */}
             {result && (
-              <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm">
+              <div className="p-3 rounded-lg bg-surface-raised text-sm">
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Confidence:</span>
+                    <span className="text-fg-muted">Confidence:</span>
                     <span className="ml-2 font-medium">{formatConfidence(result.confidence)}</span>
                   </div>
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Source:</span>
+                    <span className="text-fg-muted">Source:</span>
                     <span className="ml-2 font-medium">{getSourceBadge(result.source) || 'N/A'}</span>
                   </div>
                   {result.fromCache && (
-                    <div className="col-span-2 text-gray-400 dark:text-gray-500">
+                    <div className="col-span-2 text-fg-muted">
                       From cache
                     </div>
                   )}
@@ -378,25 +378,25 @@ export default function CitationVerificationPanel({
 
                 {/* Matched data */}
                 {result.matchedData && (
-                  <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700 space-y-1">
-                    <p className="text-xs font-medium text-gray-600 dark:text-gray-300">Matched Data:</p>
+                  <div className="mt-2 pt-2 border-t border-border-default space-y-1">
+                    <p className="text-xs font-medium text-fg-secondary">Matched Data:</p>
                     {result.matchedData.doi && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        DOI: <a href={`https://doi.org/${result.matchedData.doi}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">{result.matchedData.doi}</a>
+                      <p className="text-xs text-fg-muted">
+                        DOI: <a href={`https://doi.org/${result.matchedData.doi}`} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">{result.matchedData.doi}</a>
                       </p>
                     )}
                     {result.matchedData.venue && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <p className="text-xs text-fg-muted">
                         Venue: {result.matchedData.venue}
                       </p>
                     )}
                     {result.matchedData.citedByCount !== undefined && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <p className="text-xs text-fg-muted">
                         Cited by: {result.matchedData.citedByCount}
                       </p>
                     )}
                     {result.matchedData.type && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <p className="text-xs text-fg-muted">
                         Type: {result.matchedData.type}
                       </p>
                     )}
@@ -408,7 +408,7 @@ export default function CitationVerificationPanel({
             {/* Usages - click to scroll */}
             {citation.usages.length > 0 && (
               <div className="space-y-1">
-                <p className="text-xs font-medium text-gray-600 dark:text-gray-300">Usages:</p>
+                <p className="text-xs font-medium text-fg-secondary">Usages:</p>
                 {citation.usages.map((usage, index) => (
                   <button
                     key={index}
@@ -418,13 +418,13 @@ export default function CitationVerificationPanel({
                         onScrollToCitation(citation.number, usage.line, usage.offset);
                       }
                     }}
-                    className="w-full text-left p-2 rounded text-xs bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    className="w-full text-left p-2 rounded text-xs bg-surface-raised hover:bg-surface-hover transition-colors"
                     aria-label={`Go to usage at line ${usage.line ?? 'unknown'}`}
                   >
-                    <span className="text-gray-500 dark:text-gray-400">
+                    <span className="text-fg-muted">
                       {usage.line ? `Line ${usage.line}:` : 'Usage:'}
                     </span>
-                    <span className="ml-2 text-gray-700 dark:text-gray-300 line-clamp-1">
+                    <span className="ml-2 text-fg-secondary line-clamp-1">
                       "{usage.claim}"
                     </span>
                   </button>
@@ -451,7 +451,7 @@ export default function CitationVerificationPanel({
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="px-3 py-1.5 text-xs rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="px-3 py-1.5 text-xs rounded border border-border-default hover:bg-surface-hover"
                   aria-label="Open source URL"
                 >
                   Open URL
@@ -468,10 +468,10 @@ export default function CitationVerificationPanel({
   if (!documentPath) {
     return (
       <div className={`flex flex-col h-full ${className}`}>
-        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+        <div className="px-4 py-3 border-b border-border-default">
           <h3 className="font-medium text-sm">Citation Verification</h3>
         </div>
-        <div className="flex-1 flex items-center justify-center p-4 text-center text-gray-500 dark:text-gray-400">
+        <div className="flex-1 flex items-center justify-center p-4 text-center text-fg-muted">
           <div>
             <p className="text-sm">No document selected</p>
             <p className="text-xs mt-1">Open a document to view and verify citations</p>
@@ -484,10 +484,10 @@ export default function CitationVerificationPanel({
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+      <div className="px-4 py-3 border-b border-border-default">
         <div className="flex items-center justify-between">
           <h3 className="font-medium text-sm">Citation Verification</h3>
-          <span className="text-xs text-gray-500 dark:text-gray-400">
+          <span className="text-xs text-fg-muted">
             {citations.length} citation{citations.length !== 1 ? 's' : ''}
           </span>
         </div>
@@ -495,7 +495,7 @@ export default function CitationVerificationPanel({
 
       {/* Summary Stats */}
       {citations.length > 0 && (
-        <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="px-4 py-2 bg-surface-raised border-b border-border-default">
           <div className="flex items-center gap-4 text-xs">
             <span className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-green-500" />
@@ -531,14 +531,14 @@ export default function CitationVerificationPanel({
             <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : citations.length === 0 ? (
-          <div className="flex items-center justify-center p-8 text-center text-gray-500 dark:text-gray-400">
+          <div className="flex items-center justify-center p-8 text-center text-fg-muted">
             <div>
               <p className="text-sm">No citations found</p>
               <p className="text-xs mt-1">Citations will appear here when added to the document</p>
             </div>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100 dark:divide-gray-700">
+          <div className="divide-y divide-border-default">
             {citations.map(citation => renderCitationItem(citation))}
           </div>
         )}
@@ -546,7 +546,7 @@ export default function CitationVerificationPanel({
 
       {/* Footer with Verify All button */}
       {citations.length > 0 && (
-        <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+        <div className="px-4 py-3 border-t border-border-default bg-surface-raised">
           <button
             onClick={verifyAllCitations}
             disabled={isVerifyingAll}

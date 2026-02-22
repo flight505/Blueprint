@@ -29,7 +29,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
         className={`max-w-[85%] rounded-lg px-4 py-3 ${
           isUser
             ? 'bg-blue-500 text-white rounded-br-sm'
-            : 'bg-gray-700 text-gray-100 rounded-bl-sm'
+            : 'bg-surface-raised text-fg rounded-bl-sm'
         }`}
       >
         {isUser ? (
@@ -56,7 +56,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
                   if (!className) {
                     return (
                       <code
-                        className="bg-gray-600 px-1 py-0.5 rounded text-sm text-gray-100"
+                        className="bg-surface-hover px-1 py-0.5 rounded text-sm text-fg"
                         {...props}
                       >
                         {children}
@@ -80,7 +80,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
                   }
 
                   return (
-                    <pre className="bg-gray-900 dark:bg-gray-950 text-gray-100 p-3 rounded-lg overflow-x-auto text-sm" {...props}>
+                    <pre className="bg-surface-deep text-fg p-3 rounded-lg overflow-x-auto text-sm" {...props}>
                       {children}
                     </pre>
                   );
@@ -99,21 +99,21 @@ export function ChatMessage({ message }: ChatMessageProps) {
                 // Style tables (GFM feature)
                 table: ({ children }) => (
                   <div className="overflow-x-auto my-4">
-                    <table className="min-w-full border-collapse border border-gray-600">
+                    <table className="min-w-full border-collapse border border-border-default">
                       {children}
                     </table>
                   </div>
                 ),
                 thead: ({ children }) => (
-                  <thead className="bg-gray-600">{children}</thead>
+                  <thead className="bg-surface-raised">{children}</thead>
                 ),
                 th: ({ children }) => (
-                  <th className="border border-gray-600 px-3 py-2 text-left font-semibold text-gray-100">
+                  <th className="border border-border-default px-3 py-2 text-left font-semibold text-fg">
                     {children}
                   </th>
                 ),
                 td: ({ children }) => (
-                  <td className="border border-gray-600 px-3 py-2">
+                  <td className="border border-border-default px-3 py-2">
                     {children}
                   </td>
                 ),
@@ -121,13 +121,13 @@ export function ChatMessage({ message }: ChatMessageProps) {
                 input: (props) => (
                   <input
                     {...props}
-                    className="mr-2 h-4 w-4 rounded border-gray-500"
+                    className="mr-2 h-4 w-4 rounded border-border-strong"
                     disabled
                   />
                 ),
                 // Style strikethrough (GFM feature)
                 del: ({ children }) => (
-                  <del className="text-gray-500 dark:text-gray-400 line-through">{children}</del>
+                  <del className="text-fg-muted line-through">{children}</del>
                 ),
               }}
             >
@@ -137,7 +137,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
         )}
         <time
           className={`text-xs mt-1 block ${
-            isUser ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
+            isUser ? 'text-blue-100' : 'text-fg-muted'
           }`}
           dateTime={message.timestamp.toISOString()}
         >

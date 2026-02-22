@@ -84,7 +84,7 @@ export function ModelSelector({
   if (compact) {
     return (
       <div className="flex items-center gap-2">
-        <label htmlFor={selectId} className="text-xs text-gray-500 dark:text-gray-400">
+        <label htmlFor={selectId} className="text-xs text-fg-muted">
           {label}:
         </label>
         <select
@@ -127,17 +127,17 @@ export function ModelSelector({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+        <label className="text-sm font-medium text-fg-secondary">
           {label}
         </label>
         {showAutoSelect && (
-          <label className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 cursor-pointer">
+          <label className="flex items-center gap-2 text-sm text-fg-muted cursor-pointer">
             <input
               type="checkbox"
               checked={isAutoMode}
               onChange={(e) => handleAutoModeChange(e.target.checked)}
               disabled={disabled}
-              className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+              className="rounded border-border-default text-blue-600 focus:ring-blue-500"
               aria-label="Enable auto model selection"
             />
             Auto-select
@@ -149,14 +149,14 @@ export function ModelSelector({
       {classification && isAutoMode && (
         <div className="p-2 bg-gray-800 rounded-lg text-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-gray-600 dark:text-gray-300">
+            <span className="text-fg-secondary">
               Detected: {classification.complexity} task
             </span>
             <span className={`px-2 py-0.5 rounded ${COMPLEXITY_COLORS[classification.complexity]}`}>
               {Math.round(classification.confidence * 100)}% confidence
             </span>
           </div>
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-fg-muted">
             {classification.reasoning}
           </p>
         </div>
@@ -187,7 +187,7 @@ export function ModelSelector({
                 {model.complexity}
               </span>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-fg-muted">
               {model.description}
             </p>
           </button>
@@ -196,8 +196,8 @@ export function ModelSelector({
 
       {/* Currently selected model display */}
       {selectedModelInfo && (
-        <div className="text-xs text-gray-500 dark:text-gray-400">
-          Selected: <span className="font-medium text-gray-700 dark:text-gray-300">{selectedModelInfo.name}</span>
+        <div className="text-xs text-fg-muted">
+          Selected: <span className="font-medium text-fg-secondary">{selectedModelInfo.name}</span>
           {isAutoMode && ' (auto)'}
         </div>
       )}

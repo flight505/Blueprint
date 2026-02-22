@@ -165,19 +165,19 @@ export default function FileQuickOpen({
 
   // Get file icon based on extension
   const getFileIconElement = (fileName: string): ReactNode => {
-    return <FileIcon filename={fileName} size="sm" className="text-gray-400" />;
+    return <FileIcon filename={fileName} size="sm" className="text-fg-muted" />;
   };
 
   return (
     <AnimatedOverlay
       isOpen={isOpen}
       onClose={onClose}
-      className="w-[800px] max-w-[90vw] bg-gray-800 border border-white/[0.06] rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[70vh]"
+      className="w-[800px] max-w-[90vw] bg-surface border border-border-default rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[70vh]"
       position="top"
     >
       <div role="combobox" aria-expanded="true" aria-haspopup="listbox" className="flex flex-col h-full">
         {/* Search Input */}
-        <div className="p-3 border-b border-gray-700">
+        <div className="p-3 border-b border-border-default">
           <input
             ref={inputRef}
             type="text"
@@ -189,7 +189,7 @@ export default function FileQuickOpen({
             onKeyDown={handleKeyDown}
             placeholder={projectPath ? "Type to search files..." : "Open a project folder first"}
             disabled={!projectPath}
-            className="w-full px-3 py-2 bg-white/[0.04] text-gray-100 rounded-lg text-sm border border-white/[0.06] focus:outline-none focus:ring-1 focus:ring-purple-400/40 focus:border-purple-400/30 disabled:opacity-50 placeholder-gray-500 transition-colors duration-150"
+            className="w-full px-3 py-2 bg-input text-fg rounded-lg text-sm border border-border-default focus:outline-none focus:ring-1 focus:ring-purple-400/40 focus:border-purple-400/30 disabled:opacity-50 placeholder-fg-muted transition-colors duration-150"
             aria-label="Search files"
             aria-controls="file-list"
             aria-autocomplete="list"
@@ -202,21 +202,21 @@ export default function FileQuickOpen({
           <div
             ref={listRef}
             id="file-list"
-            className="w-1/2 overflow-y-auto border-r border-gray-700"
+            className="w-1/2 overflow-y-auto border-r border-border-default"
             role="listbox"
             aria-label="Files"
           >
             {!projectPath ? (
-              <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
+              <div className="px-4 py-8 text-center text-fg-muted text-sm">
                 No project folder open
               </div>
             ) : isLoading ? (
-              <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
+              <div className="px-4 py-8 text-center text-fg-muted text-sm">
                 <div className="inline-block w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-2" />
                 <p>Loading files...</p>
               </div>
             ) : results.length === 0 ? (
-              <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
+              <div className="px-4 py-8 text-center text-fg-muted text-sm">
                 {query ? 'No matching files found' : 'No files in project'}
               </div>
             ) : (
@@ -235,16 +235,16 @@ export default function FileQuickOpen({
 
           {/* Preview Pane */}
           <div className="w-1/2 overflow-hidden flex flex-col">
-            <div className="px-3 py-2 text-xs text-gray-400 border-b border-gray-700 bg-gray-750">
+            <div className="px-3 py-2 text-xs text-fg-muted border-b border-border-default bg-surface-raised">
               Preview
             </div>
             <div className="flex-1 overflow-auto p-3">
               {previewContent ? (
-                <pre className="text-xs font-mono text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">
+                <pre className="text-xs font-mono text-fg-secondary whitespace-pre-wrap break-words">
                   {previewContent}
                 </pre>
               ) : (
-                <div className="text-sm text-gray-400 dark:text-gray-500 text-center mt-8">
+                <div className="text-sm text-fg-muted text-center mt-8">
                   {results.length > 0 ? 'Loading preview...' : 'Select a file to preview'}
                 </div>
               )}
@@ -253,21 +253,21 @@ export default function FileQuickOpen({
         </div>
 
         {/* Footer hint */}
-        <div className="px-4 py-2 text-xs text-gray-400 border-t border-gray-700 flex items-center gap-4 bg-gray-750">
+        <div className="px-4 py-2 text-xs text-fg-muted border-t border-border-default flex items-center gap-4 bg-surface-raised">
           <span>
-            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-xs">
+            <kbd className="px-1.5 py-0.5 bg-surface-raised rounded text-xs">
               ↑↓
             </kbd>{' '}
             to navigate
           </span>
           <span>
-            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-xs">
+            <kbd className="px-1.5 py-0.5 bg-surface-raised rounded text-xs">
               Enter
             </kbd>{' '}
             to open
           </span>
           <span>
-            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-xs">
+            <kbd className="px-1.5 py-0.5 bg-surface-raised rounded text-xs">
               Esc
             </kbd>{' '}
             to close
@@ -298,7 +298,7 @@ function FileItem({
       className={`px-3 py-2 cursor-pointer flex items-center gap-2 ${
         isSelected
           ? 'bg-blue-900/50'
-          : 'hover:bg-gray-700'
+          : 'hover:bg-surface-hover'
       }`}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
@@ -308,10 +308,10 @@ function FileItem({
     >
       <span className="text-base flex-shrink-0" aria-hidden="true">{icon}</span>
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+        <div className="text-sm font-medium text-fg truncate">
           {file.name}
         </div>
-        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+        <div className="text-xs text-fg-muted truncate">
           {file.relativePath}
         </div>
       </div>

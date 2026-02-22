@@ -30,22 +30,22 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      'inline-flex items-center justify-center gap-2 font-medium rounded-lg transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 disabled:pointer-events-none disabled:opacity-50';
+      'inline-flex items-center justify-center gap-2 font-medium rounded-lg transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-deep disabled:pointer-events-none disabled:opacity-50';
 
     // Tokyo Night Storm color variants with violet glow on active states
     const variantStyles = {
       primary:
-        'bg-blue-500 text-gray-900 hover:bg-blue-400 active:bg-blue-600 focus-visible:ring-purple-400 active:shadow-[inset_0_0_0_1px_rgba(167,139,250,0.3),0_0_8px_rgba(167,139,250,0.12)]',
+        'bg-blue-500 text-fg hover:bg-blue-400 active:bg-blue-600 focus-visible:ring-purple-400 active:shadow-[inset_0_0_0_1px_rgba(167,139,250,0.3),0_0_8px_rgba(167,139,250,0.12)]',
       secondary:
-        'bg-gray-700 text-gray-100 hover:bg-gray-600 active:bg-gray-800 focus-visible:ring-purple-400 active:shadow-[inset_0_0_0_1px_rgba(167,139,250,0.3),0_0_8px_rgba(167,139,250,0.12)]',
+        'bg-surface-raised text-fg hover:bg-surface-hover active:bg-surface focus-visible:ring-purple-400 active:shadow-[inset_0_0_0_1px_rgba(167,139,250,0.3),0_0_8px_rgba(167,139,250,0.12)]',
       outline:
-        'border border-gray-600 bg-transparent text-gray-100 hover:bg-gray-700 active:bg-gray-800 focus-visible:ring-purple-400 active:shadow-[inset_0_0_0_1px_rgba(167,139,250,0.3),0_0_8px_rgba(167,139,250,0.12)]',
+        'border border-border-default bg-transparent text-fg hover:bg-surface-hover active:bg-surface focus-visible:ring-purple-400 active:shadow-[inset_0_0_0_1px_rgba(167,139,250,0.3),0_0_8px_rgba(167,139,250,0.12)]',
       ghost:
-        'bg-transparent text-gray-100 hover:bg-white/[0.06] active:bg-white/[0.10] focus-visible:ring-purple-400 active:shadow-[inset_0_0_0_1px_rgba(167,139,250,0.3),0_0_8px_rgba(167,139,250,0.12)]',
+        'bg-transparent text-fg hover:bg-surface-hover active:bg-surface-hover focus-visible:ring-purple-400 active:shadow-[inset_0_0_0_1px_rgba(167,139,250,0.3),0_0_8px_rgba(167,139,250,0.12)]',
       danger:
         'bg-red-500 text-white hover:bg-red-400 active:bg-red-600 focus-visible:ring-red-500 active:shadow-[inset_0_0_0_1px_rgba(248,113,113,0.3),0_0_8px_rgba(248,113,113,0.12)]',
       glass:
-        'bg-white/[0.07] backdrop-blur-sm border border-white/[0.10] text-gray-100 hover:bg-white/[0.11] active:bg-white/[0.14] focus-visible:ring-purple-400 active:shadow-[inset_0_0_0_1px_rgba(167,139,250,0.3),0_0_8px_rgba(167,139,250,0.12)]',
+        'bg-surface-raised backdrop-blur-sm border border-border-default text-fg hover:bg-surface-hover active:bg-surface-hover focus-visible:ring-purple-400 active:shadow-[inset_0_0_0_1px_rgba(167,139,250,0.3),0_0_8px_rgba(167,139,250,0.12)]',
     };
 
     const sizeStyles = {

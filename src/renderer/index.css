@@ -60,67 +60,213 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   SEMANTIC TOKENS - registered with Tailwind via @theme inline
+   Generates: bg-surface, bg-surface-raised, text-fg, text-fg-muted,
+   border-border-default, bg-accent, bg-input, text-danger, etc.
+   Values resolve from CSS custom properties in :root / .dark
+   ═══════════════════════════════════════════════════════════════ */
+@theme inline {
+  --color-surface: var(--color-surface);
+  --color-surface-deep: var(--color-surface-deep);
+  --color-surface-raised: var(--color-surface-raised);
+  --color-surface-overlay: var(--color-surface-overlay);
+  --color-surface-hover: var(--color-surface-hover);
+  --color-fg: var(--color-fg);
+  --color-fg-secondary: var(--color-fg-secondary);
+  --color-fg-muted: var(--color-fg-muted);
+  --color-border-default: var(--color-border-default);
+  --color-border-strong: var(--color-border-strong);
+  --color-accent: var(--color-accent);
+  --color-accent-hover: var(--color-accent-hover);
+  --color-accent-soft: var(--color-accent-soft);
+  --color-glow: var(--color-glow);
+  --color-input: var(--color-input);
+  --color-danger: var(--color-danger);
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+}
+
+/* ═══════════════════════════════════════════════════════════════
    BLUEPRINT GLASS DESIGN SYSTEM
-   Tokyo Night Storm Theme - Ethereal Glass + Living Energy
+   Tokyo Night Theme — Light & Dark variants
    For Blueprint: Rail + Panel sidebar pattern with glass aesthetics
    ═══════════════════════════════════════════════════════════════ */
 
 @layer base {
+  /* ─────────────────────────────────────────────────────────────
+     TOKYO NIGHT LIGHT — Default (light) palette
+     Source: https://github.com/folke/tokyonight.nvim (day variant)
+     ───────────────────────────────────────────────────────────── */
   :root {
+    color-scheme: light;
+
+    /* ── Semantic tokens (light) ────────────────────────────── */
+    --color-surface: #e9eaf0;
+    --color-surface-deep: #dfe0e5;
+    --color-surface-raised: #f3f3f6;
+    --color-surface-overlay: #ffffff;
+    --color-surface-hover: rgba(0,0,0,0.06);
+    --color-fg: #1e2440;
+    --color-fg-secondary: #4c5580;
+    --color-fg-muted: #8089a8;
+    --color-border-default: rgba(0,0,0,0.12);
+    --color-border-strong: rgba(0,0,0,0.22);
+    --color-accent: #2e7de9;
+    --color-accent-hover: #2566c4;
+    --color-accent-soft: rgba(46,125,233,0.12);
+    --color-glow: #7c3aed;
+    --color-input: #f3f3f6;
+    --color-danger: #c64343;
+    --color-success: #587539;
+    --color-warning: #8f5e15;
+
+    /* ── Legacy HSL variables (light) ──────────────────────── */
+    --background: 232 12% 92%;             /* #e9eaf0 */
+    --background-dark: 232 10% 88%;        /* #dfe0e5 */
+    --background-highlight: 232 10% 95%;   /* #f3f3f6 */
+    --foreground: 228 37% 18%;             /* #1e2440 */
+    --foreground-dark: 228 25% 40%;        /* #4c5580 */
+    --text: 228 37% 18%;                   /* #1e2440 */
+
+    --card: 232 12% 95%;
+    --card-foreground: 228 37% 18%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 228 37% 18%;
+
+    --primary: 217 80% 55%;               /* #2e7de9 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 232 10% 95%;
+    --secondary-foreground: 228 37% 18%;
+
+    --muted: 232 10% 95%;
+    --muted-foreground: 228 25% 40%;
+
+    --accent: 217 80% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 57% 52%;             /* #c64343 */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 228 12% 82%;
+    --input: 232 12% 95%;
+    --ring: 217 80% 55%;
+    --radius: 0.5rem;
+
+    /* Brand/Accent (light) */
+    --violet: 270 82% 64%;                /* #9854f1 */
+    --purple: 261 72% 57%;                /* #7847bd */
+    --blue: 217 80% 55%;                  /* #2e7de9 */
+    --cyan: 192 72% 42%;                  /* #007197 */
+    --green: 94 32% 34%;                  /* #587539 */
+    --yellow: 37 73% 32%;                 /* #8f5e15 */
+    --orange: 24 83% 46%;                 /* #b15c00 */
+    --red: 0 57% 52%;                     /* #c64343 */
+    --magenta: 261 72% 57%;               /* #7847bd */
+
+    /* Glass surfaces (light) — solid or very subtle transparency */
+    --glass-base: 0 0% 0% / 0.02;
+    --glass-surface: 0 0% 0% / 0.03;
+    --glass-elevated: 0 0% 0% / 0.05;
+    --glass-hover: 0 0% 0% / 0.06;
+    --glass-active: 0 0% 0% / 0.08;
+
+    --glass-border: 0 0% 0% / 0.08;
+    --glass-border-light: 0 0% 0% / 0.06;
+    --glass-border-strong: 0 0% 0% / 0.12;
+
+    /* Glow effects (light) — more subtle */
+    --glow-hue: 270;
+    --glow-sat: 82%;
+    --glow-light: 64%;
+    --glow-color: var(--glow-hue) var(--glow-sat) var(--glow-light);
+
+    --glow-idle: var(--glow-color) / 0;
+    --glow-subtle: var(--glow-color) / 0.06;
+    --glow-soft: var(--glow-color) / 0.12;
+    --glow-medium: var(--glow-color) / 0.22;
+    --glow-strong: var(--glow-color) / 0.32;
+    --glow-intense: var(--glow-color) / 0.42;
+    --glow-peak: var(--glow-color) / 0.55;
+
+    /* Text on glass (light) */
+    --glass-text-primary: 229 25% 20%;
+    --glass-text-secondary: 224 29% 45%;
+    --glass-text-tertiary: 224 15% 55%;
+    --glass-text-ghost: 224 10% 65%;
+
+    /* Sidebar (light) */
+    --sidebar-background: 232 10% 88%;
+    --sidebar-foreground: 228 37% 18%;
+    --sidebar-primary: 217 80% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 232 10% 93%;
+    --sidebar-accent-foreground: 228 37% 18%;
+    --sidebar-border: 228 12% 80%;
+    --sidebar-ring: 217 80% 55%;
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     TOKYO NIGHT STORM — Dark palette
+     Source: https://github.com/folke/tokyonight.nvim (storm variant)
+     Contrast: Main text 9.02:1 (WCAG AAA compliant)
+     ───────────────────────────────────────────────────────────── */
+  .dark {
     color-scheme: dark;
 
-    /* ═══════════════════════════════════════════════════════════════
-       TOKYO NIGHT STORM - Official Color Palette
-       Source: https://github.com/folke/tokyonight.nvim
-       Contrast: Main text 9.02:1 (WCAG AAA compliant)
-       ═══════════════════════════════════════════════════════════════ */
+    /* ── Semantic tokens (dark) ─────────────────────────────── */
+    --color-surface: #24283b;
+    --color-surface-deep: #1f2335;
+    --color-surface-raised: rgba(255,255,255,0.04);
+    --color-surface-overlay: rgba(255,255,255,0.07);
+    --color-surface-hover: rgba(255,255,255,0.10);
+    --color-fg: #c0caf5;
+    --color-fg-secondary: #a9b1d6;
+    --color-fg-muted: #565f89;
+    --color-border-default: rgba(255,255,255,0.06);
+    --color-border-strong: rgba(255,255,255,0.14);
+    --color-accent: #7aa2f7;
+    --color-accent-hover: #6a8fdb;
+    --color-accent-soft: rgba(122,162,247,0.15);
+    --color-glow: #9d7cd8;
+    --color-input: rgba(255,255,255,0.04);
+    --color-danger: #f7768e;
+    --color-success: #9ece6a;
+    --color-warning: #e0af68;
 
-    /* Core backgrounds */
+    /* ── Legacy HSL variables (dark) ───────────────────────── */
     --background: 229 19% 18%;           /* #24283b - main bg */
     --background-dark: 229 21% 16%;      /* #1f2335 - sidebar/darker areas */
     --background-highlight: 230 18% 21%; /* #292e42 - hover/selection bg */
-
-    /* Core foregrounds */
-    --foreground: 227 76% 86%;           /* #c0caf5 - primary text (9.02:1 contrast) */
+    --foreground: 227 76% 86%;           /* #c0caf5 - primary text (9.02:1) */
     --foreground-dark: 227 44% 75%;      /* #a9b1d6 - secondary text (6.90:1) */
-    --text: 227 76% 86%;                 /* #c0caf5 - alias for foreground */
+    --text: 227 76% 86%;                 /* #c0caf5 */
 
-    /* UI surfaces */
-    --card: 229 19% 20%;                 /* slightly lighter than bg */
+    --card: 229 19% 20%;
     --card-foreground: 227 76% 86%;
     --popover: 229 21% 16%;              /* #1f2335 */
     --popover-foreground: 227 76% 86%;
 
-    /* Interactive elements */
-    --primary: 223 88% 72%;              /* #7aa2f7 - blue (5.78:1) */
+    --primary: 223 88% 72%;              /* #7aa2f7 (5.78:1) */
     --primary-foreground: 229 19% 18%;
     --secondary: 230 18% 21%;            /* #292e42 */
     --secondary-foreground: 227 76% 86%;
 
-    /* Muted elements */
     --muted: 230 18% 21%;
-    --muted-foreground: 227 44% 75%;     /* #a9b1d6 */
+    --muted-foreground: 227 44% 75%;
 
-    /* Accent colors */
     --accent: 223 88% 72%;               /* #7aa2f7 */
     --accent-foreground: 229 19% 18%;
 
-    /* Semantic colors */
-    --destructive: 351 78% 69%;          /* #f7768e - red */
+    --destructive: 351 78% 69%;          /* #f7768e */
     --destructive-foreground: 229 19% 18%;
 
-    /* Borders & inputs */
-    --border: 230 18% 24%;               /* slightly visible border */
+    --border: 230 18% 24%;
     --input: 230 18% 24%;
-    --ring: 223 88% 72%;                 /* #7aa2f7 focus ring */
-    --radius: 0.5rem;
+    --ring: 223 88% 72%;
 
-    /* ─────────────────────────────────────────────────────────────
-       TOKYO NIGHT STORM - Brand/Accent Colors
-       All meet WCAG AA for large text (3:1+)
-       ───────────────────────────────────────────────────────────── */
+    /* Brand/Accent (dark) */
     --violet: 267 54% 67%;               /* #9d7cd8 (4.38:1) */
-    --purple: 261 64% 76%;               /* #bb9af7 - magenta (6.56:1) */
+    --purple: 261 64% 76%;               /* #bb9af7 (6.56:1) */
     --blue: 223 88% 72%;                 /* #7aa2f7 (5.78:1) */
     --cyan: 199 100% 74%;                /* #7dcfff (8.49:1) */
     --green: 80 53% 60%;                 /* #9ece6a (7.97:1) */
@@ -129,23 +275,18 @@
     --red: 351 78% 69%;                  /* #f7768e (5.51:1) */
     --magenta: 261 64% 76%;              /* #bb9af7 */
 
-    /* ─────────────────────────────────────────────────────────────
-       GLASS SURFACES - Layered transparency on Tokyo Night
-       ───────────────────────────────────────────────────────────── */
+    /* Glass surfaces (dark) — white transparency layers */
     --glass-base: 0 0% 100% / 0.04;
     --glass-surface: 0 0% 100% / 0.07;
     --glass-elevated: 0 0% 100% / 0.11;
     --glass-hover: 0 0% 100% / 0.14;
     --glass-active: 0 0% 100% / 0.18;
 
-    /* Glass Borders */
     --glass-border: 0 0% 100% / 0.10;
     --glass-border-light: 0 0% 100% / 0.14;
     --glass-border-strong: 0 0% 100% / 0.18;
 
-    /* ─────────────────────────────────────────────────────────────
-       GLOW EFFECTS - Tokyo Night Purple accent
-       ───────────────────────────────────────────────────────────── */
+    /* Glow effects (dark) — more visible */
     --glow-hue: 267;
     --glow-sat: 54%;
     --glow-light: 67%;
@@ -159,22 +300,18 @@
     --glow-intense: var(--glow-color) / 0.82;
     --glow-peak: var(--glow-color) / 1.0;
 
-    /* ─────────────────────────────────────────────────────────────
-       TEXT ON GLASS - High contrast for readability
-       ───────────────────────────────────────────────────────────── */
-    --glass-text-primary: 227 76% 95%;   /* Brighter for working text */
-    --glass-text-secondary: 227 44% 75%; /* #a9b1d6 equivalent */
+    /* Text on glass (dark) */
+    --glass-text-primary: 227 76% 95%;
+    --glass-text-secondary: 227 44% 75%;
     --glass-text-tertiary: 227 30% 55%;
     --glass-text-ghost: 227 20% 40%;
 
-    /* ─────────────────────────────────────────────────────────────
-       SIDEBAR COLORS (Rail + Panel pattern)
-       ───────────────────────────────────────────────────────────── */
-    --sidebar-background: 229 21% 16%;   /* #1f2335 - darker bg */
-    --sidebar-foreground: 227 76% 86%;   /* #c0caf5 */
-    --sidebar-primary: 223 88% 72%;      /* #7aa2f7 */
+    /* Sidebar (dark) */
+    --sidebar-background: 229 21% 16%;
+    --sidebar-foreground: 227 76% 86%;
+    --sidebar-primary: 223 88% 72%;
     --sidebar-primary-foreground: 229 19% 18%;
-    --sidebar-accent: 230 18% 21%;       /* #292e42 */
+    --sidebar-accent: 230 18% 21%;
     --sidebar-accent-foreground: 227 76% 86%;
     --sidebar-border: 230 18% 24%;
     --sidebar-ring: 223 88% 72%;
@@ -185,7 +322,7 @@
     border-color: hsl(var(--border));
   }
 
-  /* Base body styling with Tokyo Night Storm */
+  /* Base body styling */
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
@@ -193,7 +330,7 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Custom scrollbar for dark theme */
+  /* Scrollbar — adapts to theme */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -204,16 +341,19 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--border));
+    background-color: var(--color-border-strong);
     border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background-color: hsl(var(--muted-foreground) / 0.5);
+    background-color: var(--color-fg-muted);
   }
 }
 
-/* Override highlight.js colors for dark mode */
+/* ═══════════════════════════════════════════════════════════════
+   HIGHLIGHT.JS — Light theme comes from imported github.css
+   Dark overrides below (scoped to .dark)
+   ═══════════════════════════════════════════════════════════════ */
 .dark .hljs {
   color: #e6edf3;
   background: transparent;
@@ -489,11 +629,16 @@ body {
   -webkit-backdrop-filter: blur(24px);
 }
 
+/* Disable blur in light mode — glass looks better as solid tints */
+:root:not(.dark) .glass { backdrop-filter: none; -webkit-backdrop-filter: none; }
+
 .glass-base {
   background: hsl(var(--glass-base));
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
+
+:root:not(.dark) .glass-base { backdrop-filter: none; -webkit-backdrop-filter: none; }
 
 .glass-elevated {
   background: hsl(var(--glass-elevated));
@@ -501,11 +646,15 @@ body {
   -webkit-backdrop-filter: blur(32px);
 }
 
+:root:not(.dark) .glass-elevated { backdrop-filter: none; -webkit-backdrop-filter: none; }
+
 .glass-ultra {
   background: hsl(var(--glass-surface));
   backdrop-filter: blur(40px) saturate(180%);
   -webkit-backdrop-filter: blur(40px) saturate(180%);
 }
+
+:root:not(.dark) .glass-ultra { backdrop-filter: none; -webkit-backdrop-filter: none; }
 
 /* Glass Border - Gradient edge that catches light */
 .glass-border {
@@ -635,6 +784,11 @@ body {
   border-right: 1px solid hsl(var(--glass-border));
   width: 240px;
   transition: width 200ms ease, opacity 200ms ease;
+}
+
+:root:not(.dark) .glass-sidebar-panel {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .glass-sidebar-panel.collapsed {

@@ -21,12 +21,17 @@ export const test = base.extend<{
       );
     }
 
+    // Create isolated user data directory for each test run
+    const testUserData = path.join(os.tmpdir(), `blueprint-e2e-${Date.now()}`);
+    fs.mkdirSync(testUserData, { recursive: true });
+
     // Launch Electron with the built main.js
     const app = await electron.launch({
       args: [mainPath],
       env: {
         ...process.env,
         NODE_ENV: 'test',
+        BLUEPRINT_USER_DATA: testUserData,
         // Disable hardware acceleration for CI
         ELECTRON_DISABLE_GPU: '1',
       },
@@ -36,6 +41,9 @@ export const test = base.extend<{
 
     // Close the app after tests
     await app.close();
+
+    // Clean up isolated test data
+    fs.rmSync(testUserData, { recursive: true, force: true });
   },
 
   // Get the main window

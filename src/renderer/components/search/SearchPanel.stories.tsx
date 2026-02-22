@@ -65,7 +65,7 @@ const meta = {
   },
   decorators: [
     (Story) => (
-      <div className="w-80 h-[500px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden flex flex-col">
+      <div className="w-80 h-[500px] bg-surface border border-border-default rounded-lg overflow-hidden flex flex-col">
         <Story />
       </div>
     ),
@@ -195,16 +195,16 @@ export const Interactive: StoryObj = {
 
     return (
       <div className="flex gap-4">
-        <div className="w-80 h-[500px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden flex flex-col">
+        <div className="w-80 h-[500px] bg-surface border border-border-default rounded-lg overflow-hidden flex flex-col">
           <SearchPanel projectPath="/Users/demo/project" onFileSelect={handleFileSelect} />
         </div>
-        <div className="w-64 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+        <div className="w-64 p-4 bg-surface-raised rounded-lg">
           <h4 className="text-sm font-medium mb-2">Selection</h4>
-          <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+          <div className="text-xs text-fg-muted space-y-1">
             <p>File: {selectedFile ? selectedFile.split('/').pop() : 'None'}</p>
             <p>Line: {selectedLine || 'None'}</p>
           </div>
-          <p className="text-xs text-gray-500 mt-4">
+          <p className="text-xs text-fg-muted mt-4">
             Try searching: "Button", "Input", "function"
           </p>
         </div>

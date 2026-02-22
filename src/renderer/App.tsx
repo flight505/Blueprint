@@ -85,7 +85,7 @@ export default function App() {
   // Loading state
   if (isOnboarded === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-surface">
         <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -346,13 +346,13 @@ function MainApp() {
   return (
     <div
       ref={containerRef}
-      className="flex flex-col h-screen w-screen overflow-hidden bg-[#1f2335] text-gray-100"
+      className="flex flex-col h-screen w-screen overflow-hidden bg-surface-deep text-fg"
     >
       {/* macOS Title Bar - Draggable region for window movement */}
-      <div className="title-bar-drag-region h-9 flex-shrink-0 flex items-center bg-white/[0.02] backdrop-blur-sm border-b border-white/[0.06]">
+      <div className="title-bar-drag-region h-9 flex-shrink-0 flex items-center bg-surface backdrop-blur-sm border-b border-border-default">
         {/* Left spacing for traffic lights (macOS) - approximately 72px */}
         <div className="w-[72px] flex-shrink-0" />
-        <div className="flex-1 text-center text-xs text-gray-400 font-medium">
+        <div className="flex-1 text-center text-xs text-fg-muted font-medium">
           Blueprint
         </div>
         {/* Right spacing for balance */}

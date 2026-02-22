@@ -190,7 +190,7 @@ export default function ResearchProgress({
 
   return (
     <div
-      className={`bg-gray-800 border border-gray-700 rounded-lg p-4 shadow-sm ${className}`}
+      className={`bg-surface border border-border-default rounded-lg p-4 shadow-sm ${className}`}
       role="status"
       aria-live="polite"
       aria-label="Research progress"
@@ -199,10 +199,10 @@ export default function ResearchProgress({
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" aria-hidden="true" />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <span className="text-sm font-medium text-fg-secondary">
             {getProviderName(provider)}
           </span>
-          <span className="text-xs text-gray-400 px-1.5 py-0.5 bg-gray-700 rounded">
+          <span className="text-xs text-fg-muted px-1.5 py-0.5 bg-surface-raised rounded">
             {mode}
           </span>
         </div>
@@ -219,7 +219,7 @@ export default function ResearchProgress({
 
       {/* Progress bar */}
       <div className="mb-2">
-        <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+        <div className="w-full h-2 bg-surface-raised rounded-full overflow-hidden">
           <div
             className={`h-full transition-all duration-300 ease-out ${getProgressColor(displayPercentage)}`}
             style={{ width: `${Math.min(displayPercentage, 100)}%` }}
@@ -234,14 +234,14 @@ export default function ResearchProgress({
 
       {/* Status text and time estimate */}
       <div className="flex items-center justify-between text-xs">
-        <span className="text-gray-600 dark:text-gray-400 truncate max-w-[60%]" title={displayMessage}>
+        <span className="text-fg-muted truncate max-w-[60%]" title={displayMessage}>
           {displayMessage}
         </span>
         <div className="flex items-center gap-3 flex-shrink-0">
-          <span className="font-medium text-gray-700 dark:text-gray-300">
+          <span className="font-medium text-fg-secondary">
             {Math.round(displayPercentage)}%
           </span>
-          <span className="text-gray-500 dark:text-gray-400">
+          <span className="text-fg-muted">
             ~{formatTimeRemaining(estimatedTimeRemaining)} remaining
           </span>
         </div>
@@ -249,7 +249,7 @@ export default function ResearchProgress({
 
       {/* Elapsed time */}
       {elapsedSeconds > 0 && (
-        <div className="text-xs text-gray-400 dark:text-gray-500 mt-1 text-right">
+        <div className="text-xs text-fg-muted mt-1 text-right">
           Elapsed: {formatTimeRemaining(elapsedSeconds)}
         </div>
       )}

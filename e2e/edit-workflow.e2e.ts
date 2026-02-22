@@ -44,11 +44,11 @@ test.describe('File Editing Workflow', () => {
     await mainWindow.keyboard.press('Meta+Shift+P');
 
     // Command palette should be visible
-    const searchInput = mainWindow.getByPlaceholder(/search commands/i);
+    const searchInput = mainWindow.getByPlaceholder(/type a command/i);
     await expect(searchInput).toBeVisible({ timeout: 3000 });
 
     // Type to filter commands
-    await searchInput.fill('theme');
+    await searchInput.fill('dark');
 
     // Theme-related command should be visible
     await expect(mainWindow.getByText(/toggle dark mode/i)).toBeVisible({ timeout: 2000 });
@@ -125,9 +125,10 @@ test.describe('File Editing Workflow', () => {
     await mainWindow.keyboard.press('Meta+Shift+/');
     await mainWindow.waitForTimeout(500);
 
-    // Help section should show keyboard shortcuts
-    await expect(mainWindow.getByText(/keyboard shortcuts/i)).toBeVisible({ timeout: 3000 });
-    await expect(mainWindow.getByText(/Cmd\+1-7/i)).toBeVisible();
+    // Help section should show keyboard shortcuts (scoped to sidebar panel to avoid matching welcome screen)
+    const panel = mainWindow.getByLabel('Sidebar panel');
+    await expect(panel.getByText(/keyboard shortcuts/i)).toBeVisible({ timeout: 3000 });
+    await expect(panel.getByText(/Cmd\+1-8/i)).toBeVisible();
   });
 });
 

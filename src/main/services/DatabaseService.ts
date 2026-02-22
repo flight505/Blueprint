@@ -76,8 +76,8 @@ export class DatabaseService {
   private dbPath: string;
 
   constructor() {
-    // Store database in app data directory
-    const userDataPath = app.getPath('userData');
+    // Store database in app data directory (BLUEPRINT_USER_DATA overrides for E2E tests)
+    const userDataPath = process.env.BLUEPRINT_USER_DATA || app.getPath('userData');
     this.dbPath = path.join(userDataPath, 'blueprint.db');
   }
 
@@ -186,7 +186,36 @@ export class DatabaseService {
       CREATE INDEX IF NOT EXISTS idx_image_edits_project ON image_edits(project_id);
     `);
 
+    // Migrate existing tables to add any missing columns
+    this.migrateSchema();
+
     console.log(`DatabaseService initialized at ${this.dbPath}`);
+  }
+
+  /**
+   * Add missing columns to existing tables (SQLite has no ADD COLUMN IF NOT EXISTS)
+   */
+  private migrateSchema(): void {
+    // Migrate sessions table
+    const sessionCols = this.db!.pragma('table_info(sessions)') as { name: string }[];
+    if (!sessionCols.some(c => c.name === 'project_path')) {
+      this.db!.exec("ALTER TABLE sessions ADD COLUMN project_path TEXT NOT NULL DEFAULT ''");
+    }
+
+    // Migrate checkpoints table
+    const checkpointCols = this.db!.pragma('table_info(checkpoints)') as { name: string }[];
+    const checkpointMigrations: Array<{ col: string; type: string; defaultVal: string }> = [
+      { col: 'project_path', type: 'TEXT', defaultVal: "''" },
+      { col: 'project_name', type: 'TEXT', defaultVal: "''" },
+      { col: 'execution_state', type: 'TEXT', defaultVal: "'{}'" },
+      { col: 'current_phase_index', type: 'INTEGER', defaultVal: '0' },
+      { col: 'status', type: 'TEXT', defaultVal: "'pending'" },
+    ];
+    for (const { col, type, defaultVal } of checkpointMigrations) {
+      if (!checkpointCols.some(c => c.name === col)) {
+        this.db!.exec(`ALTER TABLE checkpoints ADD COLUMN ${col} ${type} NOT NULL DEFAULT ${defaultVal}`);
+      }
+    }
   }
 
   /**

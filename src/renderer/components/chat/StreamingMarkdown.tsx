@@ -22,13 +22,13 @@ function markdownToHtml(text: string): string {
   // Code blocks (```language\n...\n```)
   html = html.replace(
     /```(\w*)\n([\s\S]*?)```/g,
-    '<pre class="bg-gray-900 dark:bg-gray-950 text-gray-100 p-3 rounded-lg overflow-x-auto text-sm my-2"><code class="language-$1">$2</code></pre>'
+    '<pre class="bg-surface-deep text-fg p-3 rounded-lg overflow-x-auto text-sm my-2"><code class="language-$1">$2</code></pre>'
   );
 
   // Inline code (`...`)
   html = html.replace(
     /`([^`]+)`/g,
-    '<code class="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-sm">$1</code>'
+    '<code class="bg-surface-raised px-1 py-0.5 rounded text-sm">$1</code>'
   );
 
   // Bold (**...**)

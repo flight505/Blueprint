@@ -228,7 +228,7 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, TiptapEditorProps>(fu
   if (!editor) {
     return (
       <div className={`tiptap-editor-loading ${className}`}>
-        <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-32 rounded" />
+        <div className="animate-pulse bg-surface-raised h-32 rounded" />
       </div>
     );
   }
@@ -243,18 +243,18 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, TiptapEditorProps>(fu
       {/* Editor content */}
       <EditorContent
         editor={editor}
-        className="min-h-[200px] p-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
+        className="min-h-[200px] p-4 border border-border-default rounded-lg bg-input"
       />
 
       {/* Placeholder when empty */}
       {editor.isEmpty && (
-        <div className="absolute top-4 left-4 text-gray-400 dark:text-gray-500 pointer-events-none">
+        <div className="absolute top-4 left-4 text-fg-muted pointer-events-none">
           {placeholder}
         </div>
       )}
 
       {/* Character count */}
-      <div className="absolute bottom-2 right-2 text-xs text-gray-400 dark:text-gray-500">
+      <div className="absolute bottom-2 right-2 text-xs text-fg-muted">
         {editor.storage.characterCount?.characters?.() ?? editor.getText().length} chars
       </div>
 

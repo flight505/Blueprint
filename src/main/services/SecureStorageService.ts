@@ -34,7 +34,7 @@ class SecureStorageService {
   initialize(): void {
     if (this.initialized) return;
 
-    this.storePath = path.join(app.getPath('userData'), STORAGE_FILE);
+    this.storePath = path.join(process.env.BLUEPRINT_USER_DATA || app.getPath('userData'), STORAGE_FILE);
     this.loadCachedKeys();
     this.initialized = true;
   }

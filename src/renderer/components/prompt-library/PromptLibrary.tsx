@@ -260,18 +260,18 @@ export function PromptLibrary({
   return (
     <div className="flex flex-col h-full max-h-80 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between pb-2 border-b border-border-default">
         <div className="flex items-center gap-2">
           <span className="text-lg" role="img" aria-label="Prompt library">
             📚
           </span>
-          <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+          <h4 className="font-medium text-fg text-sm">
             Prompt Library
           </h4>
         </div>
         <button
           onClick={() => setShowNewPromptForm(true)}
-          className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-100 dark:hover:bg-blue-900/50"
+          className="text-xs px-2 py-1 bg-accent-soft text-accent rounded hover:bg-accent-soft"
           aria-label="Create new prompt"
         >
           + New
@@ -285,15 +285,15 @@ export function PromptLibrary({
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           placeholder="Search prompts..."
-          className="w-full px-2 py-1 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400"
+          className="w-full px-2 py-1 text-xs rounded border border-border-default bg-input text-fg placeholder-fg-muted"
           aria-label="Search prompts"
         />
       </div>
 
       {/* New/Edit prompt form */}
       {showNewPromptForm && (
-        <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-2 bg-gray-50 dark:bg-gray-800/50">
-          <h5 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <div className="border border-border-default rounded-lg p-3 mb-2 bg-surface-raised">
+          <h5 className="text-xs font-medium text-fg-secondary mb-2">
             {editingPrompt ? 'Edit Prompt' : 'New Custom Prompt'}
           </h5>
           <input
@@ -301,14 +301,14 @@ export function PromptLibrary({
             value={newPromptName}
             onChange={(e) => setNewPromptName(e.target.value)}
             placeholder="Prompt name"
-            className="w-full px-2 py-1 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 mb-2"
+            className="w-full px-2 py-1 text-xs rounded border border-border-default bg-input text-fg mb-2"
             autoFocus
           />
           <textarea
             value={newPromptTemplate}
             onChange={(e) => setNewPromptTemplate(e.target.value)}
             placeholder="Prompt template (use {selection} and {context} variables)"
-            className="w-full px-2 py-1 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none mb-2"
+            className="w-full px-2 py-1 text-xs rounded border border-border-default bg-input text-fg resize-none mb-2"
             rows={3}
           />
           <input
@@ -316,12 +316,12 @@ export function PromptLibrary({
             value={newPromptDescription}
             onChange={(e) => setNewPromptDescription(e.target.value)}
             placeholder="Description (optional)"
-            className="w-full px-2 py-1 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 mb-2"
+            className="w-full px-2 py-1 text-xs rounded border border-border-default bg-input text-fg mb-2"
           />
           <div className="flex justify-end gap-2">
             <button
               onClick={resetForm}
-              className="text-xs px-2 py-1 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+              className="text-xs px-2 py-1 text-fg-muted hover:text-fg"
             >
               Cancel
             </button>
@@ -333,9 +333,9 @@ export function PromptLibrary({
               {editingPrompt ? 'Update' : 'Save'}
             </button>
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-            Variables: <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">{'{selection}'}</code> = selected text,{' '}
-            <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">{'{context}'}</code> = additional context
+          <p className="text-xs text-fg-muted mt-2">
+            Variables: <code className="bg-surface-raised px-1 rounded">{'{selection}'}</code> = selected text,{' '}
+            <code className="bg-surface-raised px-1 rounded">{'{context}'}</code> = additional context
           </p>
         </div>
       )}
@@ -343,7 +343,7 @@ export function PromptLibrary({
       {/* Prompt list */}
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
-          <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-xs">
+          <div className="text-center py-4 text-fg-muted text-xs">
             Loading prompts...
           </div>
         ) : (
@@ -351,7 +351,7 @@ export function PromptLibrary({
             {/* Built-in prompts */}
             {builtInPrompts.length > 0 && (
               <div className="mb-3">
-                <h5 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 px-1">
+                <h5 className="text-xs font-medium text-fg-muted mb-1 px-1">
                   Built-in Templates
                 </h5>
                 <div className="space-y-1">
@@ -370,7 +370,7 @@ export function PromptLibrary({
             {/* Custom prompts */}
             {userPrompts.length > 0 && (
               <div>
-                <h5 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 px-1">
+                <h5 className="text-xs font-medium text-fg-muted mb-1 px-1">
                   Custom Prompts
                 </h5>
                 <div className="space-y-1">
@@ -390,7 +390,7 @@ export function PromptLibrary({
 
             {/* Empty state */}
             {filteredPrompts.length === 0 && (
-              <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-xs">
+              <div className="text-center py-4 text-fg-muted text-xs">
                 {filter ? 'No prompts match your search' : 'No prompts available'}
               </div>
             )}
@@ -420,7 +420,7 @@ function PromptItem({ prompt, onSelect, onEdit, onDelete, selectedText }: Prompt
 
   return (
     <div
-      className="group relative rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 bg-white dark:bg-gray-800 transition-colors"
+      className="group relative rounded-lg border border-border-default hover:border-accent bg-surface-raised transition-colors"
     >
       <button
         onClick={onSelect}
@@ -428,7 +428,7 @@ function PromptItem({ prompt, onSelect, onEdit, onDelete, selectedText }: Prompt
         aria-label={`Select prompt: ${prompt.name}`}
       >
         <div className="flex items-center justify-between">
-          <span className="font-medium text-gray-900 dark:text-gray-100 text-xs">
+          <span className="font-medium text-fg text-xs">
             {prompt.name}
           </span>
           {!prompt.isBuiltIn && (
@@ -439,7 +439,7 @@ function PromptItem({ prompt, onSelect, onEdit, onDelete, selectedText }: Prompt
                     e.stopPropagation();
                     onEdit();
                   }}
-                  className="p-1 text-gray-400 hover:text-blue-500"
+                  className="p-1 text-fg-muted hover:text-blue-500"
                   aria-label="Edit prompt"
                 >
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -455,7 +455,7 @@ function PromptItem({ prompt, onSelect, onEdit, onDelete, selectedText }: Prompt
                       onDelete();
                     }
                   }}
-                  className="p-1 text-gray-400 hover:text-red-500"
+                  className="p-1 text-fg-muted hover:text-red-500"
                   aria-label="Delete prompt"
                 >
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -467,7 +467,7 @@ function PromptItem({ prompt, onSelect, onEdit, onDelete, selectedText }: Prompt
           )}
         </div>
         {prompt.description && (
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+          <p className="text-xs text-fg-muted mt-0.5">
             {prompt.description}
           </p>
         )}
@@ -476,7 +476,7 @@ function PromptItem({ prompt, onSelect, onEdit, onDelete, selectedText }: Prompt
       {/* Preview toggle */}
       <button
         onClick={() => setShowPreview(!showPreview)}
-        className="absolute bottom-1 right-2 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+        className="absolute bottom-1 right-2 text-xs text-fg-muted hover:text-fg-secondary"
         aria-label={showPreview ? 'Hide preview' : 'Show preview'}
       >
         {showPreview ? '▲' : '▼'}
@@ -484,9 +484,9 @@ function PromptItem({ prompt, onSelect, onEdit, onDelete, selectedText }: Prompt
 
       {/* Preview panel */}
       {showPreview && (
-        <div className="px-3 pb-2 pt-1 border-t border-gray-100 dark:border-gray-700">
-          <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Preview:</p>
-          <pre className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap bg-gray-50 dark:bg-gray-900 rounded p-2 max-h-24 overflow-y-auto">
+        <div className="px-3 pb-2 pt-1 border-t border-border-default">
+          <p className="text-xs text-fg-muted mb-1">Preview:</p>
+          <pre className="text-xs text-fg-secondary whitespace-pre-wrap bg-surface-raised rounded p-2 max-h-24 overflow-y-auto">
             {preview.length > 300 ? preview.slice(0, 300) + '...' : preview}
           </pre>
         </div>

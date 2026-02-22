@@ -32,14 +32,14 @@ export function GlassSidebarRail({
       aria-label="Main navigation"
       className={`
         w-12 flex-shrink-0 flex flex-col
-        bg-white/[0.02] backdrop-blur-sm
-        border-r border-white/[0.06]
+        bg-surface backdrop-blur-sm
+        border-r border-border-default
         ${className}
       `}
     >
       {/* Brand/Logo area */}
       {brand && (
-        <div className="h-14 flex items-center justify-center border-b border-white/[0.06]">
+        <div className="h-14 flex items-center justify-center border-b border-border-default">
           {brand}
         </div>
       )}
@@ -51,7 +51,7 @@ export function GlassSidebarRail({
 
       {/* Footer/Utility items */}
       {footer && (
-        <div className="flex flex-col items-center py-3 gap-1 border-t border-white/[0.06]">
+        <div className="flex flex-col items-center py-3 gap-1 border-t border-border-default">
           {footer}
         </div>
       )}

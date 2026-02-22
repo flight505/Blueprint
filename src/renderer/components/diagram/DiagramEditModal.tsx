@@ -298,12 +298,12 @@ export function DiagramEditModal({
     <AnimatedModal
       isOpen={isOpen}
       onClose={onClose}
-      className="w-full max-w-5xl max-h-[90vh] mx-4 bg-white dark:bg-gray-800 rounded-lg shadow-xl flex flex-col overflow-hidden"
+      className="w-full max-w-5xl max-h-[90vh] mx-4 bg-surface-overlay rounded-lg shadow-xl flex flex-col overflow-hidden"
       aria-labelledby="diagram-edit-title"
     >
       <div onKeyDown={handleKeyDown} className="flex flex-col h-full">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border-default">
           <h2 id="diagram-edit-title" className="text-lg font-semibold">
             Edit Diagram
           </h2>
@@ -314,7 +314,7 @@ export function DiagramEditModal({
               className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                 showAiPanel
                   ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
-                  : 'bg-gray-100 text-gray-700 hover:bg-purple-50 hover:text-purple-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-purple-900/20 dark:hover:text-purple-400'
+                  : 'bg-surface-raised text-fg-secondary hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-900/20 dark:hover:text-purple-400'
               }`}
               aria-label="Toggle AI regeneration panel"
               aria-pressed={showAiPanel}
@@ -324,12 +324,12 @@ export function DiagramEditModal({
               </svg>
               Regenerate with AI
             </button>
-            <span className="text-xs text-gray-500 dark:text-gray-400">
+            <span className="text-xs text-fg-muted">
               Cmd+S to save • Esc to close
             </span>
             <button
               onClick={onClose}
-              className="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="p-1.5 text-fg-muted hover:text-fg rounded hover:bg-surface-hover"
               aria-label="Close"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -356,7 +356,7 @@ export function DiagramEditModal({
                     setAiError(null);
                   }}
                   placeholder="e.g., Add a new node called 'Authentication' connected to 'User'"
-                  className="flex-1 px-3 py-2 text-sm border border-purple-300 dark:border-purple-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                  className="flex-1 px-3 py-2 text-sm border border-purple-300 dark:border-purple-700 rounded-lg bg-input text-fg placeholder-fg-muted focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
                   rows={2}
                   disabled={isAiGenerating}
                   onKeyDown={(e) => {
@@ -403,16 +403,16 @@ export function DiagramEditModal({
         {/* Content - Split panes */}
         <div className="flex-1 flex min-h-0">
           {/* Code editor pane */}
-          <div className="w-1/2 flex flex-col border-r border-gray-200 dark:border-gray-700">
-            <div className="px-3 py-2 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Mermaid Code</span>
+          <div className="w-1/2 flex flex-col border-r border-border-default">
+            <div className="px-3 py-2 bg-surface-raised border-b border-border-default">
+              <span className="text-sm font-medium text-fg-muted">Mermaid Code</span>
             </div>
             <div className="flex-1 p-0 overflow-hidden">
               <textarea
                 ref={textareaRef}
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
-                className="w-full h-full p-4 font-mono text-sm bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 resize-none focus:outline-none"
+                className="w-full h-full p-4 font-mono text-sm bg-surface-raised text-fg resize-none focus:outline-none"
                 placeholder="Enter Mermaid diagram code..."
                 spellCheck={false}
                 aria-label="Mermaid diagram code"
@@ -422,21 +422,21 @@ export function DiagramEditModal({
 
           {/* Preview pane */}
           <div className="w-1/2 flex flex-col">
-            <div className="px-3 py-2 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Preview</span>
+            <div className="px-3 py-2 bg-surface-raised border-b border-border-default flex items-center justify-between">
+              <span className="text-sm font-medium text-fg-muted">Preview</span>
               {isRendering && (
                 <span className="text-xs text-blue-500 animate-pulse">Rendering...</span>
               )}
             </div>
             <div
               ref={previewRef}
-              className="flex-1 p-4 overflow-auto bg-white dark:bg-gray-800"
+              className="flex-1 p-4 overflow-auto bg-surface-overlay"
             >
               {/* Loading state */}
               {isRendering && !preview && (
-                <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                <div className="flex items-center justify-center h-full text-fg-muted">
                   <div className="animate-pulse flex flex-col items-center">
-                    <div className="w-8 h-8 border-2 border-gray-300 dark:border-gray-600 border-t-blue-500 rounded-full animate-spin" />
+                    <div className="w-8 h-8 border-2 border-border-default border-t-blue-500 rounded-full animate-spin" />
                     <span className="mt-2 text-sm">Rendering diagram...</span>
                   </div>
                 </div>
@@ -467,7 +467,7 @@ export function DiagramEditModal({
 
               {/* Empty state */}
               {!preview && !isRendering && (
-                <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
+                <div className="flex items-center justify-center h-full text-fg-muted">
                   <span className="text-sm">Enter diagram code to see preview</span>
                 </div>
               )}
@@ -476,10 +476,10 @@ export function DiagramEditModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+        <div className="flex items-center justify-end gap-3 px-4 py-3 border-t border-border-default bg-surface-raised">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+            className="px-4 py-2 text-sm font-medium text-fg-secondary bg-surface-overlay border border-border-default rounded-lg hover:bg-surface-hover"
           >
             Cancel
           </button>

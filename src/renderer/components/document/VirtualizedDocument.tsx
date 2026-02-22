@@ -95,7 +95,7 @@ export function VirtualizedDocument({
   if (!useVirtualization) {
     return (
       <div
-        className={`virtualized-document ${className} ${isCode ? 'bg-gray-100 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}
+        className={`virtualized-document ${className} ${isCode ? 'bg-surface-raised' : 'bg-surface'}`}
         role="document"
         aria-label={fileName || 'Document'}
       >
@@ -127,7 +127,7 @@ export function VirtualizedDocument({
   // For large documents, use virtual scrolling
   return (
     <div
-      className={`virtualized-document h-full ${className} ${isCode ? 'bg-gray-100 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}
+      className={`virtualized-document h-full ${className} ${isCode ? 'bg-surface-raised' : 'bg-surface'}`}
       role="document"
       aria-label={fileName || 'Document'}
     >
@@ -183,7 +183,7 @@ const DocumentLine = memo<DocumentLineProps>(
 
     return (
       <tr
-        className="hover:bg-gray-200/50 dark:hover:bg-gray-700/50 group"
+        className="hover:bg-surface-hover group"
         onClick={handleClick}
         role={onClick ? 'button' : undefined}
         tabIndex={onClick ? 0 : undefined}
@@ -191,7 +191,7 @@ const DocumentLine = memo<DocumentLineProps>(
       >
         {showLineNumbers && (
           <td
-            className="select-none text-right pr-4 text-gray-400 dark:text-gray-500 w-12 sticky left-0 bg-inherit"
+            className="select-none text-right pr-4 text-fg-muted w-12 sticky left-0 bg-inherit"
             aria-hidden="true"
           >
             {lineNumber}

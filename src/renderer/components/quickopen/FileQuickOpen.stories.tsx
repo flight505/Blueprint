@@ -17,7 +17,7 @@ const meta = {
   },
   decorators: [
     (Story) => (
-      <div className="h-[600px] bg-[#1f2335]">
+      <div className="h-[600px] bg-surface-deep">
         <Story />
       </div>
     ),

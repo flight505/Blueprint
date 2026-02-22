@@ -153,8 +153,8 @@ export const Interactive: StoryObj = {
           >
             Open Command Palette
           </button>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Or press <kbd className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">Cmd+Shift+P</kbd>
+          <p className="text-sm text-fg-muted">
+            Or press <kbd className="px-1.5 py-0.5 bg-surface-raised rounded">Cmd+Shift+P</kbd>
           </p>
         </div>
 
@@ -185,7 +185,7 @@ export const SearchDemo: StoryObj = {
           onClose={() => setIsOpen(false)}
           recentCommandIds={['git-commit', 'git-push']}
         />
-        <div className="fixed bottom-4 left-4 text-sm text-gray-500 dark:text-gray-400">
+        <div className="fixed bottom-4 left-4 text-sm text-fg-muted">
           Try typing: "git", "file", "toggle"
         </div>
       </div>

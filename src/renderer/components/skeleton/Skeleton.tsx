@@ -33,7 +33,7 @@ export function Skeleton({
 
   return (
     <div
-      className={`animate-pulse bg-gray-700 ${ROUNDED_CLASSES[rounded]} ${className}`}
+      className={`animate-pulse bg-surface-raised ${ROUNDED_CLASSES[rounded]} ${className}`}
       style={{ width: widthStyle, height: heightStyle }}
       aria-hidden="true"
     />
@@ -109,7 +109,7 @@ export function SkeletonChatMessage({
         className={`max-w-[80%] rounded-lg px-4 py-3 ${
           isUser
             ? 'bg-blue-500/20 rounded-br-sm'
-            : 'bg-gray-700 rounded-bl-sm'
+            : 'bg-surface-raised rounded-bl-sm'
         }`}
       >
         <SkeletonParagraph lines={2} lastLineWidth="70%" />
@@ -131,7 +131,7 @@ export function SkeletonSearchResults({
   return (
     <div className={`space-y-2 ${className}`}>
       {Array.from({ length: files }).map((_, fileIdx) => (
-        <div key={fileIdx} className="border-b border-gray-700 pb-2">
+        <div key={fileIdx} className="border-b border-border-default pb-2">
           {/* File header */}
           <div className="flex items-center gap-2 px-4 py-2">
             <Skeleton width={10} height={10} rounded="sm" />
@@ -139,7 +139,7 @@ export function SkeletonSearchResults({
             <Skeleton width={24} height={16} rounded="sm" className="ml-auto" />
           </div>
           {/* Matches */}
-          <div className="bg-gray-800/50">
+          <div className="bg-surface/50">
             {Array.from({ length: matchesPerFile }).map((_, matchIdx) => (
               <div key={matchIdx} className="flex items-center gap-3 px-4 py-1.5">
                 <Skeleton width={32} height={14} rounded="sm" />
@@ -163,7 +163,7 @@ export function SkeletonFileContent({
 }) {
   return (
     <div className={`p-4 ${className}`}>
-      <div className="bg-gray-800 rounded-lg p-4 space-y-1.5">
+      <div className="bg-surface rounded-lg p-4 space-y-1.5">
         {Array.from({ length: lines }).map((_, i) => (
           <div key={i} className="flex items-center gap-3">
             {/* Line number */}

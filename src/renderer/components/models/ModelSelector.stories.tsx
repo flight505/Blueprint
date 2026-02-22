@@ -90,7 +90,7 @@ const meta = {
       // Mock the electronAPI.modelRouterGetAvailableModels
       window.electronAPI.modelRouterGetAvailableModels = async () => mockModels;
       return (
-        <div className="p-4 bg-gray-800 rounded-lg w-[420px]">
+        <div className="p-4 bg-surface-raised rounded-lg w-[420px]">
           <Story />
         </div>
       );
@@ -222,8 +222,8 @@ export const Interactive: StoryObj = {
           onModelChange={setModel}
           showAutoSelect={true}
         />
-        <div className="text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-200 dark:border-gray-700">
-          Selected: <code className="bg-gray-700 px-1 rounded">{model}</code>
+        <div className="text-xs text-fg-muted pt-2 border-t border-border-default">
+          Selected: <code className="bg-surface-overlay px-1 rounded">{model}</code>
         </div>
       </div>
     );

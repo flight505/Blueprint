@@ -34,10 +34,10 @@ export function WelcomeScreen({ onNewProject, onOpenProject }: WelcomeScreenProp
       <div className="max-w-2xl mx-auto flex-1">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold mb-2 text-gray-100">
+          <h1 className="text-2xl font-semibold mb-2 text-fg">
             Blueprint
           </h1>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-fg-muted">
             AI-powered project planning with Claude Agent SDK
           </p>
         </div>
@@ -64,11 +64,11 @@ export function WelcomeScreen({ onNewProject, onOpenProject }: WelcomeScreenProp
         </div>
 
         {/* Getting Started */}
-        <div className="bg-white/[0.04] backdrop-blur-sm rounded-lg p-6 mb-8 border border-white/[0.06]">
-          <h2 className="text-sm font-medium mb-4 text-gray-100">
+        <div className="bg-surface-raised rounded-lg p-6 mb-8 border border-border-default">
+          <h2 className="text-sm font-medium mb-4 text-fg">
             Getting Started
           </h2>
-          <div className="space-y-3 text-sm text-gray-300">
+          <div className="space-y-3 text-sm text-fg-secondary">
             <div className="flex items-start gap-3">
               <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-900/50 text-purple-400 flex items-center justify-center text-xs font-medium">
                 1
@@ -91,24 +91,24 @@ export function WelcomeScreen({ onNewProject, onOpenProject }: WelcomeScreenProp
         </div>
 
         {/* Keyboard Shortcuts */}
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          <p className="font-medium mb-2">Keyboard Shortcuts</p>
+        <div className="text-sm text-fg-muted">
+          <p className="font-medium mb-2 text-fg-secondary">Keyboard Shortcuts</p>
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="flex justify-between">
               <span>Command Palette</span>
-              <span className="text-gray-400">Cmd+Shift+P</span>
+              <span className="text-fg-muted">Cmd+Shift+P</span>
             </div>
             <div className="flex justify-between">
               <span>Quick Open</span>
-              <span className="text-gray-400">Cmd+P</span>
+              <span className="text-fg-muted">Cmd+P</span>
             </div>
             <div className="flex justify-between">
               <span>Search in Project</span>
-              <span className="text-gray-400">Cmd+Shift+F</span>
+              <span className="text-fg-muted">Cmd+Shift+F</span>
             </div>
             <div className="flex justify-between">
               <span>Settings</span>
-              <span className="text-gray-400">Cmd+,</span>
+              <span className="text-fg-muted">Cmd+,</span>
             </div>
           </div>
         </div>
@@ -128,13 +128,13 @@ function WelcomeCard({ title, description, icon, onClick }: WelcomeCardProps) {
   return (
     <button
       onClick={onClick}
-      className="p-4 rounded-lg border border-white/[0.06] bg-white/[0.04] backdrop-blur-sm hover:bg-white/[0.07] hover:border-purple-400/30 hover:shadow-[0_0_16px_rgba(167,139,250,0.15)] transition-all duration-200 text-left group"
+      className="p-4 rounded-lg border border-border-default bg-surface-raised hover:bg-surface-hover hover:border-purple-400/30 hover:shadow-[0_0_16px_rgba(167,139,250,0.15)] transition-all duration-200 text-left group"
     >
-      <span className="mb-2 block text-gray-300 group-hover:text-purple-400 group-hover:scale-110 transition-all">
+      <span className="mb-2 block text-fg-muted group-hover:text-purple-400 group-hover:scale-110 transition-all">
         {icon}
       </span>
-      <h3 className="text-sm font-medium mb-1 text-gray-100">{title}</h3>
-      <p className="text-xs text-gray-400">{description}</p>
+      <h3 className="text-sm font-medium mb-1 text-fg">{title}</h3>
+      <p className="text-xs text-fg-muted">{description}</p>
     </button>
   );
 }

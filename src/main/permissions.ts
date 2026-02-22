@@ -17,7 +17,7 @@ export interface PermissionsResult {
  * Test file system write access by creating a temp file
  */
 export async function checkFileAccess(): Promise<PermissionStatus> {
-  const testDir = app.getPath('userData');
+  const testDir = process.env.BLUEPRINT_USER_DATA || app.getPath('userData');
   const testFile = path.join(testDir, '.permission-test');
 
   try {

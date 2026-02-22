@@ -242,7 +242,7 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
   if (!projectPath) {
     return (
       <div className="flex-1 overflow-y-auto p-4">
-        <div className="text-gray-500 dark:text-gray-400 text-center mt-8">
+        <div className="text-fg-muted text-center mt-8">
           <p className="text-sm">No project folder selected</p>
           <p className="text-xs mt-2">Open a folder in Explorer to enable search</p>
         </div>
@@ -253,7 +253,7 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Search input and options */}
-      <div className="p-4 border-b border-white/[0.06]">
+      <div className="p-4 border-b border-border-default">
         <div className="relative">
           <input
             ref={inputRef}
@@ -261,7 +261,7 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search in project..."
-            className="w-full px-3 py-2 pr-10 rounded-lg border border-white/[0.06] bg-white/[0.04] text-gray-100 focus:ring-1 focus:ring-purple-400/40 focus:border-purple-400/30 text-sm placeholder-gray-500 transition-colors duration-150"
+            className="w-full px-3 py-2 pr-10 rounded-lg border border-border-default bg-input text-fg focus:ring-1 focus:ring-purple-400/40 focus:border-purple-400/30 text-sm placeholder-fg-muted transition-colors duration-150"
             aria-label="Search query"
           />
           {isSearching && (
@@ -273,21 +273,21 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
 
         {/* Search options */}
         <div className="flex gap-4 mt-3">
-          <label className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 cursor-pointer">
+          <label className="flex items-center gap-1.5 text-xs text-fg-muted cursor-pointer">
             <input
               type="checkbox"
               checked={caseSensitive}
               onChange={(e) => setCaseSensitive(e.target.checked)}
-              className="w-3.5 h-3.5 rounded border-gray-300 dark:border-gray-600"
+              className="w-3.5 h-3.5 rounded border-border-default"
             />
             <span>Match Case</span>
           </label>
-          <label className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 cursor-pointer">
+          <label className="flex items-center gap-1.5 text-xs text-fg-muted cursor-pointer">
             <input
               type="checkbox"
               checked={useRegex}
               onChange={(e) => setUseRegex(e.target.checked)}
-              className="w-3.5 h-3.5 rounded border-gray-300 dark:border-gray-600"
+              className="w-3.5 h-3.5 rounded border-border-default"
             />
             <span>Use Regex</span>
           </label>
@@ -296,7 +296,7 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
         {/* Results summary and navigation */}
         {query.trim().length >= 2 && (
           <div className="mt-3 flex items-center justify-between">
-            <div className="text-xs text-gray-500 dark:text-gray-400">
+            <div className="text-xs text-fg-muted">
               {isSearching ? (
                 'Searching...'
               ) : results.length > 0 ? (
@@ -318,7 +318,7 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
               <div className="flex items-center gap-1">
                 <button
                   onClick={goToPreviousMatch}
-                  className="p-1 rounded hover:bg-white/[0.10] text-gray-400 hover:text-gray-200 disabled:opacity-50 transition-all duration-150"
+                  className="p-1 rounded hover:bg-surface-hover text-fg-muted hover:text-fg disabled:opacity-50 transition-all duration-150"
                   title="Previous match (Shift+F3)"
                   aria-label="Go to previous match"
                 >
@@ -328,7 +328,7 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
                 </button>
                 <button
                   onClick={goToNextMatch}
-                  className="p-1 rounded hover:bg-white/[0.10] text-gray-400 hover:text-gray-200 disabled:opacity-50 transition-all duration-150"
+                  className="p-1 rounded hover:bg-surface-hover text-fg-muted hover:text-fg disabled:opacity-50 transition-all duration-150"
                   title="Next match (F3)"
                   aria-label="Go to next match"
                 >
@@ -350,7 +350,7 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
         )}
         {/* No results message */}
         {!isSearching && results.length === 0 && query.trim().length >= 2 && (
-          <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+          <div className="p-4 text-center text-fg-muted">
             <p className="text-sm">No results found for "{query}"</p>
             <p className="text-xs mt-2">Try a different search term</p>
           </div>
@@ -359,27 +359,27 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
         {!isSearching && results.length > 0 && (
           <div className="py-1">
             {results.map((result) => (
-              <div key={result.filePath} className="border-b border-white/[0.06] last:border-b-0">
+              <div key={result.filePath} className="border-b border-border-default last:border-b-0">
                 {/* File header */}
                 <button
                   onClick={() => toggleFileExpanded(result.filePath)}
-                  className="w-full px-4 py-2 flex items-center gap-2 hover:bg-white/[0.06] text-left transition-all duration-150"
+                  className="w-full px-4 py-2 flex items-center gap-2 hover:bg-surface-hover text-left transition-all duration-150"
                   aria-expanded={expandedFiles.has(result.filePath)}
                 >
-                  <span className="text-gray-400 text-xs">
+                  <span className="text-fg-muted text-xs">
                     {expandedFiles.has(result.filePath) ? '▼' : '▶'}
                   </span>
-                  <span className="flex-1 truncate text-sm font-medium text-gray-300">
+                  <span className="flex-1 truncate text-sm font-medium text-fg-secondary">
                     {result.relativePath}
                   </span>
-                  <span className="text-xs text-gray-400 bg-white/[0.06] px-1.5 py-0.5 rounded">
+                  <span className="text-xs text-fg-muted bg-surface-raised px-1.5 py-0.5 rounded">
                     {result.matches.length}
                   </span>
                 </button>
 
                 {/* Matches list with collapse animation */}
                 <AnimatedCollapse isOpen={expandedFiles.has(result.filePath)}>
-                  <div className="bg-white/[0.02]">
+                  <div className="bg-surface">
                     {result.matches.map((match, idx) => {
                       const matchKey = `${result.filePath}-${match.line}-${match.column}`;
                       const matchIndex = getMatchIndex(result.filePath, match.line, match.column);
@@ -398,8 +398,8 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
                           onClick={() => handleMatchClick(result.filePath, match.line, match.column)}
                           className={`w-full px-4 py-1.5 flex items-start gap-3 text-left transition-all duration-150 ${
                             isCurrentMatch
-                              ? 'bg-white/[0.10] border-l-2 border-purple-400 shadow-[inset_0_0_0_1px_rgba(167,139,250,0.15),0_0_8px_rgba(167,139,250,0.08)]'
-                              : 'hover:bg-white/[0.06]'
+                              ? 'bg-surface-hover border-l-2 border-purple-400 shadow-[inset_0_0_0_1px_rgba(167,139,250,0.15),0_0_8px_rgba(167,139,250,0.08)]'
+                              : 'hover:bg-surface-hover'
                           }`}
                           title={`Go to line ${match.line}${isCurrentMatch ? ' (current)' : ''}`}
                           aria-current={isCurrentMatch ? 'true' : undefined}
@@ -407,11 +407,11 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
                           <span className={`text-xs font-mono w-8 text-right flex-shrink-0 ${
                             isCurrentMatch
                               ? 'text-purple-400 font-semibold'
-                              : 'text-gray-500'
+                              : 'text-fg-muted'
                           }`}>
                             {match.line}
                           </span>
-                          <span className="text-xs text-gray-400 font-mono truncate flex-1">
+                          <span className="text-xs text-fg-muted font-mono truncate flex-1">
                             {highlightMatch(match.content, match.match)}
                           </span>
                         </button>

@@ -56,11 +56,11 @@ export function ImageHistory({ history, projectId: _projectId }: ImageHistoryPro
   }
 
   return (
-    <div className="border-t border-white/[0.06] bg-white/[0.02]" role="region" aria-label="Edit history">
+    <div className="border-t border-border-default bg-surface" role="region" aria-label="Edit history">
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-2 border-b border-white/[0.04]">
-        <History size={14} className="text-gray-500" aria-hidden="true" />
-        <span className="text-xs text-gray-400 font-medium">
+      <div className="flex items-center gap-2 px-4 py-2 border-b border-border-default">
+        <History size={14} className="text-fg-muted" aria-hidden="true" />
+        <span className="text-xs text-fg-muted font-medium">
           Edit History ({history.length})
         </span>
       </div>
@@ -92,7 +92,7 @@ export function ImageHistory({ history, projectId: _projectId }: ImageHistoryPro
                     ? 'border-purple-400 shadow-[0_0_12px_rgba(167,139,250,0.3)]'
                     : isLatest
                       ? 'border-purple-400/50'
-                      : 'border-white/[0.08] hover:border-white/[0.15]'
+                      : 'border-border-default hover:border-border-strong'
                   }
                 `}
                 title={isInitial ? 'Original image' : item.prompt}
@@ -109,7 +109,7 @@ export function ImageHistory({ history, projectId: _projectId }: ImageHistoryPro
 
                 {/* Initial badge */}
                 {isInitial && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-[8px] text-gray-300 text-center py-0.5">
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-[8px] text-fg-secondary text-center py-0.5">
                     Original
                   </div>
                 )}
@@ -129,8 +129,8 @@ export function ImageHistory({ history, projectId: _projectId }: ImageHistoryPro
                   className="
                     absolute -top-1 -right-1 w-5 h-5
                     flex items-center justify-center
-                    bg-gray-800 hover:bg-purple-500
-                    border border-white/[0.1]
+                    bg-surface hover:bg-purple-500
+                    border border-border-default
                     rounded-full shadow-lg
                     opacity-0 group-hover:opacity-100
                     focus:opacity-100
@@ -146,7 +146,7 @@ export function ImageHistory({ history, projectId: _projectId }: ImageHistoryPro
               {/* Processing time indicator */}
               {item.processingTimeMs > 0 && (
                 <div
-                  className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-0.5 text-[8px] text-gray-500"
+                  className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-0.5 text-[8px] text-fg-muted"
                   aria-label={`Processing time: ${formatDuration(item.processingTimeMs)}`}
                 >
                   <Clock size={8} aria-hidden="true" />
@@ -160,9 +160,9 @@ export function ImageHistory({ history, projectId: _projectId }: ImageHistoryPro
 
       {/* Selected item details */}
       {selectedIndex !== null && history[selectedIndex] && (
-        <div className="px-4 py-2 border-t border-white/[0.04] bg-white/[0.01]">
+        <div className="px-4 py-2 border-t border-border-default bg-surface">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] text-gray-500">
+            <span className="text-[10px] text-fg-muted">
               {formatTime(history[selectedIndex].createdAt)}
             </span>
             {selectedIndex !== history.length - 1 && (
@@ -177,12 +177,12 @@ export function ImageHistory({ history, projectId: _projectId }: ImageHistoryPro
             )}
           </div>
           {history[selectedIndex].prompt && (
-            <p className="text-xs text-gray-400 line-clamp-2">
+            <p className="text-xs text-fg-muted line-clamp-2">
               "{history[selectedIndex].prompt}"
             </p>
           )}
           {history[selectedIndex].responseText && (
-            <p className="text-[10px] text-gray-500 mt-1 line-clamp-1">
+            <p className="text-[10px] text-fg-muted mt-1 line-clamp-1">
               {history[selectedIndex].responseText}
             </p>
           )}

@@ -90,13 +90,13 @@ export function PanelArea({
       return (
         <div className="flex flex-col h-full">
           {/* Tab switcher */}
-          <div className="flex border-b border-white/[0.06] bg-white/[0.02]">
+          <div className="flex border-b border-border-default bg-surface-raised">
             <button
               onClick={() => setContextTab('context')}
               className={`flex-1 px-3 py-1.5 text-xs font-medium transition-all duration-150 ${
                 contextTab === 'context'
                   ? 'text-purple-400 border-b-2 border-purple-400 shadow-[0_2px_8px_rgba(167,139,250,0.15)]'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
+                  : 'text-fg-muted hover:text-fg hover:bg-surface-hover'
               }`}
               aria-selected={contextTab === 'context'}
               role="tab"
@@ -108,7 +108,7 @@ export function PanelArea({
               className={`flex-1 px-3 py-1.5 text-xs font-medium transition-all duration-150 ${
                 contextTab === 'citations'
                   ? 'text-purple-400 border-b-2 border-purple-400 shadow-[0_2px_8px_rgba(167,139,250,0.15)]'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
+                  : 'text-fg-muted hover:text-fg hover:bg-surface-hover'
               }`}
               aria-selected={contextTab === 'citations'}
               role="tab"
@@ -120,7 +120,7 @@ export function PanelArea({
               className={`flex-1 px-3 py-1.5 text-xs font-medium transition-all duration-150 ${
                 contextTab === 'review'
                   ? 'text-purple-400 border-b-2 border-purple-400 shadow-[0_2px_8px_rgba(167,139,250,0.15)]'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
+                  : 'text-fg-muted hover:text-fg hover:bg-surface-hover'
               }`}
               aria-selected={contextTab === 'review'}
               role="tab"
@@ -132,7 +132,7 @@ export function PanelArea({
               className={`flex-1 px-3 py-1.5 text-xs font-medium transition-all duration-150 ${
                 contextTab === 'dashboard'
                   ? 'text-purple-400 border-b-2 border-purple-400 shadow-[0_2px_8px_rgba(167,139,250,0.15)]'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
+                  : 'text-fg-muted hover:text-fg hover:bg-surface-hover'
               }`}
               aria-selected={contextTab === 'dashboard'}
               role="tab"
@@ -167,7 +167,7 @@ export function PanelArea({
     case 'planning':
       return (
         <div className="flex-1 overflow-y-auto p-4">
-          <div className="text-gray-500 dark:text-gray-400">
+          <div className="text-fg-muted">
             <p className="text-sm font-medium mb-2">Planning Dashboard</p>
             <p className="text-xs">Create a new project to see planning phases</p>
           </div>
@@ -183,8 +183,8 @@ export function PanelArea({
       return (
         <div className="flex-1 overflow-y-auto p-4">
           <div className="space-y-4">
-            <div className="text-gray-400">
-              <p className="text-sm font-medium mb-2 text-gray-200">Export Documents</p>
+            <div className="text-fg-muted">
+              <p className="text-sm font-medium mb-2 text-fg">Export Documents</p>
               <p className="text-xs mb-4">Generate PDF, DOCX, or PPTX from your project</p>
             </div>
 
@@ -192,45 +192,45 @@ export function PanelArea({
             <div className="grid grid-cols-1 gap-3">
               <button
                 onClick={onOpenExportModal}
-                className="p-4 rounded-lg border border-white/[0.06] bg-white/[0.04] hover:bg-white/[0.07] hover:border-purple-400/30 hover:shadow-[0_0_12px_rgba(167,139,250,0.12)] transition-all duration-200 text-left group"
+                className="p-4 rounded-lg border border-border-default bg-surface-raised hover:bg-surface-overlay hover:border-purple-400/30 hover:shadow-[0_0_12px_rgba(167,139,250,0.12)] transition-all duration-200 text-left group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="text-gray-300 group-hover:scale-110 transition-transform">
+                  <div className="text-fg-secondary group-hover:scale-110 transition-transform">
                     <EXPORT_ICONS.pdf size={24} />
                   </div>
                   <div>
-                    <p className="font-medium text-sm text-gray-100">PDF Document</p>
-                    <p className="text-xs text-gray-400">Professional format with precise layout</p>
+                    <p className="font-medium text-sm text-fg">PDF Document</p>
+                    <p className="text-xs text-fg-muted">Professional format with precise layout</p>
                   </div>
                 </div>
               </button>
 
               <button
                 onClick={onOpenExportModal}
-                className="p-4 rounded-lg border border-white/[0.06] bg-white/[0.04] hover:bg-white/[0.07] hover:border-purple-400/30 hover:shadow-[0_0_12px_rgba(167,139,250,0.12)] transition-all duration-200 text-left group"
+                className="p-4 rounded-lg border border-border-default bg-surface-raised hover:bg-surface-overlay hover:border-purple-400/30 hover:shadow-[0_0_12px_rgba(167,139,250,0.12)] transition-all duration-200 text-left group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="text-gray-300 group-hover:scale-110 transition-transform">
+                  <div className="text-fg-secondary group-hover:scale-110 transition-transform">
                     <EXPORT_ICONS.docx size={24} />
                   </div>
                   <div>
-                    <p className="font-medium text-sm text-gray-100">Word Document</p>
-                    <p className="text-xs text-gray-400">Editable DOCX for collaboration</p>
+                    <p className="font-medium text-sm text-fg">Word Document</p>
+                    <p className="text-xs text-fg-muted">Editable DOCX for collaboration</p>
                   </div>
                 </div>
               </button>
 
               <button
                 onClick={onOpenExportModal}
-                className="p-4 rounded-lg border border-white/[0.06] bg-white/[0.04] hover:bg-white/[0.07] hover:border-purple-400/30 hover:shadow-[0_0_12px_rgba(167,139,250,0.12)] transition-all duration-200 text-left group"
+                className="p-4 rounded-lg border border-border-default bg-surface-raised hover:bg-surface-overlay hover:border-purple-400/30 hover:shadow-[0_0_12px_rgba(167,139,250,0.12)] transition-all duration-200 text-left group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="text-gray-300 group-hover:scale-110 transition-transform">
+                  <div className="text-fg-secondary group-hover:scale-110 transition-transform">
                     <EXPORT_ICONS.pptx size={24} />
                   </div>
                   <div>
-                    <p className="font-medium text-sm text-gray-100">PowerPoint</p>
-                    <p className="text-xs text-gray-400">Presentation slides for meetings</p>
+                    <p className="font-medium text-sm text-fg">PowerPoint</p>
+                    <p className="text-xs text-fg-muted">Presentation slides for meetings</p>
                   </div>
                 </div>
               </button>
@@ -241,7 +241,7 @@ export function PanelArea({
     case 'history':
       return (
         <div className="flex-1 overflow-y-auto p-4">
-          <div className="text-gray-500 dark:text-gray-400">
+          <div className="text-fg-muted">
             <p className="text-sm font-medium mb-2">Session History</p>
             <p className="text-xs">No previous sessions</p>
           </div>
@@ -252,7 +252,7 @@ export function PanelArea({
         <div className="flex-1 overflow-y-auto p-4">
           <div className="space-y-6">
             <ApiKeySettings />
-            <hr className="border-gray-200 dark:border-gray-700" />
+            <hr className="border-border-default" />
             <ThemeToggle />
           </div>
         </div>
@@ -263,7 +263,7 @@ export function PanelArea({
           <div className="space-y-4">
             <div>
               <p className="text-sm font-medium mb-2">Keyboard Shortcuts</p>
-              <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+              <div className="text-xs text-fg-muted space-y-1">
                 <p>Cmd+1-8 - Switch sections</p>
                 <p>Cmd+6 - Image Editor</p>
                 <p>Cmd+Shift+P - Command palette</p>
@@ -274,7 +274,7 @@ export function PanelArea({
             </div>
             <div>
               <p className="text-sm font-medium mb-2">Documentation</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">View docs at github.com/flight505/Blueprint</p>
+              <p className="text-xs text-fg-muted">View docs at github.com/flight505/Blueprint</p>
             </div>
           </div>
         </div>

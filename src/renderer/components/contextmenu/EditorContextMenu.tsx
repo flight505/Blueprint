@@ -47,8 +47,8 @@ function MenuItem({ label, shortcut, icon, onClick, disabled = false }: MenuItem
       disabled={disabled}
       className={`w-full flex items-center gap-3 px-3 py-2 text-sm text-left transition-colors ${
         disabled
-          ? 'text-gray-500 cursor-not-allowed'
-          : 'text-gray-200 hover:bg-gray-700'
+          ? 'text-fg-muted cursor-not-allowed'
+          : 'text-fg hover:bg-surface-hover'
       }`}
       role="menuitem"
       aria-disabled={disabled}
@@ -56,7 +56,7 @@ function MenuItem({ label, shortcut, icon, onClick, disabled = false }: MenuItem
       <span className="w-5 flex justify-center" aria-hidden="true">{icon}</span>
       <span className="flex-1">{label}</span>
       {shortcut && (
-        <span className="text-xs text-gray-400 dark:text-gray-500 ml-4">
+        <span className="text-xs text-fg-muted ml-4">
           {shortcut}
         </span>
       )}
@@ -65,7 +65,7 @@ function MenuItem({ label, shortcut, icon, onClick, disabled = false }: MenuItem
 }
 
 function MenuDivider() {
-  return <div className="h-px bg-gray-200 dark:bg-gray-600 my-1" role="separator" />;
+  return <div className="h-px bg-border-default my-1" role="separator" />;
 }
 
 export function EditorContextMenu({
@@ -174,7 +174,7 @@ export function EditorContextMenu({
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 min-w-[200px] py-1 bg-gray-800 rounded-lg shadow-lg border border-gray-700"
+      className="fixed z-50 min-w-[200px] py-1 bg-surface-overlay rounded-lg shadow-lg border border-border-default"
       style={{
         left: adjustedPosition.x,
         top: adjustedPosition.y,
