@@ -101,45 +101,45 @@
     color-scheme: light;
 
     /* ── Semantic tokens (light) ────────────────────────────── */
-    --color-surface: #d5d6db;
-    --color-surface-deep: #d5d6db;
-    --color-surface-raised: #e9e9ed;
-    --color-surface-overlay: #f0f0f4;
-    --color-surface-hover: rgba(0,0,0,0.04);
-    --color-fg: #343b58;
-    --color-fg-secondary: #6172b0;
-    --color-fg-muted: #9699a3;
-    --color-border-default: rgba(0,0,0,0.08);
-    --color-border-strong: rgba(0,0,0,0.15);
+    --color-surface: #e9eaf0;
+    --color-surface-deep: #dfe0e5;
+    --color-surface-raised: #f3f3f6;
+    --color-surface-overlay: #ffffff;
+    --color-surface-hover: rgba(0,0,0,0.06);
+    --color-fg: #1e2440;
+    --color-fg-secondary: #4c5580;
+    --color-fg-muted: #8089a8;
+    --color-border-default: rgba(0,0,0,0.12);
+    --color-border-strong: rgba(0,0,0,0.22);
     --color-accent: #2e7de9;
     --color-accent-hover: #2566c4;
     --color-accent-soft: rgba(46,125,233,0.12);
-    --color-glow: #9854f1;
-    --color-input: #e1e2e7;
+    --color-glow: #7c3aed;
+    --color-input: #f3f3f6;
     --color-danger: #c64343;
     --color-success: #587539;
     --color-warning: #8f5e15;
 
     /* ── Legacy HSL variables (light) ──────────────────────── */
-    --background: 230 10% 84%;             /* #d5d6db */
-    --background-dark: 230 10% 84%;        /* #d5d6db */
-    --background-highlight: 230 8% 90%;    /* #e4e4e9 */
-    --foreground: 229 25% 28%;             /* #343b58 */
-    --foreground-dark: 224 29% 57%;        /* #6172b0 */
-    --text: 229 25% 28%;                   /* #343b58 */
+    --background: 232 12% 92%;             /* #e9eaf0 */
+    --background-dark: 232 10% 88%;        /* #dfe0e5 */
+    --background-highlight: 232 10% 95%;   /* #f3f3f6 */
+    --foreground: 228 37% 18%;             /* #1e2440 */
+    --foreground-dark: 228 25% 40%;        /* #4c5580 */
+    --text: 228 37% 18%;                   /* #1e2440 */
 
-    --card: 230 10% 92%;
-    --card-foreground: 229 25% 28%;
-    --popover: 230 12% 94%;
-    --popover-foreground: 229 25% 28%;
+    --card: 232 12% 95%;
+    --card-foreground: 228 37% 18%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 228 37% 18%;
 
     --primary: 217 80% 55%;               /* #2e7de9 */
     --primary-foreground: 0 0% 100%;
-    --secondary: 230 8% 90%;
-    --secondary-foreground: 229 25% 28%;
+    --secondary: 232 10% 95%;
+    --secondary-foreground: 228 37% 18%;
 
-    --muted: 230 8% 90%;
-    --muted-foreground: 224 29% 57%;
+    --muted: 232 10% 95%;
+    --muted-foreground: 228 25% 40%;
 
     --accent: 217 80% 55%;
     --accent-foreground: 0 0% 100%;
@@ -147,8 +147,8 @@
     --destructive: 0 57% 52%;             /* #c64343 */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 230 8% 85%;
-    --input: 230 8% 85%;
+    --border: 228 12% 82%;
+    --input: 232 12% 95%;
     --ring: 217 80% 55%;
     --radius: 0.5rem;
 
@@ -195,13 +195,13 @@
     --glass-text-ghost: 224 10% 65%;
 
     /* Sidebar (light) */
-    --sidebar-background: 230 10% 84%;
-    --sidebar-foreground: 229 25% 28%;
+    --sidebar-background: 232 10% 88%;
+    --sidebar-foreground: 228 37% 18%;
     --sidebar-primary: 217 80% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 230 8% 90%;
-    --sidebar-accent-foreground: 229 25% 28%;
-    --sidebar-border: 230 8% 82%;
+    --sidebar-accent: 232 10% 93%;
+    --sidebar-accent-foreground: 228 37% 18%;
+    --sidebar-border: 228 12% 80%;
     --sidebar-ring: 217 80% 55%;
   }
 

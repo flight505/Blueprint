@@ -177,7 +177,7 @@ export const Interactive: Story = {
     (Story) => {
       return (
         <div className="space-y-4">
-          <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+          <p className="text-fg-muted text-sm mb-4">
             Click the buttons below to show different confidence levels:
           </p>
           <div className="flex gap-2 flex-wrap">
@@ -219,7 +219,7 @@ export const Interactive: Story = {
             </button>
             <button
               onClick={dispatchConfidenceHoverEnd}
-              className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md text-sm transition-colors"
+              className="px-3 py-1.5 bg-surface-raised hover:bg-surface-hover text-fg-secondary rounded-md text-sm transition-colors"
             >
               Hide Tooltip
             </button>

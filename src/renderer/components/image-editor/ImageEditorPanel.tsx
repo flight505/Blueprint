@@ -251,18 +251,18 @@ export function ImageEditorPanel({
                 aria-live="polite"
                 aria-busy="true"
               >
-                <div className="bg-gray-900/90 border border-white/10 rounded-xl p-6 flex flex-col items-center gap-3 shadow-xl">
+                <div className="bg-surface-deep/90 border border-border-default rounded-xl p-6 flex flex-col items-center gap-3 shadow-xl">
                   <Loader2 size={32} className="text-purple-400 animate-spin" aria-hidden="true" />
-                  <p className="text-sm text-gray-300">{processing.message}</p>
+                  <p className="text-sm text-fg-secondary">{processing.message}</p>
                 </div>
               </div>
             )}
 
             {/* Action buttons */}
-            <div className="flex items-center justify-between px-4 py-2 border-t border-white/[0.06] bg-white/[0.02]">
+            <div className="flex items-center justify-between px-4 py-2 border-t border-border-default bg-surface">
               <button
                 onClick={handleClear}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-400 hover:text-gray-200 hover:bg-white/[0.06] rounded-md transition-all duration-150"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-fg-muted hover:text-fg hover:bg-surface-hover rounded-md transition-all duration-150"
                 title="Clear and start over"
                 aria-label="Clear image and start over"
               >
@@ -319,7 +319,7 @@ export function ImageEditorPanel({
 
       {/* Edit instructions input */}
       {currentImage && (
-        <div className="p-4 border-t border-white/[0.06] bg-white/[0.02]">
+        <div className="p-4 border-t border-border-default bg-surface">
           <div className="flex items-end gap-2">
             <div className="flex-1 relative">
               <div className="absolute left-3 top-3 text-purple-400">
@@ -331,7 +331,7 @@ export function ImageEditorPanel({
                 onChange={(e) => setInstructions(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Describe your edit... (e.g., 'Make the background blue')"
-                className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-white/[0.08] bg-white/[0.04] text-gray-100 focus:ring-2 focus:ring-purple-400/50 focus:border-purple-400/30 text-sm placeholder-gray-500 transition-all duration-150 resize-none min-h-[44px]"
+                className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-border-default bg-surface-raised text-fg focus:ring-2 focus:ring-purple-400/50 focus:border-purple-400/30 text-sm placeholder-fg-muted transition-all duration-150 resize-none min-h-[44px]"
                 disabled={processing.isProcessing}
                 rows={1}
                 aria-label="Edit instructions"
@@ -340,7 +340,7 @@ export function ImageEditorPanel({
             <button
               onClick={handleSubmit}
               disabled={!instructions.trim() || processing.isProcessing}
-              className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-500 hover:bg-purple-400 disabled:bg-gray-700 disabled:cursor-not-allowed text-white transition-all duration-150 flex-shrink-0"
+              className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-500 hover:bg-purple-400 disabled:bg-surface-raised disabled:cursor-not-allowed text-white transition-all duration-150 flex-shrink-0"
               title="Apply edit (Cmd+Enter)"
               aria-label={processing.isProcessing ? 'Processing edit...' : 'Apply edit'}
             >
@@ -351,8 +351,8 @@ export function ImageEditorPanel({
               )}
             </button>
           </div>
-          <p className="mt-2 text-[10px] text-gray-500">
-            Press <kbd className="px-1 py-0.5 rounded bg-white/[0.06] text-gray-400">Cmd+Enter</kbd> to apply
+          <p className="mt-2 text-[10px] text-fg-muted">
+            Press <kbd className="px-1 py-0.5 rounded bg-surface-raised text-fg-muted">Cmd+Enter</kbd> to apply
           </p>
         </div>
       )}

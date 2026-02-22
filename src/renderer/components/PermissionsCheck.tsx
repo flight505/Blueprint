@@ -68,21 +68,21 @@ export default function PermissionsCheck({ onComplete, onSkip }: PermissionsChec
   const isMac = platform === 'darwin';
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-8">
+    <div className="min-h-screen flex items-center justify-center bg-surface-raised p-8">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <Lock size={48} className="text-gray-600 dark:text-gray-300" />
+            <Lock size={48} className="text-fg-secondary" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-2xl font-bold text-fg mb-2">
             Permissions Check
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-fg-muted">
             Blueprint needs access to your files and network to work properly.
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 space-y-4">
+        <div className="bg-surface-overlay rounded-xl shadow-lg p-6 space-y-4">
           {/* File Access */}
           <PermissionRow
             label="File System Access"
@@ -140,7 +140,7 @@ export default function PermissionsCheck({ onComplete, onSkip }: PermissionsChec
           {!allGranted && onSkip && (
             <button
               onClick={onSkip}
-              className="px-4 py-3 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              className="px-4 py-3 text-fg-muted hover:text-fg transition-colors"
             >
               Skip for now
             </button>
@@ -149,7 +149,7 @@ export default function PermissionsCheck({ onComplete, onSkip }: PermissionsChec
 
         {/* Help Text */}
         {isMac && !allGranted && !checking && (
-          <div className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+          <div className="mt-6 text-center text-sm text-fg-muted">
             <p>After granting permissions, you may need to restart Blueprint.</p>
           </div>
         )}
@@ -168,7 +168,7 @@ interface PermissionRowProps {
 
 function PermissionRow({ label, description, status, checking, onFix }: PermissionRowProps) {
   return (
-    <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700 last:border-0">
+    <div className="flex items-center justify-between py-3 border-b border-border-default last:border-0">
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 flex items-center justify-center">
           {checking ? (
@@ -180,8 +180,8 @@ function PermissionRow({ label, description, status, checking, onFix }: Permissi
           )}
         </div>
         <div>
-          <div className="font-medium text-gray-900 dark:text-white">{label}</div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">{description}</div>
+          <div className="font-medium text-fg">{label}</div>
+          <div className="text-sm text-fg-muted">{description}</div>
         </div>
       </div>
 

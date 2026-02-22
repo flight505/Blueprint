@@ -57,7 +57,7 @@ export function ResizeHandle({
         className={`absolute inset-y-0 -left-[0.5px] w-[1px] transition-all duration-100 ${
           dragging
             ? 'bg-purple-400/60 shadow-[0_0_6px_rgba(167,139,250,0.4)]'
-            : 'bg-white/[0.06] hover:bg-purple-400/40'
+            : 'bg-border-default hover:bg-purple-400/40'
         }`}
       />
     </div>

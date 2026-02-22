@@ -34,7 +34,7 @@ const meta = {
   },
   decorators: [
     (Story) => (
-      <div className="w-64 h-96 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden flex flex-col">
+      <div className="w-64 h-96 bg-surface border border-border-default rounded-lg overflow-hidden flex flex-col">
         <Story />
       </div>
     ),

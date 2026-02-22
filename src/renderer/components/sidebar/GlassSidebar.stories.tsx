@@ -62,9 +62,9 @@ const meta = {
   },
   decorators: [
     (Story) => (
-      <div className="h-screen bg-gray-900 flex">
+      <div className="h-screen bg-surface-deep flex">
         <Story />
-        <div className="flex-1 flex items-center justify-center text-gray-500">
+        <div className="flex-1 flex items-center justify-center text-fg-muted">
           Main Content Area
         </div>
       </div>
@@ -90,16 +90,16 @@ export const ExpandedMode: Story = {
     activeId: 'explorer',
     panelTitle: 'Explorer',
     panelContent: (
-      <div className="p-4 text-sm text-gray-400">
+      <div className="p-4 text-sm text-fg-muted">
         <p className="mb-2">File tree would go here</p>
         <div className="space-y-1 text-xs">
-          <div className="flex items-center gap-2 p-1 hover:bg-white/5 rounded">
+          <div className="flex items-center gap-2 p-1 hover:bg-surface-hover rounded">
             <Folder size={14} /> src
           </div>
-          <div className="flex items-center gap-2 p-1 hover:bg-white/5 rounded pl-4">
+          <div className="flex items-center gap-2 p-1 hover:bg-surface-hover rounded pl-4">
             <Folder size={14} /> components
           </div>
-          <div className="flex items-center gap-2 p-1 hover:bg-white/5 rounded pl-6">
+          <div className="flex items-center gap-2 p-1 hover:bg-surface-hover rounded pl-6">
             <FileText size={14} /> App.tsx
           </div>
         </div>
@@ -149,18 +149,18 @@ export const Interactive: StoryObj = {
 
     const panelContent: Record<string, React.ReactNode> = {
       chat: (
-        <div className="p-4 text-sm text-gray-400">
+        <div className="p-4 text-sm text-fg-muted">
           <p>Chat history panel</p>
         </div>
       ),
       explorer: (
-        <div className="p-4 text-sm text-gray-400">
+        <div className="p-4 text-sm text-fg-muted">
           <GlassSidebarSection title="Project Files">
             <div className="px-2 space-y-0.5">
               {['App.tsx', 'index.ts', 'components/', 'hooks/'].map((file) => (
                 <div
                   key={file}
-                  className="px-2 py-1.5 text-xs text-gray-300 hover:bg-white/5 rounded cursor-pointer flex items-center gap-2"
+                  className="px-2 py-1.5 text-xs text-fg-secondary hover:bg-surface-hover rounded cursor-pointer flex items-center gap-2"
                 >
                   {file.endsWith('/') ? <Folder size={14} /> : <FileText size={14} />} {file}
                 </div>
@@ -170,16 +170,16 @@ export const Interactive: StoryObj = {
         </div>
       ),
       search: (
-        <div className="p-4 text-sm text-gray-400">
+        <div className="p-4 text-sm text-fg-muted">
           <input
             type="text"
             placeholder="Search..."
-            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+            className="w-full px-3 py-2 bg-input border border-border-default rounded-lg text-sm text-fg placeholder-fg-muted focus:outline-none focus:ring-1 focus:ring-glow"
           />
         </div>
       ),
       settings: (
-        <div className="p-4 text-sm text-gray-400">
+        <div className="p-4 text-sm text-fg-muted">
           <GlassSidebarSection title="Preferences">
             <div className="px-2 space-y-2 text-xs">
               <div className="flex justify-between items-center">
@@ -199,7 +199,7 @@ export const Interactive: StoryObj = {
     return (
       <div className="flex flex-col h-full">
         {/* Mode selector */}
-        <div className="p-2 bg-gray-800 border-b border-gray-700 flex gap-2">
+        <div className="p-2 bg-surface-raised border-b border-border-default flex gap-2">
           {(['collapsed', 'expanded', 'inline'] as const).map((m) => (
             <button
               key={m}
@@ -207,7 +207,7 @@ export const Interactive: StoryObj = {
               className={`px-3 py-1 text-xs rounded ${
                 mode === m
                   ? 'bg-purple-600 text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  : 'bg-surface-overlay text-fg-secondary hover:bg-surface-hover'
               }`}
             >
               {m}
@@ -224,10 +224,10 @@ export const Interactive: StoryObj = {
             activeId={activeId}
             onItemSelect={setActiveId}
             panelTitle={blueprintNavItems.find((i) => i.id === activeId)?.label || activeId}
-            panelContent={panelContent[activeId] || <div className="p-4 text-sm text-gray-500">No content</div>}
+            panelContent={panelContent[activeId] || <div className="p-4 text-sm text-fg-muted">No content</div>}
             version="1.0.0"
           />
-          <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">
+          <div className="flex-1 flex items-center justify-center text-fg-muted text-sm">
             Active: <span className="ml-2 text-purple-400">{activeId}</span>
           </div>
         </div>
@@ -236,7 +236,7 @@ export const Interactive: StoryObj = {
   },
   decorators: [
     (Story) => (
-      <div className="h-screen bg-gray-900">
+      <div className="h-screen bg-surface-deep">
         <Story />
       </div>
     ),

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import * as Diff from 'diff';
-import { Check, X } from '../icons';
+import { Check } from '../icons';
 
 export interface DiffPreviewProps {
   /** The original text before editing */
@@ -64,16 +64,16 @@ export function DiffPreview({
 
   return (
     <div
-      className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden ${className}`}
+      className={`bg-surface-overlay rounded-lg shadow-lg border border-border-default overflow-hidden ${className}`}
       role="dialog"
       aria-label="Diff preview for AI edit"
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-850">
-        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-border-default bg-surface-raised">
+        <h3 className="text-sm font-medium text-fg-secondary">
           Review AI Changes
         </h3>
-        <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+        <div className="flex items-center gap-1 text-xs text-fg-muted">
           <span className="inline-flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-red-400" />
             Removed
@@ -97,10 +97,10 @@ export function DiffPreview({
       )}
 
       {/* Actions */}
-      <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-850">
+      <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-border-default bg-surface-raised">
         <button
           onClick={onReject}
-          className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400"
+          className="px-3 py-1.5 text-sm font-medium text-fg-secondary bg-surface-raised hover:bg-surface-hover rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400"
           aria-label="Reject AI edit"
         >
           ✕ Reject
@@ -133,7 +133,7 @@ function SideBySideDiff({
   const addedCount = proposedParts.filter(p => p.added).length;
 
   return (
-    <div className="grid grid-cols-2 divide-x divide-gray-200 dark:divide-gray-700 max-h-64 overflow-auto">
+    <div className="grid grid-cols-2 divide-x divide-border-default max-h-64 overflow-auto">
       {/* Screen reader summary */}
       <div className="sr-only" aria-live="polite">
         Changes summary: {removedCount} removal{removedCount !== 1 ? 's' : ''}, {addedCount} addition{addedCount !== 1 ? 's' : ''}
@@ -141,7 +141,7 @@ function SideBySideDiff({
 
       {/* Original (left) */}
       <div className="p-4 overflow-x-auto" role="region" aria-label="Original text with removals highlighted">
-        <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide" id="original-label">
+        <div className="text-xs font-medium text-fg-muted mb-2 uppercase tracking-wide" id="original-label">
           Original
         </div>
         <div
@@ -154,7 +154,7 @@ function SideBySideDiff({
               className={
                 part.removed
                   ? 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 line-through'
-                  : 'text-gray-800 dark:text-gray-200'
+                  : 'text-fg'
               }
               aria-label={part.removed ? `Removed: ${part.value}` : undefined}
               role={part.removed ? 'deletion' : undefined}
@@ -167,7 +167,7 @@ function SideBySideDiff({
 
       {/* Proposed (right) */}
       <div className="p-4 overflow-x-auto bg-gray-25 dark:bg-gray-800/50" role="region" aria-label="Proposed text with additions highlighted">
-        <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide" id="proposed-label">
+        <div className="text-xs font-medium text-fg-muted mb-2 uppercase tracking-wide" id="proposed-label">
           Proposed
         </div>
         <div
@@ -180,7 +180,7 @@ function SideBySideDiff({
               className={
                 part.added
                   ? 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300'
-                  : 'text-gray-800 dark:text-gray-200'
+                  : 'text-fg'
               }
               aria-label={part.added ? `Added: ${part.value}` : undefined}
               role={part.added ? 'insertion' : undefined}
@@ -220,7 +220,7 @@ function UnifiedDiff({ diffResult }: { diffResult: DiffPart[] }) {
                 ? 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300'
                 : part.removed
                   ? 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 line-through'
-                  : 'text-gray-800 dark:text-gray-200'
+                  : 'text-fg'
             }
             aria-label={part.added ? `Added: ${part.value}` : part.removed ? `Removed: ${part.value}` : undefined}
             role={part.added ? 'insertion' : part.removed ? 'deletion' : undefined}

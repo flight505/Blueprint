@@ -41,19 +41,19 @@ function FileTreeNode({
     <div>
       <button
         onClick={handleClick}
-        className="w-full flex items-center gap-1.5 py-1 px-2 text-left text-sm hover:bg-gray-700 rounded transition-colors group"
+        className="w-full flex items-center gap-1.5 py-1 px-2 text-left text-sm hover:bg-surface-hover rounded transition-colors group"
         style={{ paddingLeft: `${level * 12 + 8}px` }}
         title={node.path}
         aria-expanded={isDirectory ? isExpanded : undefined}
         aria-label={`${isDirectory ? 'Folder' : 'File'}: ${node.name}`}
       >
         {isDirectory && (
-          <span className="text-gray-400 w-3 flex-shrink-0" aria-hidden="true">
+          <span className="text-fg-muted w-3 flex-shrink-0" aria-hidden="true">
             {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
           </span>
         )}
         {!isDirectory && <span className="w-3 flex-shrink-0" />}
-        <span className="flex-shrink-0 text-gray-400 group-hover:text-gray-300" aria-hidden="true">
+        <span className="flex-shrink-0 text-fg-muted group-hover:text-fg-secondary" aria-hidden="true">
           <FileIcon filename={node.name} isDirectory={isDirectory} size="sm" />
         </span>
         <span className="truncate">{node.name}</span>
@@ -112,7 +112,7 @@ export default function FileBrowser({
   if (!projectPath) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-4">
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 text-center">
+        <p className="text-sm text-fg-muted mb-4 text-center">
           No project folder selected
         </p>
         <button
@@ -128,8 +128,8 @@ export default function FileBrowser({
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <div className="px-4 py-2 border-b border-gray-700 flex items-center justify-between">
-        <span className="text-xs text-gray-500 dark:text-gray-400 truncate flex-1" title={projectPath}>
+      <div className="px-4 py-2 border-b border-border-default flex items-center justify-between">
+        <span className="text-xs text-fg-muted truncate flex-1" title={projectPath}>
           {projectPath.split('/').pop()}
         </span>
         <button
@@ -149,7 +149,7 @@ export default function FileBrowser({
           <SkeletonFileTree items={8} className="px-2" />
         )}
         {!isLoading && fileTree.length === 0 && !error && (
-          <p className="px-4 text-sm text-gray-500 dark:text-gray-400">
+          <p className="px-4 text-sm text-fg-muted">
             Empty folder
           </p>
         )}

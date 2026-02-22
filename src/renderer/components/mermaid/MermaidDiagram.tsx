@@ -183,9 +183,9 @@ export function MermaidDiagram({
     >
       {/* Loading state */}
       {isRendering && (
-        <div className="flex items-center justify-center p-8 text-gray-500 dark:text-gray-400">
+        <div className="flex items-center justify-center p-8 text-fg-muted">
           <div className="animate-pulse flex flex-col items-center">
-            <div className="w-8 h-8 border-2 border-gray-300 dark:border-gray-600 border-t-blue-500 rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-border-default border-t-blue-500 rounded-full animate-spin" />
             <span className="mt-2 text-sm">Rendering diagram...</span>
           </div>
         </div>
@@ -216,13 +216,13 @@ export function MermaidDiagram({
 
       {/* SVG container */}
       {svgContent && !isRendering && (
-        <div className="relative overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+        <div className="relative overflow-hidden rounded-lg border border-border-default bg-surface-raised">
           {/* Zoom controls */}
           {enableZoomPan && (
             <div className="absolute top-2 right-2 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 onClick={handleZoomIn}
-                className="p-1.5 bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-sm"
+                className="p-1.5 bg-surface-raised rounded hover:bg-surface-hover text-sm"
                 aria-label="Zoom in"
                 title="Zoom in"
               >
@@ -230,7 +230,7 @@ export function MermaidDiagram({
               </button>
               <button
                 onClick={handleZoomOut}
-                className="p-1.5 bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-sm"
+                className="p-1.5 bg-surface-raised rounded hover:bg-surface-hover text-sm"
                 aria-label="Zoom out"
                 title="Zoom out"
               >
@@ -238,7 +238,7 @@ export function MermaidDiagram({
               </button>
               <button
                 onClick={handleResetZoom}
-                className="p-1.5 bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-xs"
+                className="p-1.5 bg-surface-raised rounded hover:bg-surface-hover text-xs"
                 aria-label="Reset zoom"
                 title="Reset zoom"
               >
@@ -249,7 +249,7 @@ export function MermaidDiagram({
 
           {/* Panzoom hint */}
           {enableZoomPan && (
-            <div className="absolute bottom-2 left-2 z-10 text-xs text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute bottom-2 left-2 z-10 text-xs text-fg-muted opacity-0 group-hover:opacity-100 transition-opacity">
               Scroll to zoom • Drag to pan
             </div>
           )}

@@ -15,7 +15,7 @@ import {
  *
  * ## Glass Design System Integration
  * Skeletons use subtle gray tones that work well on glass surfaces.
- * In dark mode, they use `bg-gray-700` which complements the Tokyo Night theme.
+ * Skeletons use `bg-surface-raised` which adapts to both light and dark themes.
  */
 const meta = {
   title: 'Components/Feedback/Skeleton',
@@ -67,23 +67,23 @@ export const BorderRadiusVariants: Story = {
     <div className="space-y-4">
       <div className="flex items-center gap-4">
         <Skeleton width={100} height={40} rounded="none" />
-        <span className="text-sm text-gray-500">none</span>
+        <span className="text-sm text-fg-muted">none</span>
       </div>
       <div className="flex items-center gap-4">
         <Skeleton width={100} height={40} rounded="sm" />
-        <span className="text-sm text-gray-500">sm</span>
+        <span className="text-sm text-fg-muted">sm</span>
       </div>
       <div className="flex items-center gap-4">
         <Skeleton width={100} height={40} rounded="md" />
-        <span className="text-sm text-gray-500">md (default)</span>
+        <span className="text-sm text-fg-muted">md (default)</span>
       </div>
       <div className="flex items-center gap-4">
         <Skeleton width={100} height={40} rounded="lg" />
-        <span className="text-sm text-gray-500">lg</span>
+        <span className="text-sm text-fg-muted">lg</span>
       </div>
       <div className="flex items-center gap-4">
         <Skeleton width={40} height={40} rounded="full" />
-        <span className="text-sm text-gray-500">full (avatar)</span>
+        <span className="text-sm text-fg-muted">full (avatar)</span>
       </div>
     </div>
   ),
@@ -124,7 +124,7 @@ export const Paragraph: Story = {
  */
 export const FileTree: Story = {
   render: () => (
-    <div className="w-64 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+    <div className="w-64 p-4 bg-surface-raised rounded-lg">
       <SkeletonFileTree items={6} />
     </div>
   ),
@@ -148,7 +148,7 @@ export const ChatMessages: Story = {
  */
 export const SearchResults: Story = {
   render: () => (
-    <div className="w-96 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+    <div className="w-96 bg-surface rounded-lg border border-border-default">
       <SkeletonSearchResults files={3} matchesPerFile={2} />
     </div>
   ),
@@ -184,7 +184,7 @@ export const OnGlassSurface: Story = {
             <SkeletonText width="50%" />
           </div>
         </div>
-        <div className="h-px bg-white/10" />
+        <div className="h-px bg-border-default" />
         <SkeletonParagraph lines={3} />
       </div>
     </div>
@@ -225,16 +225,16 @@ export const GlassCard: Story = {
  */
 export const FullPageLayout: Story = {
   render: () => (
-    <div className="flex h-96 w-full max-w-4xl border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+    <div className="flex h-96 w-full max-w-4xl border border-border-default rounded-lg overflow-hidden">
       {/* Rail */}
-      <div className="w-12 bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-2 space-y-2">
+      <div className="w-12 bg-surface-raised border-r border-border-default p-2 space-y-2">
         <Skeleton width={32} height={32} rounded="md" />
         <Skeleton width={32} height={32} rounded="md" />
         <Skeleton width={32} height={32} rounded="md" />
       </div>
 
       {/* Panel */}
-      <div className="w-56 bg-gray-50 dark:bg-gray-850 border-r border-gray-200 dark:border-gray-700 p-3">
+      <div className="w-56 bg-surface border-r border-border-default p-3">
         <SkeletonText width="60%" className="mb-4" />
         <SkeletonFileTree items={8} />
       </div>

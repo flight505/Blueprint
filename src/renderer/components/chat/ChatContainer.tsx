@@ -95,7 +95,7 @@ export function ChatContainer({
         aria-live="polite"
       >
         {messages.length === 0 ? (
-          <div className="text-center text-gray-500 dark:text-gray-400 mt-8">
+          <div className="text-center text-fg-muted mt-8">
             <p className="text-lg mb-2">Welcome to Blueprint</p>
             <p className="text-sm">Start a conversation with the AI assistant</p>
           </div>
@@ -130,7 +130,7 @@ export function ChatContainer({
 
       {/* Input area */}
       <div className="px-3 py-3">
-        <div className="rounded-xl border border-white/[0.06] bg-white/[0.04] focus-within:border-purple-400/30 focus-within:shadow-[0_0_0_1px_rgba(167,139,250,0.2),0_0_12px_rgba(167,139,250,0.12)] transition-all duration-150">
+        <div className="rounded-xl border border-border-default bg-surface-raised focus-within:border-purple-400/30 focus-within:shadow-[0_0_0_1px_rgba(167,139,250,0.2),0_0_12px_rgba(167,139,250,0.12)] transition-all duration-150">
           {/* Textarea */}
           <textarea
             ref={textareaRef}
@@ -140,18 +140,18 @@ export function ChatContainer({
             placeholder={placeholder}
             disabled={isLoading}
             rows={1}
-            className="w-full px-3.5 pt-3 pb-1 bg-transparent text-gray-100 resize-none disabled:opacity-50 disabled:cursor-not-allowed placeholder-gray-500 text-sm outline-none"
+            className="w-full px-3.5 pt-3 pb-1 bg-transparent text-fg resize-none disabled:opacity-50 disabled:cursor-not-allowed placeholder-fg-muted text-sm outline-none"
             aria-label="Message input"
           />
           {/* Action bar */}
           <div className="flex items-center justify-between px-2 pb-2">
-            <p className="text-[11px] text-gray-500 pl-1.5">
+            <p className="text-[11px] text-fg-muted pl-1.5">
               Enter to send, Shift+Enter for new line
             </p>
             <button
               onClick={handleSend}
               disabled={!inputValue.trim() || isLoading}
-              className="flex items-center justify-center w-7 h-7 rounded-full bg-white/[0.10] border border-white/[0.06] text-gray-300 hover:bg-white/[0.18] hover:text-gray-100 disabled:opacity-30 disabled:pointer-events-none transition-all duration-150 shrink-0 focus-visible:outline-none"
+              className="flex items-center justify-center w-7 h-7 rounded-full bg-surface-hover border border-border-default text-fg-secondary hover:bg-surface-overlay hover:text-fg disabled:opacity-30 disabled:pointer-events-none transition-all duration-150 shrink-0 focus-visible:outline-none"
               aria-label="Send message"
             >
               {isLoading ? (

@@ -135,7 +135,7 @@ export function RecentProjectsList({
 
   if (loading) {
     return (
-      <div className="text-sm text-gray-500 dark:text-gray-400 py-4">
+      <div className="text-sm text-fg-muted py-4">
         Loading recent projects...
       </div>
     );
@@ -143,7 +143,7 @@ export function RecentProjectsList({
 
   if (projects.length === 0) {
     return (
-      <div className="text-sm text-gray-500 dark:text-gray-400 py-4">
+      <div className="text-sm text-fg-muted py-4">
         No recent projects
       </div>
     );
@@ -151,7 +151,7 @@ export function RecentProjectsList({
 
   return (
     <div className="relative">
-      <h2 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
+      <h2 className="text-lg font-semibold mb-3 text-fg">
         Recent Projects
       </h2>
 
@@ -161,20 +161,20 @@ export function RecentProjectsList({
             <button
               onClick={() => handleProjectClick(project.path)}
               onContextMenu={(e) => handleContextMenu(e, project.id)}
-              className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-800 transition-colors group"
+              className="w-full text-left px-3 py-2 rounded-md hover:bg-surface-hover transition-colors group"
               aria-label={`Open ${project.name}`}
             >
               <div className="flex items-center gap-3">
-                <Folder size={20} className="text-gray-400 flex-shrink-0" />
+                <Folder size={20} className="text-fg-muted flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                  <div className="font-medium text-fg truncate">
                     {project.name}
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  <div className="text-xs text-fg-muted truncate">
                     {getShortPath(project.path)}
                   </div>
                 </div>
-                <div className="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">
+                <div className="text-xs text-fg-muted flex-shrink-0">
                   {formatRelativeTime(project.lastOpenedAt)}
                 </div>
               </div>
@@ -186,7 +186,7 @@ export function RecentProjectsList({
       {/* Context Menu */}
       {contextMenu && (
         <div
-          className="fixed bg-gray-800 border border-gray-700 rounded-md shadow-lg py-1 z-50"
+          className="fixed bg-surface-overlay border border-border-default rounded-md shadow-lg py-1 z-50"
           style={{
             left: contextMenu.x,
             top: contextMenu.y,
@@ -196,7 +196,7 @@ export function RecentProjectsList({
         >
           <button
             onClick={() => handleRemoveProject(contextMenu.projectId)}
-            className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700"
+            className="w-full text-left px-4 py-2 text-sm text-danger hover:bg-surface-hover"
             role="menuitem"
           >
             Remove from Recent

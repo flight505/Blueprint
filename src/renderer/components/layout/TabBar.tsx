@@ -66,7 +66,7 @@ export function TabBar({
 
   return (
     <div
-      className="flex items-center gap-1 px-2 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600"
+      className="flex items-center gap-1 px-2 overflow-x-auto scrollbar-thin scrollbar-thumb-border-default"
       role="tablist"
       aria-label="Document tabs"
     >
@@ -134,8 +134,8 @@ function Tab({ label, active, hasUnsavedChanges, shortcut, onClick, onClose }: T
       title={tooltipText}
       className={`group flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-t-lg transition-all duration-150 cursor-pointer select-none ${
         active
-          ? 'bg-white/[0.10] text-purple-400 border-t border-x border-white/[0.10] shadow-[inset_0_0_0_1px_rgba(167,139,250,0.2),0_0_12px_rgba(167,139,250,0.10)]'
-          : 'text-gray-400 hover:text-gray-100 hover:bg-white/[0.06]'
+          ? 'bg-surface-raised text-purple-400 border-t border-x border-border-default shadow-[inset_0_0_0_1px_rgba(167,139,250,0.2),0_0_12px_rgba(167,139,250,0.10)]'
+          : 'text-fg-muted hover:text-fg hover:bg-surface-hover'
       }`}
       onClick={onClick}
       onKeyDown={handleKeyDown}
@@ -159,8 +159,8 @@ function Tab({ label, active, hasUnsavedChanges, shortcut, onClick, onClose }: T
           onClick={handleClose}
           className={`ml-0.5 w-4 h-4 flex items-center justify-center rounded transition-all duration-150 ${
             active
-              ? 'hover:bg-white/[0.14] text-gray-400 hover:text-gray-200'
-              : 'opacity-0 group-hover:opacity-100 hover:bg-white/[0.14] text-gray-400 hover:text-gray-200'
+              ? 'hover:bg-surface-hover text-fg-muted hover:text-fg-secondary'
+              : 'opacity-0 group-hover:opacity-100 hover:bg-surface-hover text-fg-muted hover:text-fg-secondary'
           }`}
           aria-label={`Close ${label}`}
           title={`Close ${label}`}

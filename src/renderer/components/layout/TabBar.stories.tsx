@@ -45,7 +45,7 @@ const meta = {
   },
   decorators: [
     (Story) => (
-      <div className="bg-gray-100 dark:bg-gray-850 border-b border-gray-200 dark:border-gray-700 py-1">
+      <div className="bg-surface-raised border-b border-border-default py-1">
         <Story />
       </div>
     ),
@@ -137,7 +137,7 @@ export const ManyTabs: Story = {
   },
   decorators: [
     (Story) => (
-      <div className="max-w-xl bg-gray-100 dark:bg-gray-850 border-b border-gray-200 dark:border-gray-700 py-1">
+      <div className="max-w-xl bg-surface-raised border-b border-border-default py-1">
         <Story />
       </div>
     ),
@@ -176,7 +176,7 @@ export const Interactive: StoryObj = {
 
     return (
       <div className="space-y-4">
-        <div className="bg-gray-100 dark:bg-gray-850 border-b border-gray-200 dark:border-gray-700 py-1">
+        <div className="bg-surface-raised border-b border-border-default py-1">
           <TabBar
             tabs={tabs}
             activeTabId={activeTabId}
@@ -193,8 +193,8 @@ export const Interactive: StoryObj = {
             + Add Tab
           </button>
         </div>
-        <p className="text-xs text-gray-500">
-          Active: <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">{activeTabId || 'none'}</code>
+        <p className="text-xs text-fg-muted">
+          Active: <code className="bg-surface-raised px-1 rounded">{activeTabId || 'none'}</code>
         </p>
       </div>
     );

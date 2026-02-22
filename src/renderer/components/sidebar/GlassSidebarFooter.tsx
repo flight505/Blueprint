@@ -30,7 +30,7 @@ export function GlassSidebarFooter({
       {userAvatar && (
         <button
           onClick={onUserClick}
-          className="w-8 h-8 rounded-full overflow-hidden bg-gray-700 hover:ring-2 hover:ring-purple-400/50 transition-all"
+          className="w-8 h-8 rounded-full overflow-hidden bg-surface-raised hover:ring-2 hover:ring-purple-400/50 transition-all"
           title={userName || 'User'}
           aria-label={userName ? `User: ${userName}` : 'User menu'}
         >
@@ -45,7 +45,7 @@ export function GlassSidebarFooter({
       {/* Version info */}
       {version && (
         <span
-          className="text-[9px] text-gray-600 font-mono"
+          className="text-[9px] text-fg-muted font-mono"
           title={`Version ${version}`}
         >
           v{version}

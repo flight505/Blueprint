@@ -89,14 +89,14 @@ export function GlassSidebar({
         aria-label="Main navigation"
         className={`
           w-56 flex-shrink-0 flex flex-col
-          bg-white/[0.02] backdrop-blur-sm
-          border-r border-white/[0.06]
+          bg-surface backdrop-blur-sm
+          border-r border-border-default
           ${className}
         `}
       >
         {/* Brand */}
         {brand && (
-          <div className="h-14 flex items-center px-4 border-b border-white/[0.06]">
+          <div className="h-14 flex items-center px-4 border-b border-border-default">
             {brand}
           </div>
         )}
@@ -119,7 +119,7 @@ export function GlassSidebar({
 
         {/* Utility items */}
         {utilityItems.length > 0 && (
-          <div className="flex flex-col py-3 px-2 gap-1 border-t border-white/[0.06]">
+          <div className="flex flex-col py-3 px-2 gap-1 border-t border-border-default">
             {utilityItems.map((item) => (
               <GlassSidebarItem
                 key={item.id}
@@ -137,8 +137,8 @@ export function GlassSidebar({
 
         {/* Version */}
         {version && (
-          <div className="px-4 py-2 border-t border-white/[0.06]">
-            <span className="text-[10px] text-gray-600 font-mono">v{version}</span>
+          <div className="px-4 py-2 border-t border-border-default">
+            <span className="text-[10px] text-fg-muted font-mono">v{version}</span>
           </div>
         )}
       </nav>

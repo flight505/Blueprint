@@ -134,7 +134,7 @@ export function ImageUploader({
           focus:outline-none focus:ring-2 focus:ring-purple-400/50
           ${isDragging
             ? 'border-purple-400 bg-purple-400/10 shadow-[inset_0_0_20px_rgba(167,139,250,0.1)]'
-            : 'border-white/[0.08] bg-white/[0.02] hover:border-white/[0.15] hover:bg-white/[0.04]'
+            : 'border-border-default bg-surface hover:border-border-strong hover:bg-surface-raised'
           }
           ${isUploading ? 'pointer-events-none opacity-70' : ''}
         `}
@@ -142,7 +142,7 @@ export function ImageUploader({
         {isUploading ? (
           <>
             <Loader2 size={48} className="text-purple-400 animate-spin mb-4" aria-hidden="true" />
-            <p className="text-sm text-gray-400">Uploading...</p>
+            <p className="text-sm text-fg-muted">Uploading...</p>
           </>
         ) : isDragging ? (
           <>
@@ -151,11 +151,11 @@ export function ImageUploader({
           </>
         ) : (
           <>
-            <ImagePlus size={48} className="text-gray-500 mb-4" aria-hidden="true" />
-            <p className="text-sm text-gray-400 mb-1">
+            <ImagePlus size={48} className="text-fg-muted mb-4" aria-hidden="true" />
+            <p className="text-sm text-fg-muted mb-1">
               Drop an image here or click to upload
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-fg-muted">
               PNG, JPEG, GIF, WebP (max 10MB)
             </p>
           </>
@@ -174,15 +174,15 @@ export function ImageUploader({
 
       {/* Feature hints */}
       <div className="mt-4 grid grid-cols-2 gap-2">
-        <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-          <p className="text-xs text-gray-400 font-medium mb-1">AI-Powered Editing</p>
-          <p className="text-[10px] text-gray-500">
+        <div className="p-3 rounded-lg bg-surface border border-border-default">
+          <p className="text-xs text-fg-muted font-medium mb-1">AI-Powered Editing</p>
+          <p className="text-[10px] text-fg-muted">
             Describe changes in natural language
           </p>
         </div>
-        <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-          <p className="text-xs text-gray-400 font-medium mb-1">Edit History</p>
-          <p className="text-[10px] text-gray-500">
+        <div className="p-3 rounded-lg bg-surface border border-border-default">
+          <p className="text-xs text-fg-muted font-medium mb-1">Edit History</p>
+          <p className="text-[10px] text-fg-muted">
             Click any version to revert
           </p>
         </div>

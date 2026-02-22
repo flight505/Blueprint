@@ -76,9 +76,9 @@ export const InAppContext: StoryObj = {
   render: () => (
     <div className="h-screen flex">
       {/* Mock Rail */}
-      <div className="w-12 bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700" />
+      <div className="w-12 bg-surface-raised border-r border-border-default" />
       {/* Main Content */}
-      <div className="flex-1 bg-white dark:bg-gray-900">
+      <div className="flex-1 bg-surface">
         <WelcomeScreen onNewProject={() => {}} onOpenProject={() => {}} />
       </div>
     </div>
@@ -98,7 +98,7 @@ export const GlassStyled: Story = {
   },
   decorators: [
     (Story) => (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-8">
+      <div className="min-h-screen bg-gradient-to-br from-surface-deep to-surface p-8">
         <div className="glass glass-border rounded-xl overflow-hidden">
           <Story />
         </div>

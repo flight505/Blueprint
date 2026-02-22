@@ -30,7 +30,7 @@ const meta = {
     (Story) => {
       // Mock the store for Storybook
       return (
-        <div className="w-[320px] p-4 bg-white dark:bg-gray-800 rounded-lg">
+        <div className="w-[320px] p-4 bg-surface-raised rounded-lg">
           <Story />
         </div>
       );
@@ -64,8 +64,8 @@ export const InSettingsPanel: StoryObj = {
         <h3 className="text-lg font-semibold mb-4">Appearance</h3>
         <ThemeToggle />
       </div>
-      <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+      <div className="pt-4 border-t border-border-default">
+        <p className="text-sm text-fg-muted">
           Other settings would appear here...
         </p>
       </div>
@@ -73,7 +73,7 @@ export const InSettingsPanel: StoryObj = {
   ),
   decorators: [
     (Story) => (
-      <div className="w-[400px] p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+      <div className="w-[400px] p-6 bg-surface-raised rounded-lg border border-border-default">
         <Story />
       </div>
     ),

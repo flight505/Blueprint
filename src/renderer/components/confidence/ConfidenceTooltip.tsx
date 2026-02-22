@@ -119,8 +119,8 @@ export function ConfidenceTooltip({ className = '' }: ConfidenceTooltipProps) {
     <div
       className={`
         fixed z-[100] w-[280px] p-3 rounded-lg shadow-lg
-        bg-gray-800
-        border border-gray-700
+        bg-surface-overlay
+        border border-border-default
         text-sm
         ${className}
       `}
@@ -151,7 +151,7 @@ export function ConfidenceTooltip({ className = '' }: ConfidenceTooltipProps) {
 
       {/* Progress bar */}
       <div
-        className="h-2 w-full bg-gray-700 rounded-full mb-3"
+        className="h-2 w-full bg-surface-raised rounded-full mb-3"
         role="progressbar"
         aria-valuenow={percentage}
         aria-valuemin={0}
@@ -172,13 +172,13 @@ export function ConfidenceTooltip({ className = '' }: ConfidenceTooltipProps) {
       {/* Indicators/reasons */}
       {data.indicators.length > 0 && (
         <div className="space-y-1">
-          <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+          <h4 className="text-xs font-medium text-fg-muted uppercase tracking-wide">
             Reasoning
           </h4>
-          <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-0.5">
+          <ul className="text-xs text-fg-secondary space-y-0.5">
             {data.indicators.slice(0, 4).map((indicator, idx) => (
               <li key={idx} className="flex items-start gap-1.5">
-                <span className="text-gray-400 dark:text-gray-500 mt-0.5">
+                <span className="text-fg-muted mt-0.5">
                   •
                 </span>
                 <span>{indicator}</span>
