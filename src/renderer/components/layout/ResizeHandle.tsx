@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 interface ResizeHandleProps {
   currentWidth: number;
@@ -13,26 +13,23 @@ export function ResizeHandle({
   minWidth = 220,
   maxWidth = 600,
 }: ResizeHandleProps) {
-  const isDragging = useRef(false);
-  const handleRef = useRef<HTMLDivElement>(null);
+  const [dragging, setDragging] = useState(false);
+  const startRef = useRef({ x: 0, width: 0 });
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault();
-      isDragging.current = true;
-
-      const startX = e.clientX;
-      const startWidth = currentWidth;
+      setDragging(true);
+      startRef.current = { x: e.clientX, width: currentWidth };
 
       const onMouseMove = (moveEvent: MouseEvent) => {
-        if (!isDragging.current) return;
-        const delta = moveEvent.clientX - startX;
-        const newWidth = Math.min(maxWidth, Math.max(minWidth, startWidth + delta));
-        onWidthChange(newWidth);
+        const delta = moveEvent.clientX - startRef.current.x;
+        const clamped = Math.min(maxWidth, Math.max(minWidth, startRef.current.width + delta));
+        onWidthChange(clamped);
       };
 
       const onMouseUp = () => {
-        isDragging.current = false;
+        setDragging(false);
         document.removeEventListener('mousemove', onMouseMove);
         document.removeEventListener('mouseup', onMouseUp);
         document.body.style.cursor = '';
@@ -49,12 +46,20 @@ export function ResizeHandle({
 
   return (
     <div
-      ref={handleRef}
       onMouseDown={handleMouseDown}
-      className="w-[4px] flex-shrink-0 cursor-col-resize group relative hover:w-[4px]"
+      className="relative flex-shrink-0 cursor-col-resize"
+      style={{ width: 1 }}
     >
-      <div className="absolute inset-y-0 -left-[2px] w-[8px] z-10" />
-      <div className="h-full w-full bg-transparent group-hover:bg-purple-400/30 transition-colors duration-150" />
+      {/* Wide invisible hit area */}
+      <div className="absolute inset-y-0 -left-[5px] w-[11px] z-10" />
+      {/* Visible line */}
+      <div
+        className={`absolute inset-y-0 -left-[0.5px] w-[1px] transition-all duration-100 ${
+          dragging
+            ? 'bg-purple-400/60 shadow-[0_0_6px_rgba(167,139,250,0.4)]'
+            : 'bg-white/[0.06] hover:bg-purple-400/40'
+        }`}
+      />
     </div>
   );
 }

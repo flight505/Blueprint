@@ -39,19 +39,19 @@ const SECTION_LABELS: Record<Section, string> = {
 
 // Convert section config to NavItem array for GlassSidebar
 const PRIMARY_NAV_ITEMS: NavItem[] = [
-  { id: 'chat', icon: <NAV_ICONS.chat size={18} strokeWidth={1.5} />, label: 'Chat', shortcut: '⌘1' },
-  { id: 'explorer', icon: <NAV_ICONS.explorer size={18} strokeWidth={1.5} />, label: 'Explorer', shortcut: '⌘2' },
-  { id: 'search', icon: <NAV_ICONS.search size={18} strokeWidth={1.5} />, label: 'Search', shortcut: '⌘3' },
-  { id: 'context', icon: <NAV_ICONS.context size={18} strokeWidth={1.5} />, label: 'Context', shortcut: '⌘4' },
-  { id: 'planning', icon: <NAV_ICONS.planning size={18} strokeWidth={1.5} />, label: 'Planning', shortcut: '⌘5' },
-  { id: 'image', icon: <NAV_ICONS.image size={18} strokeWidth={1.5} />, label: 'Image', shortcut: '⌘6' },
-  { id: 'export', icon: <NAV_ICONS.export size={18} strokeWidth={1.5} />, label: 'Export', shortcut: '⌘7' },
-  { id: 'history', icon: <NAV_ICONS.history size={18} strokeWidth={1.5} />, label: 'History', shortcut: '⌘8' },
+  { id: 'chat', icon: <NAV_ICONS.chat size={18} strokeWidth={1.25} />, label: 'Chat', shortcut: '⌘1' },
+  { id: 'explorer', icon: <NAV_ICONS.explorer size={18} strokeWidth={1.25} />, label: 'Explorer', shortcut: '⌘2' },
+  { id: 'search', icon: <NAV_ICONS.search size={18} strokeWidth={1.25} />, label: 'Search', shortcut: '⌘3' },
+  { id: 'context', icon: <NAV_ICONS.context size={18} strokeWidth={1.25} />, label: 'Context', shortcut: '⌘4' },
+  { id: 'planning', icon: <NAV_ICONS.planning size={18} strokeWidth={1.25} />, label: 'Planning', shortcut: '⌘5' },
+  { id: 'image', icon: <NAV_ICONS.image size={18} strokeWidth={1.25} />, label: 'Image', shortcut: '⌘6' },
+  { id: 'export', icon: <NAV_ICONS.export size={18} strokeWidth={1.25} />, label: 'Export', shortcut: '⌘7' },
+  { id: 'history', icon: <NAV_ICONS.history size={18} strokeWidth={1.25} />, label: 'History', shortcut: '⌘8' },
 ];
 
 const UTILITY_NAV_ITEMS: NavItem[] = [
-  { id: 'settings', icon: <NAV_ICONS.settings size={18} strokeWidth={1.5} />, label: 'Settings', shortcut: '⌘,' },
-  { id: 'help', icon: <NAV_ICONS.help size={18} strokeWidth={1.5} />, label: 'Help', shortcut: '⌘?' },
+  { id: 'settings', icon: <NAV_ICONS.settings size={18} strokeWidth={1.25} />, label: 'Settings', shortcut: '⌘,' },
+  { id: 'help', icon: <NAV_ICONS.help size={18} strokeWidth={1.25} />, label: 'Help', shortcut: '⌘?' },
 ];
 
 type OnboardingStep = 'permissions' | 'complete';

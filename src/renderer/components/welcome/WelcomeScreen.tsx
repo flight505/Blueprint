@@ -47,13 +47,13 @@ export function WelcomeScreen({ onNewProject, onOpenProject }: WelcomeScreenProp
           <WelcomeCard
             title="New Project"
             description="Start a new planning project with the wizard"
-            icon={<Sparkles size={24} />}
+            icon={<Sparkles size={24} strokeWidth={1.25} />}
             onClick={onNewProject}
           />
           <WelcomeCard
             title="Open Project"
             description="Open an existing project folder"
-            icon={<FolderOpen size={24} />}
+            icon={<FolderOpen size={24} strokeWidth={1.25} />}
             onClick={handleOpenProject}
           />
         </div>
