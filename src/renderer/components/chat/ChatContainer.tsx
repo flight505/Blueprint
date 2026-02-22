@@ -140,7 +140,7 @@ export function ChatContainer({
             placeholder={placeholder}
             disabled={isLoading}
             rows={1}
-            className="w-full px-3.5 pt-3 pb-1 bg-transparent text-gray-100 resize-none disabled:opacity-50 disabled:cursor-not-allowed placeholder-gray-500 text-sm focus:outline-none"
+            className="w-full px-3.5 pt-3 pb-1 bg-transparent text-gray-100 resize-none disabled:opacity-50 disabled:cursor-not-allowed placeholder-gray-500 text-sm outline-none"
             aria-label="Message input"
           />
           {/* Action bar */}
