@@ -1,4 +1,4 @@
-import { create } from '@storybook/theming';
+import { create } from 'storybook/theming';
 
 /**
  * Tokyo Night Storm theme for Storybook UI

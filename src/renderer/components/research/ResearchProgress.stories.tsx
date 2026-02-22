@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState, useEffect } from 'react';
-import { fn } from '@storybook/test';
+import { fn } from 'storybook/test';
 import ResearchProgress, { type ProgressCheckpoint } from './ResearchProgress';
 
 /**
