@@ -44,9 +44,16 @@ export function ResizeHandle({
     [currentWidth, minWidth, maxWidth, onWidthChange]
   );
 
+  const handleDoubleClick = useCallback(() => {
+    const defaultWidth = minWidth + (maxWidth - minWidth) * 0.4;
+    onWidthChange(defaultWidth);
+  }, [minWidth, maxWidth, onWidthChange]);
+
   return (
     <div
       onMouseDown={handleMouseDown}
+      onDoubleClick={handleDoubleClick}
+      title="Drag to resize, double-click to reset"
       className="relative flex-shrink-0 cursor-col-resize"
       style={{ width: 1 }}
     >

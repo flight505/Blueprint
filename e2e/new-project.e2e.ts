@@ -20,12 +20,13 @@ test.describe('New Project Workflow', () => {
     const newProjectButton = mainWindow.getByRole('button', { name: /new project/i });
     await newProjectButton.click();
 
-    // Wizard should be visible
-    const wizardTitle = mainWindow.getByText('Create New Project');
-    await expect(wizardTitle).toBeVisible({ timeout: 5000 });
+    // Wizard dialog should be visible with heading
+    const wizard = mainWindow.getByRole('dialog');
+    await expect(wizard).toBeVisible({ timeout: 5000 });
+    await expect(wizard.getByRole('heading', { name: 'New Project' })).toBeVisible();
 
     // Step 1: Name and Location should be visible
-    const nameInput = mainWindow.getByPlaceholder(/project name/i);
+    const nameInput = wizard.getByPlaceholder(/my awesome project/i);
     await expect(nameInput).toBeVisible();
   });
 
@@ -34,47 +35,27 @@ test.describe('New Project Workflow', () => {
     const newProjectButton = mainWindow.getByRole('button', { name: /new project/i });
     await newProjectButton.click();
 
-    // Wait for wizard to be visible
-    await mainWindow.waitForSelector('text=Create New Project', { timeout: 5000 });
+    // Wait for wizard dialog to be visible
+    const wizard = mainWindow.getByRole('dialog');
+    await expect(wizard).toBeVisible({ timeout: 5000 });
 
-    // Step 1: Enter project name
-    const nameInput = mainWindow.getByPlaceholder(/project name/i);
+    // Step 1: Verify project name input and step indicator
+    const nameInput = wizard.getByPlaceholder(/my awesome project/i);
+    await expect(nameInput).toBeVisible();
     await nameInput.fill('Test E2E Project');
 
-    // The path input might need the test project path
-    // Continue to next step
-    const nextButton = mainWindow.getByRole('button', { name: /next/i });
-    if (await nextButton.isVisible()) {
-      await nextButton.click();
-    }
+    // Step indicator should show "Step 1 of 4"
+    await expect(wizard.getByText(/step 1 of 4/i)).toBeVisible();
 
-    // Step 2: Research Mode selection should be visible
-    const quickMode = mainWindow.getByText(/quick/i);
-    if (await quickMode.isVisible()) {
-      await quickMode.click();
+    // Next button requires both name and path — path needs native dialog
+    // so it stays disabled. Verify the button is present but disabled.
+    const nextButton = wizard.getByRole('button', { name: /next/i });
+    await expect(nextButton).toBeVisible();
+    await expect(nextButton).toBeDisabled();
 
-      // Continue to next step
-      if (await nextButton.isVisible()) {
-        await nextButton.click();
-      }
-    }
-
-    // Step 3: Phase selection (if visible)
-    const marketResearch = mainWindow.getByText(/market research/i);
-    if (await marketResearch.isVisible()) {
-      // Some phases should be pre-selected or we can select them
-      if (await nextButton.isVisible()) {
-        await nextButton.click();
-      }
-    }
-
-    // Final step should have a Create button
-    const createButton = mainWindow.getByRole('button', { name: /create/i });
-    if (await createButton.isVisible()) {
-      // We won't actually create since it requires file system access
-      // Just verify the flow works up to this point
-      await expect(createButton).toBeEnabled();
-    }
+    // Verify Browse button exists for path selection
+    const browseButton = wizard.getByRole('button', { name: /browse/i });
+    await expect(browseButton).toBeVisible();
   });
 
   test('should close wizard on cancel', async ({ mainWindow }) => {
@@ -82,13 +63,14 @@ test.describe('New Project Workflow', () => {
     const newProjectButton = mainWindow.getByRole('button', { name: /new project/i });
     await newProjectButton.click();
 
-    // Wait for wizard
-    await mainWindow.waitForSelector('text=Create New Project', { timeout: 5000 });
+    // Wait for wizard dialog
+    const wizard = mainWindow.getByRole('dialog');
+    await expect(wizard).toBeVisible({ timeout: 5000 });
 
-    // Click cancel or close button
-    const closeButton = mainWindow.getByRole('button', { name: /close|cancel/i });
-    if (await closeButton.isVisible()) {
-      await closeButton.click();
+    // Click cancel button (shown on step 1)
+    const cancelButton = wizard.getByRole('button', { name: /cancel/i });
+    if (await cancelButton.isVisible()) {
+      await cancelButton.click();
     } else {
       // Try pressing Escape
       await mainWindow.keyboard.press('Escape');

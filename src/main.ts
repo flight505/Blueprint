@@ -87,11 +87,27 @@ app.on('ready', async () => {
     });
   });
 
-  // Initialize services
-  databaseService.initialize();
-  secureStorageService.initialize();
-  citationVerificationService.initialize();
-  hallucinationDashboardService.initialize();
+  // Initialize services (wrapped so a DB error doesn't prevent window creation)
+  try {
+    databaseService.initialize();
+  } catch (error) {
+    console.error('Database initialization failed:', error);
+  }
+  try {
+    secureStorageService.initialize();
+  } catch (error) {
+    console.error('SecureStorageService initialization failed:', error);
+  }
+  try {
+    citationVerificationService.initialize();
+  } catch (error) {
+    console.error('CitationVerificationService initialization failed:', error);
+  }
+  try {
+    hallucinationDashboardService.initialize();
+  } catch (error) {
+    console.error('HallucinationDashboardService initialization failed:', error);
+  }
 
   // Initialize context manager with API key if available
   const anthropicKey = await secureStorageService.getApiKey('anthropic');

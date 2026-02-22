@@ -117,7 +117,7 @@ export class CitationVerificationService {
   private readonly SEARCH_CACHE_TTL = 60 * 60; // 1 hour
 
   constructor() {
-    const userDataPath = app.getPath('userData');
+    const userDataPath = process.env.BLUEPRINT_USER_DATA || app.getPath('userData');
     this.dbPath = path.join(userDataPath, 'citation-cache.db');
   }
 
