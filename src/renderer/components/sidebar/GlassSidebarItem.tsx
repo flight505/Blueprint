@@ -51,10 +51,10 @@ export const GlassSidebarItem = forwardRef<HTMLButtonElement, GlassSidebarItemPr
           ${showLabel ? 'w-full px-3 py-2 rounded-lg' : 'w-10 h-10 justify-center rounded-lg'}
           ${
             active
-              ? 'bg-white/[0.12] text-purple-400 shadow-[inset_0_0_0_1px_rgba(167,139,250,0.35),0_0_16px_rgba(167,139,250,0.2)]'
-              : 'text-gray-400 hover:text-gray-100 hover:bg-white/[0.08] hover:shadow-[0_0_8px_rgba(167,139,250,0.08)]'
+              ? 'bg-surface-hover text-purple-400 shadow-[inset_0_0_0_1px_rgba(167,139,250,0.35),0_0_16px_rgba(167,139,250,0.2)]'
+              : 'text-fg-muted hover:text-fg hover:bg-surface-hover hover:shadow-[0_0_8px_rgba(167,139,250,0.08)]'
           }
-          active:scale-95 active:bg-white/[0.14]
+          active:scale-95 active:bg-surface-hover
           ${className}
         `}
         title={!showLabel ? tooltipText : undefined}
@@ -72,7 +72,7 @@ export const GlassSidebarItem = forwardRef<HTMLButtonElement, GlassSidebarItemPr
 
         {/* Icon */}
         <span
-          className={`flex-shrink-0 ${active ? 'scale-110 text-purple-400' : 'group-hover:scale-110 group-hover:text-gray-100'} transition-all duration-200`}
+          className={`flex-shrink-0 ${active ? 'scale-110 text-purple-400' : 'group-hover:scale-110 group-hover:text-fg'} transition-all duration-200`}
           aria-hidden="true"
         >
           {icon}
@@ -85,7 +85,7 @@ export const GlassSidebarItem = forwardRef<HTMLButtonElement, GlassSidebarItemPr
 
         {/* Shortcut hint (panel mode only) */}
         {showLabel && shortcut && (
-          <span className="text-xs text-gray-500 font-mono">{shortcut}</span>
+          <span className="text-xs text-fg-muted font-mono">{shortcut}</span>
         )}
 
         {/* Badge */}

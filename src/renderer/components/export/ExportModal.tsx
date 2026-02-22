@@ -312,17 +312,17 @@ export function ExportModal({
     <AnimatedModal
       isOpen={isOpen}
       onClose={onClose}
-      className="w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow-xl"
+      className="w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-lg bg-surface-overlay shadow-xl"
       aria-labelledby="export-modal-title"
     >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border-default">
           <h2 id="export-modal-title" className="text-lg font-semibold">
             Export Document
           </h2>
           <button
             onClick={onClose}
-            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="p-1 rounded hover:bg-surface-hover transition-colors"
             aria-label="Close modal"
           >
             <span className="text-xl">×</span>
@@ -342,14 +342,14 @@ export function ExportModal({
                     onClick={() => setFormat(key)}
                     className={`p-4 rounded-lg border-2 text-left transition-colors ${
                       format === key
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
-                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                        ? 'border-accent bg-accent-soft'
+                        : 'border-border-default hover:border-border-strong'
                     }`}
                     aria-pressed={format === key}
                   >
                     <span className="text-2xl block mb-2">{info.icon}</span>
                     <span className="font-medium block">{info.label}</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 block mt-1">
+                    <span className="text-xs text-fg-muted block mt-1">
                       {info.description}
                     </span>
                   </button>
@@ -398,23 +398,23 @@ export function ExportModal({
             </div>
 
             {sections.length === 0 ? (
-              <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+              <p className="text-sm text-fg-muted italic">
                 No sections available. Add content to your project first.
               </p>
             ) : (
-              <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg p-2">
+              <div className="space-y-2 max-h-48 overflow-y-auto border border-border-default rounded-lg p-2">
                 {sections
                   .sort((a, b) => a.order - b.order)
                   .map((section) => (
                     <label
                       key={section.id}
-                      className="flex items-center gap-3 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
+                      className="flex items-center gap-3 p-2 rounded hover:bg-surface-hover cursor-pointer"
                     >
                       <input
                         type="checkbox"
                         checked={selectedSections.has(section.id)}
                         onChange={() => toggleSection(section.id)}
-                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                        className="w-4 h-4 rounded border-border-default text-blue-600 focus:ring-blue-500"
                       />
                       <span className="text-sm">{section.title}</span>
                     </label>
@@ -434,7 +434,7 @@ export function ExportModal({
                     type="checkbox"
                     checked={includeToc}
                     onChange={(e) => setIncludeToc(e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                    className="w-4 h-4 rounded border-border-default text-blue-600 focus:ring-blue-500"
                   />
                   <span className="text-sm">Include Table of Contents</span>
                 </label>
@@ -446,7 +446,7 @@ export function ExportModal({
                   type="checkbox"
                   checked={includeCoverPage}
                   onChange={(e) => setIncludeCoverPage(e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                  className="w-4 h-4 rounded border-border-default text-blue-600 focus:ring-blue-500"
                 />
                 <span className="text-sm">
                   Include {format === 'pptx' ? 'Title Slide' : 'Cover Page'}
@@ -459,7 +459,7 @@ export function ExportModal({
                   type="checkbox"
                   checked={includeCitations}
                   onChange={(e) => setIncludeCitations(e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                  className="w-4 h-4 rounded border-border-default text-blue-600 focus:ring-blue-500"
                 />
                 <span className="text-sm">Include Citations/References</span>
               </label>
@@ -467,13 +467,13 @@ export function ExportModal({
               {/* Citation format selector */}
               {includeCitations && (
                 <div className="ml-7">
-                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  <label className="block text-xs text-fg-muted mb-1">
                     Citation Format
                   </label>
                   <select
                     value={citationFormat}
                     onChange={(e) => setCitationFormat(e.target.value as 'ieee' | 'apa' | 'mla' | 'chicago')}
-                    className="w-32 px-2 py-1 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
+                    className="w-32 px-2 py-1 text-sm rounded border border-border-default bg-input focus:ring-2 focus:ring-blue-500"
                   >
                     {CITATION_FORMATS.map((cf) => (
                       <option key={cf.value} value={cf.value}>
@@ -487,13 +487,13 @@ export function ExportModal({
               {/* PDF-specific: Page size */}
               {format === 'pdf' && (
                 <div>
-                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  <label className="block text-xs text-fg-muted mb-1">
                     Page Size
                   </label>
                   <select
                     value={pageSize}
                     onChange={(e) => setPageSize(e.target.value as 'a4' | 'letter' | 'legal')}
-                    className="w-32 px-2 py-1 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
+                    className="w-32 px-2 py-1 text-sm rounded border border-border-default bg-input focus:ring-2 focus:ring-blue-500"
                   >
                     {PAGE_SIZES.map((ps) => (
                       <option key={ps.value} value={ps.value}>
@@ -507,13 +507,13 @@ export function ExportModal({
               {/* PPTX-specific: Theme */}
               {format === 'pptx' && availableThemes.length > 0 && (
                 <div>
-                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  <label className="block text-xs text-fg-muted mb-1">
                     Presentation Theme
                   </label>
                   <select
                     value={pptxTheme}
                     onChange={(e) => setPptxTheme(e.target.value)}
-                    className="w-40 px-2 py-1 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
+                    className="w-40 px-2 py-1 text-sm rounded border border-border-default bg-input focus:ring-2 focus:ring-blue-500"
                   >
                     {availableThemes.map((theme) => (
                       <option key={theme} value={theme}>
@@ -534,7 +534,7 @@ export function ExportModal({
               </h3>
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  <label className="block text-xs text-fg-muted mb-1">
                     Title
                   </label>
                   <input
@@ -542,11 +542,11 @@ export function ExportModal({
                     value={coverTitle}
                     onChange={(e) => setCoverTitle(e.target.value)}
                     placeholder="Document title"
-                    className="w-full px-3 py-2 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 text-sm rounded border border-border-default bg-input focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  <label className="block text-xs text-fg-muted mb-1">
                     Subtitle (optional)
                   </label>
                   <input
@@ -554,12 +554,12 @@ export function ExportModal({
                     value={coverSubtitle}
                     onChange={(e) => setCoverSubtitle(e.target.value)}
                     placeholder="Subtitle or tagline"
-                    className="w-full px-3 py-2 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 text-sm rounded border border-border-default bg-input focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    <label className="block text-xs text-fg-muted mb-1">
                       Author (optional)
                     </label>
                     <input
@@ -567,11 +567,11 @@ export function ExportModal({
                       value={coverAuthor}
                       onChange={(e) => setCoverAuthor(e.target.value)}
                       placeholder="Your name"
-                      className="w-full px-3 py-2 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 text-sm rounded border border-border-default bg-input focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    <label className="block text-xs text-fg-muted mb-1">
                       Organization (optional)
                     </label>
                     <input
@@ -579,7 +579,7 @@ export function ExportModal({
                       value={coverOrganization}
                       onChange={(e) => setCoverOrganization(e.target.value)}
                       placeholder="Company or team"
-                      className="w-full px-3 py-2 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 text-sm rounded border border-border-default bg-input focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                 </div>
@@ -617,10 +617,10 @@ export function ExportModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border-default bg-surface-raised">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="px-4 py-2 text-sm rounded-lg border border-border-default hover:bg-surface-hover transition-colors"
           >
             Cancel
           </button>
@@ -629,7 +629,7 @@ export function ExportModal({
             disabled={isExporting || selectedSections.size === 0 || (format === 'pdf' && isPandocAvailable === false)}
             className={`px-4 py-2 text-sm rounded-lg font-medium transition-colors ${
               isExporting || selectedSections.size === 0 || (format === 'pdf' && isPandocAvailable === false)
-                ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                ? 'bg-surface-raised text-fg-muted cursor-not-allowed'
                 : 'bg-blue-600 hover:bg-blue-700 text-white'
             }`}
             aria-busy={isExporting}

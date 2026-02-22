@@ -133,12 +133,12 @@ export default function CommandPalette({
     <AnimatedOverlay
       isOpen={isOpen}
       onClose={onClose}
-      className="w-[600px] max-w-[90vw] bg-white/[0.07] backdrop-blur-xl rounded-lg shadow-2xl overflow-hidden border border-white/[0.06]"
+      className="w-[600px] max-w-[90vw] bg-surface-overlay backdrop-blur-xl rounded-lg shadow-2xl overflow-hidden border border-border-default"
       position="top"
     >
       <div role="combobox" aria-expanded="true" aria-haspopup="listbox">
         {/* Search Input */}
-        <div className="p-3 border-b border-white/[0.06]">
+        <div className="p-3 border-b border-border-default">
           <input
             ref={inputRef}
             type="text"
@@ -149,7 +149,7 @@ export default function CommandPalette({
             }}
             onKeyDown={handleKeyDown}
             placeholder="Type a command or search..."
-            className="w-full px-3 py-2 bg-white/[0.04] text-gray-100 rounded-lg text-sm border border-white/[0.06] focus:outline-none focus:ring-1 focus:ring-purple-400/40 focus:border-purple-400/30 placeholder-gray-500 transition-colors duration-150"
+            className="w-full px-3 py-2 bg-input text-fg rounded-lg text-sm border border-border-default focus:outline-none focus:ring-1 focus:ring-purple-400/40 focus:border-purple-400/30 placeholder-fg-muted transition-colors duration-150"
             aria-label="Search commands"
             aria-controls="command-list"
             aria-autocomplete="list"
@@ -165,7 +165,7 @@ export default function CommandPalette({
           aria-label="Commands"
         >
           {results.length === 0 ? (
-            <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
+            <div className="px-4 py-8 text-center text-fg-muted text-sm">
               No commands found
             </div>
           ) : (
@@ -183,21 +183,21 @@ export default function CommandPalette({
         </div>
 
         {/* Footer hint */}
-        <div className="px-4 py-2 text-xs text-gray-400 border-t border-white/[0.06] flex items-center gap-4">
+        <div className="px-4 py-2 text-xs text-fg-muted border-t border-border-default flex items-center gap-4">
           <span>
-            <kbd className="px-1.5 py-0.5 bg-white/[0.06] border border-white/[0.06] rounded text-xs text-gray-300">
+            <kbd className="px-1.5 py-0.5 bg-surface-raised border border-border-default rounded text-xs text-fg-secondary">
               ↑↓
             </kbd>{' '}
             to navigate
           </span>
           <span>
-            <kbd className="px-1.5 py-0.5 bg-white/[0.06] border border-white/[0.06] rounded text-xs text-gray-300">
+            <kbd className="px-1.5 py-0.5 bg-surface-raised border border-border-default rounded text-xs text-fg-secondary">
               Enter
             </kbd>{' '}
             to select
           </span>
           <span>
-            <kbd className="px-1.5 py-0.5 bg-white/[0.06] border border-white/[0.06] rounded text-xs text-gray-300">
+            <kbd className="px-1.5 py-0.5 bg-surface-raised border border-border-default rounded text-xs text-fg-secondary">
               Esc
             </kbd>{' '}
             to close
@@ -227,8 +227,8 @@ function CommandItem({
     <div
       className={`px-4 py-2.5 cursor-pointer flex items-center justify-between transition-all duration-150 ${
         isSelected
-          ? 'bg-white/[0.10] text-purple-400 shadow-[inset_0_0_0_1px_rgba(167,139,250,0.2),0_0_12px_rgba(167,139,250,0.08)]'
-          : 'hover:bg-white/[0.06]'
+          ? 'bg-surface-hover text-purple-400 shadow-[inset_0_0_0_1px_rgba(167,139,250,0.2),0_0_12px_rgba(167,139,250,0.08)]'
+          : 'hover:bg-surface-hover'
       }`}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
@@ -239,25 +239,25 @@ function CommandItem({
       <div className="flex items-center gap-3">
         {isRecent && (
           <span
-            className="text-xs text-gray-500"
+            className="text-xs text-fg-muted"
             aria-label="Recent command"
           >
             🕐
           </span>
         )}
         <div>
-          <div className="text-sm font-medium text-gray-100">
+          <div className="text-sm font-medium text-fg">
             {command.label}
           </div>
           {command.category && (
-            <div className="text-xs text-gray-400">
+            <div className="text-xs text-fg-muted">
               {command.category}
             </div>
           )}
         </div>
       </div>
       {command.shortcut && (
-        <kbd className="px-2 py-1 bg-white/[0.06] border border-white/[0.06] rounded text-xs text-gray-300 font-mono">
+        <kbd className="px-2 py-1 bg-surface-raised border border-border-default rounded text-xs text-fg-secondary font-mono">
           {command.shortcut}
         </kbd>
       )}

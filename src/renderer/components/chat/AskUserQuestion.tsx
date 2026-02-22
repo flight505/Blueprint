@@ -116,9 +116,9 @@ export function AskUserQuestion({
       role="article"
       aria-label="Agent question"
     >
-      <div className="max-w-[85%] bg-gray-100 dark:bg-gray-800 rounded-lg px-4 py-3 rounded-bl-sm">
+      <div className="max-w-[85%] bg-surface-raised rounded-lg px-4 py-3 rounded-bl-sm">
         {/* Question text */}
-        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
+        <p className="text-sm font-medium text-fg mb-3">
           {data.question}
         </p>
 
@@ -134,8 +134,8 @@ export function AskUserQuestion({
                 htmlFor={inputId}
                 className={`flex items-start gap-3 p-2 rounded-md cursor-pointer transition-colors ${
                   isSelected
-                    ? 'bg-blue-50 dark:bg-blue-900/30 ring-1 ring-blue-500'
-                    : 'hover:bg-gray-200 dark:hover:bg-gray-700'
+                    ? 'bg-accent-soft ring-1 ring-accent'
+                    : 'hover:bg-surface-hover'
                 } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <input
@@ -147,19 +147,19 @@ export function AskUserQuestion({
                     handleOptionChange(option.id, e.target.checked)
                   }
                   disabled={disabled}
-                  className="mt-0.5 w-4 h-4 text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 cursor-pointer disabled:cursor-not-allowed"
+                  className="mt-0.5 w-4 h-4 text-accent focus:ring-accent cursor-pointer disabled:cursor-not-allowed"
                   aria-describedby={
                     option.description ? `${inputId}-desc` : undefined
                   }
                 />
                 <div className="flex-1">
-                  <span className="text-sm text-gray-900 dark:text-gray-100">
+                  <span className="text-sm text-fg">
                     {option.label}
                   </span>
                   {option.description && (
                     <p
                       id={`${inputId}-desc`}
-                      className="text-xs text-gray-500 dark:text-gray-400 mt-0.5"
+                      className="text-xs text-fg-muted mt-0.5"
                     >
                       {option.description}
                     </p>
@@ -175,8 +175,8 @@ export function AskUserQuestion({
               htmlFor={`${formId}-other`}
               className={`flex items-start gap-3 p-2 rounded-md cursor-pointer transition-colors ${
                 otherSelected
-                  ? 'bg-blue-50 dark:bg-blue-900/30 ring-1 ring-blue-500'
-                  : 'hover:bg-gray-200 dark:hover:bg-gray-700'
+                  ? 'bg-accent-soft ring-1 ring-accent'
+                  : 'hover:bg-surface-hover'
               } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <input
@@ -186,9 +186,9 @@ export function AskUserQuestion({
                 checked={otherSelected}
                 onChange={(e) => handleOtherChange(e.target.checked)}
                 disabled={disabled}
-                className="mt-0.5 w-4 h-4 text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 cursor-pointer disabled:cursor-not-allowed"
+                className="mt-0.5 w-4 h-4 text-accent focus:ring-accent cursor-pointer disabled:cursor-not-allowed"
               />
-              <span className="text-sm text-gray-900 dark:text-gray-100">
+              <span className="text-sm text-fg">
                 Other
               </span>
             </label>
@@ -202,7 +202,7 @@ export function AskUserQuestion({
                   onChange={(e) => setOtherText(e.target.value)}
                   placeholder="Enter your answer..."
                   disabled={disabled}
-                  className="w-full px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-3 py-1.5 text-sm rounded-md border border-border-default bg-input text-fg placeholder-fg-muted focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="Custom answer"
                   autoFocus
                 />
@@ -222,7 +222,7 @@ export function AskUserQuestion({
             Submit
           </button>
           <time
-            className="text-xs text-gray-500 dark:text-gray-400"
+            className="text-xs text-fg-muted"
             dateTime={data.timestamp.toISOString()}
           >
             {data.timestamp.toLocaleTimeString([], {

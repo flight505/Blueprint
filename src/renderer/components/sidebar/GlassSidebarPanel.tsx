@@ -42,16 +42,16 @@ export function GlassSidebarPanel({
           transition={{ duration: ANIMATION_DURATION.normal, ease: 'easeInOut' }}
           className={`
             flex-shrink-0 flex flex-col overflow-hidden
-            bg-white/[0.04] backdrop-blur-md
-            border-r border-white/[0.06]
+            bg-surface-raised backdrop-blur-md
+            border-r border-border-default
             ${className}
           `}
           aria-label="Sidebar panel"
         >
           {/* Panel header */}
           {title && (
-            <header className="h-10 flex items-center px-4 border-b border-white/[0.06]">
-              <h2 className="text-sm font-medium text-gray-200">{title}</h2>
+            <header className="h-10 flex items-center px-4 border-b border-border-default">
+              <h2 className="text-sm font-medium text-fg">{title}</h2>
             </header>
           )}
 
@@ -88,7 +88,7 @@ export function GlassSidebarSection({
 }: GlassSidebarSectionProps) {
   return (
     <section className={`py-2 ${className}`}>
-      <h3 className="px-4 py-1 text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+      <h3 className="px-4 py-1 text-[10px] font-semibold uppercase tracking-wider text-fg-muted">
         {title}
       </h3>
       <div className="mt-1">{children}</div>

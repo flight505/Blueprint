@@ -29,7 +29,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
         className={`max-w-[85%] rounded-lg px-4 py-3 ${
           isUser
             ? 'bg-blue-500 text-white rounded-br-sm'
-            : 'bg-gray-700 text-gray-100 rounded-bl-sm'
+            : 'bg-surface-raised text-fg rounded-bl-sm'
         }`}
       >
         {isUser ? (
@@ -56,7 +56,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
                   if (!className) {
                     return (
                       <code
-                        className="bg-gray-600 px-1 py-0.5 rounded text-sm text-gray-100"
+                        className="bg-surface-hover px-1 py-0.5 rounded text-sm text-fg"
                         {...props}
                       >
                         {children}
@@ -137,7 +137,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
         )}
         <time
           className={`text-xs mt-1 block ${
-            isUser ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
+            isUser ? 'text-blue-100' : 'text-fg-muted'
           }`}
           dateTime={message.timestamp.toISOString()}
         >

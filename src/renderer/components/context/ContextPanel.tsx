@@ -54,7 +54,7 @@ function formatTokenCount(count: number): string {
 
 // Get color class based on relevance score
 function getRelevanceColor(score?: number): string {
-  if (score === undefined) return 'text-gray-400';
+  if (score === undefined) return 'text-fg-muted';
   if (score >= 0.8) return 'text-green-500';
   if (score >= 0.6) return 'text-yellow-500';
   if (score >= 0.4) return 'text-orange-500';
@@ -193,14 +193,14 @@ export default function ContextPanel({
   const renderTokenBar = () => (
     <div className="mb-4 px-4">
       <div className="flex justify-between items-center mb-1">
-        <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+        <span className="text-xs font-medium text-fg-muted">
           Token Usage
         </span>
-        <span className="text-xs text-gray-500 dark:text-gray-500">
+        <span className="text-xs text-fg-muted">
           {formatTokenCount(tokenUsage.current)} / {formatTokenCount(tokenUsage.max)}
         </span>
       </div>
-      <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+      <div className="w-full h-2 bg-surface-raised rounded-full overflow-hidden">
         <div
           className={`h-full transition-all duration-300 ${getUsageColor(tokenUsage.percentage)}`}
           style={{ width: `${Math.min(tokenUsage.percentage, 100)}%` }}
@@ -211,7 +211,7 @@ export default function ContextPanel({
           aria-label={`Token usage: ${tokenUsage.percentage}%`}
         />
       </div>
-      <div className="text-xs text-gray-500 dark:text-gray-500 mt-1 text-right">
+      <div className="text-xs text-fg-muted mt-1 text-right">
         {tokenUsage.percentage}% used
       </div>
     </div>
@@ -230,7 +230,7 @@ export default function ContextPanel({
             if (e.key === 'Escape') clearSearch();
           }}
           placeholder="Search context..."
-          className="w-full pl-8 pr-8 py-2 text-sm rounded-lg border border-white/[0.06] bg-white/[0.04] text-gray-100 focus:ring-1 focus:ring-purple-400/40 focus:border-purple-400/30 placeholder-gray-500 transition-colors duration-150"
+          className="w-full pl-8 pr-8 py-2 text-sm rounded-lg border border-border-default bg-input text-fg focus:ring-1 focus:ring-purple-400/40 focus:border-purple-400/30 placeholder-fg-muted transition-colors duration-150"
           aria-label="Search context documents"
         />
         <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true">
@@ -239,7 +239,7 @@ export default function ContextPanel({
         {searchQuery && (
           <button
             onClick={clearSearch}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-fg"
             aria-label="Clear search"
           >
             ×
@@ -247,7 +247,7 @@ export default function ContextPanel({
         )}
       </div>
       {isSearching && (
-        <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+        <div className="mt-2 text-xs text-fg-muted">
           Searching...
         </div>
       )}
@@ -258,7 +258,7 @@ export default function ContextPanel({
   const renderContextItem = (item: ContextItem, showRelevance = false) => (
     <div
       key={item.id}
-      className={`px-4 py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0 ${
+      className={`px-4 py-2 border-b border-border-default last:border-b-0 ${
         item.isIncluded ? '' : 'opacity-50'
       }`}
     >
@@ -269,7 +269,7 @@ export default function ContextPanel({
             className={`w-4 h-4 flex-shrink-0 rounded border ${
               item.isIncluded
                 ? 'bg-blue-500 border-blue-500 text-white'
-                : 'border-gray-300 dark:border-gray-600'
+                : 'border-border-default'
             }`}
             aria-label={item.isIncluded ? 'Exclude from context' : 'Include in context'}
             aria-pressed={item.isIncluded}
@@ -289,7 +289,7 @@ export default function ContextPanel({
               {(item.relevanceScore * 100).toFixed(0)}%
             </span>
           )}
-          <span className="text-xs text-gray-500 dark:text-gray-400">
+          <span className="text-xs text-fg-muted">
             {formatTokenCount(item.tokenCount)}
           </span>
           <button
@@ -301,7 +301,7 @@ export default function ContextPanel({
           </button>
         </div>
       </div>
-      <div className="text-xs text-gray-500 dark:text-gray-400 ml-6 truncate" title={item.filePath}>
+      <div className="text-xs text-fg-muted ml-6 truncate" title={item.filePath}>
         {item.filePath}
       </div>
     </div>
@@ -311,7 +311,7 @@ export default function ContextPanel({
   const renderSearchResultItem = (item: ContextItem) => (
     <div
       key={item.id}
-      className="px-4 py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700"
+      className="px-4 py-2 border-b border-border-default last:border-b-0 hover:bg-surface-hover"
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
@@ -335,7 +335,7 @@ export default function ContextPanel({
           Add
         </button>
       </div>
-      <div className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5" title={item.filePath}>
+      <div className="text-xs text-fg-muted truncate mt-0.5" title={item.filePath}>
         {item.filePath}
       </div>
     </div>
@@ -344,9 +344,9 @@ export default function ContextPanel({
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+      <div className="px-4 py-3 border-b border-border-default">
         <h3 className="font-medium text-sm">Context</h3>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+        <p className="text-xs text-fg-muted mt-0.5">
           {contextItems.filter(i => i.isIncluded).length} items included
         </p>
       </div>
@@ -362,8 +362,8 @@ export default function ContextPanel({
       {/* Search Results (when searching) */}
       {searchResults.length > 0 && (
         <div className="mb-4">
-          <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-y border-gray-200 dark:border-gray-700">
-            <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+          <div className="px-4 py-2 bg-surface-raised border-y border-border-default">
+            <span className="text-xs font-medium text-fg-muted">
               Search Results ({searchResults.length})
             </span>
           </div>
@@ -376,19 +376,19 @@ export default function ContextPanel({
       {/* Context Items List */}
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
-          <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+          <div className="px-4 py-8 text-center text-fg-muted">
             <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
             Loading context...
           </div>
         ) : contextItems.length === 0 ? (
-          <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+          <div className="px-4 py-8 text-center text-fg-muted">
             <p className="text-sm">No context files</p>
             <p className="text-xs mt-1">Add files to the session to see them here</p>
           </div>
         ) : (
           <div>
-            <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-y border-gray-200 dark:border-gray-700">
-              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+            <div className="px-4 py-2 bg-surface-raised border-y border-border-default">
+              <span className="text-xs font-medium text-fg-muted">
                 Included Context
               </span>
             </div>
@@ -398,13 +398,13 @@ export default function ContextPanel({
       </div>
 
       {/* Footer with actions */}
-      <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+      <div className="px-4 py-3 border-t border-border-default bg-surface-raised">
         <div className="flex gap-2">
           <button
             onClick={() => {
               setContextItems(prev => prev.map(item => ({ ...item, isIncluded: true })));
             }}
-            className="flex-1 text-xs px-2 py-1.5 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="flex-1 text-xs px-2 py-1.5 rounded border border-border-default hover:bg-surface-hover"
             disabled={contextItems.length === 0}
           >
             Include All
@@ -413,7 +413,7 @@ export default function ContextPanel({
             onClick={() => {
               setContextItems(prev => prev.map(item => ({ ...item, isIncluded: false })));
             }}
-            className="flex-1 text-xs px-2 py-1.5 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="flex-1 text-xs px-2 py-1.5 rounded border border-border-default hover:bg-surface-hover"
             disabled={contextItems.length === 0}
           >
             Exclude All

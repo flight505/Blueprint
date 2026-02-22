@@ -30,7 +30,7 @@ export const StreamingChatMessage = memo(function StreamingChatMessage({
       role="article"
       aria-label="Assistant message"
     >
-      <div className="max-w-[85%] rounded-lg px-4 py-3 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-bl-sm">
+      <div className="max-w-[85%] rounded-lg px-4 py-3 bg-surface-raised text-fg rounded-bl-sm">
         {/* Streaming content */}
         <StreamingMarkdown
           content={content}
@@ -40,7 +40,7 @@ export const StreamingChatMessage = memo(function StreamingChatMessage({
 
         {/* Streaming indicator */}
         {isStreaming && (
-          <div className="flex items-center gap-2 mt-2 text-gray-500 dark:text-gray-400">
+          <div className="flex items-center gap-2 mt-2 text-fg-muted">
             <div className="flex items-center gap-1" aria-live="polite" aria-label="Generating response">
               <span
                 className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce"
@@ -62,7 +62,7 @@ export const StreamingChatMessage = memo(function StreamingChatMessage({
         {/* Timestamp (only shown when not streaming) */}
         {!isStreaming && timestamp && (
           <time
-            className="text-xs mt-1 block text-gray-500 dark:text-gray-400"
+            className="text-xs mt-1 block text-fg-muted"
             dateTime={timestamp.toISOString()}
           >
             {timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

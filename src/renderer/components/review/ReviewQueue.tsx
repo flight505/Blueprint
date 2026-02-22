@@ -119,7 +119,7 @@ function getStatusBadge(status: ReviewItemStatus): { text: string; className: st
     case 'pending':
       return {
         text: 'Pending',
-        className: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
+        className: 'bg-surface-raised text-fg',
       };
     case 'accepted':
       return {
@@ -139,7 +139,7 @@ function getStatusBadge(status: ReviewItemStatus): { text: string; className: st
     case 'dismissed':
       return {
         text: 'Dismissed',
-        className: 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400',
+        className: 'bg-surface-raised text-fg-muted',
       };
   }
 }
@@ -363,7 +363,7 @@ export default function ReviewQueue({
           {/* Confidence indicator */}
           <div className="flex items-center gap-3">
             <div className="flex-1">
-              <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div className="h-2 bg-surface-raised rounded-full overflow-hidden">
                 <div
                   className={`h-full ${lcItem.confidence >= 0.6 ? 'bg-green-500' : lcItem.confidence >= 0.4 ? 'bg-amber-500' : 'bg-red-500'}`}
                   style={{ width: `${lcItem.confidence * 100}%` }}
@@ -379,7 +379,7 @@ export default function ReviewQueue({
               {lcItem.indicators.map((indicator, idx) => (
                 <span
                   key={idx}
-                  className="px-2 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                  className="px-2 py-0.5 text-xs rounded-full bg-surface-raised text-fg-secondary"
                 >
                   {indicator}
                 </span>
@@ -388,7 +388,7 @@ export default function ReviewQueue({
           )}
 
           {/* Original text */}
-          <div className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+          <div className="text-sm text-fg-secondary whitespace-pre-wrap">
             {lcItem.originalText}
           </div>
         </div>
@@ -399,11 +399,11 @@ export default function ReviewQueue({
         <div className="space-y-3">
           {/* Citation info */}
           <div className="flex items-start gap-3">
-            <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 text-sm font-medium">
+            <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-surface-raised text-sm font-medium">
               [{citItem.citationNumber}]
             </span>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              <p className="text-sm font-medium text-fg">
                 {citItem.citationTitle}
               </p>
               {citItem.citationUrl && (
@@ -411,7 +411,7 @@ export default function ReviewQueue({
                   href={citItem.citationUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-blue-600 dark:text-blue-400 hover:underline truncate block"
+                  className="text-xs text-accent hover:underline truncate block"
                 >
                   {citItem.citationUrl}
                 </a>
@@ -421,9 +421,9 @@ export default function ReviewQueue({
 
           {/* Verification confidence */}
           <div className="flex items-center gap-3">
-            <span className="text-xs text-gray-500 dark:text-gray-400">Verification confidence:</span>
+            <span className="text-xs text-fg-muted">Verification confidence:</span>
             <div className="flex-1 max-w-32">
-              <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div className="h-2 bg-surface-raised rounded-full overflow-hidden">
                 <div
                   className={`h-full ${citItem.verificationConfidence >= 0.6 ? 'bg-green-500' : citItem.verificationConfidence >= 0.4 ? 'bg-amber-500' : 'bg-red-500'}`}
                   style={{ width: `${citItem.verificationConfidence * 100}%` }}
@@ -436,9 +436,9 @@ export default function ReviewQueue({
           {/* Usages */}
           {citItem.usages.length > 0 && (
             <div className="space-y-1">
-              <p className="text-xs font-medium text-gray-600 dark:text-gray-300">Used in:</p>
+              <p className="text-xs font-medium text-fg-secondary">Used in:</p>
               {citItem.usages.map((usage, idx) => (
-                <p key={idx} className="text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-gray-200 dark:border-gray-600">
+                <p key={idx} className="text-xs text-fg-muted pl-2 border-l-2 border-border-default">
                   {usage.line && <span className="text-gray-400">Line {usage.line}: </span>}
                   "{usage.claim}"
                 </p>
@@ -455,13 +455,13 @@ export default function ReviewQueue({
     if (item.sources.length === 0) return null;
 
     return (
-      <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
-        <h5 className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-3">Sources Comparison</h5>
+      <div className="mt-4 border-t border-border-default pt-4">
+        <h5 className="text-xs font-medium text-fg-muted mb-3">Sources Comparison</h5>
         <div className="grid grid-cols-2 gap-3">
           {/* Original content */}
-          <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
-            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Original</p>
-            <p className="text-sm text-gray-700 dark:text-gray-300">
+          <div className="p-3 rounded-lg bg-surface-raised">
+            <p className="text-xs font-medium text-fg-muted mb-2">Original</p>
+            <p className="text-sm text-fg-secondary">
               {item.type === 'low_confidence'
                 ? (item as LowConfidenceReviewItem).originalText.substring(0, 200) + '...'
                 : (item as CitationReviewItem).citationTitle}
@@ -472,10 +472,10 @@ export default function ReviewQueue({
           <div className="space-y-2">
             {item.sources.slice(0, 2).map((source) => (
               <div key={source.id} className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/30">
-                <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">
+                <p className="text-xs font-medium text-accent mb-1">
                   {source.title || source.type}
                 </p>
-                <p className="text-sm text-gray-700 dark:text-gray-300">
+                <p className="text-sm text-fg-secondary">
                   {source.content.substring(0, 150)}...
                 </p>
                 {source.url && (
@@ -500,10 +500,10 @@ export default function ReviewQueue({
   if (!documentPath) {
     return (
       <div className={`flex flex-col h-full ${className}`}>
-        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+        <div className="px-4 py-3 border-b border-border-default">
           <h3 className="font-medium text-sm">Human Review Queue</h3>
         </div>
-        <div className="flex-1 flex items-center justify-center p-4 text-center text-gray-500 dark:text-gray-400">
+        <div className="flex-1 flex items-center justify-center p-4 text-center text-fg-muted">
           <div>
             <p className="text-sm">No document selected</p>
             <p className="text-xs mt-1">Open a document to review flagged content</p>
@@ -516,7 +516,7 @@ export default function ReviewQueue({
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+      <div className="px-4 py-3 border-b border-border-default">
         <div className="flex items-center justify-between">
           <h3 className="font-medium text-sm">Human Review Queue</h3>
           <button
@@ -532,7 +532,7 @@ export default function ReviewQueue({
 
       {/* Stats summary */}
       {queue && (
-        <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="px-4 py-2 bg-surface-raised border-b border-border-default">
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1">
@@ -548,7 +548,7 @@ export default function ReviewQueue({
                 <span>{queue.stats.unverifiedCitationCount} unverified</span>
               </span>
             </div>
-            <span className="text-gray-500 dark:text-gray-400">
+            <span className="text-fg-muted">
               {queue.stats.accepted + queue.stats.edited + queue.stats.removed + queue.stats.dismissed}/{queue.stats.total} reviewed
             </span>
           </div>
@@ -556,7 +556,7 @@ export default function ReviewQueue({
       )}
 
       {/* Filter tabs */}
-      <div className="px-4 py-2 flex gap-2 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+      <div className="px-4 py-2 flex gap-2 border-b border-border-default overflow-x-auto">
         {(['pending', 'all', 'low_confidence', 'unverified_citation'] as const).map((f) => (
           <button
             key={f}
@@ -564,7 +564,7 @@ export default function ReviewQueue({
             className={`px-3 py-1 text-xs rounded-full whitespace-nowrap transition-colors ${
               filter === f
                 ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                : 'bg-surface-raised text-fg-muted hover:bg-surface-hover'
             }`}
           >
             {f === 'pending' ? 'Pending' :
@@ -588,7 +588,7 @@ export default function ReviewQueue({
             <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : filteredItems.length === 0 ? (
-          <div className="flex items-center justify-center p-8 text-center text-gray-500 dark:text-gray-400">
+          <div className="flex items-center justify-center p-8 text-center text-fg-muted">
             <div>
               <p className="text-sm">
                 {filter === 'pending' ? 'No pending items' : 'No items found'}
@@ -601,7 +601,7 @@ export default function ReviewQueue({
             </div>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100 dark:divide-gray-700">
+          <div className="divide-y divide-border-default">
             {filteredItems.map((item) => {
               const isExpanded = expandedItemId === item.id;
               const isEditing = editingItemId === item.id;
@@ -611,11 +611,11 @@ export default function ReviewQueue({
               return (
                 <div
                   key={item.id}
-                  className="border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                  className="border-b border-border-default last:border-b-0"
                 >
                   {/* Item header */}
                   <div
-                    className={`px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
+                    className={`px-4 py-3 cursor-pointer hover:bg-surface-hover transition-colors ${
                       item.status !== 'pending' ? 'opacity-60' : ''
                     }`}
                     onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
@@ -639,7 +639,7 @@ export default function ReviewQueue({
                             {statusBadge.text}
                           </span>
                         </div>
-                        <p className="mt-1 text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
+                        <p className="mt-1 text-sm text-fg-secondary line-clamp-2">
                           {item.type === 'low_confidence'
                             ? (item as LowConfidenceReviewItem).originalText.substring(0, 100) + '...'
                             : (item as CitationReviewItem).citationTitle}
@@ -666,7 +666,7 @@ export default function ReviewQueue({
                           <textarea
                             value={editText}
                             onChange={(e) => setEditText(e.target.value)}
-                            className="w-full h-32 p-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full h-32 p-3 text-sm border border-border-default rounded-lg bg-input text-fg focus:ring-2 focus:ring-accent focus:border-transparent"
                             placeholder="Enter corrected text..."
                             aria-label="Edit text"
                           />
@@ -676,7 +676,7 @@ export default function ReviewQueue({
                                 setEditingItemId(null);
                                 setEditText('');
                               }}
-                              className="px-3 py-1.5 text-xs rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                              className="px-3 py-1.5 text-xs rounded border border-border-default hover:bg-surface-hover"
                             >
                               Cancel
                             </button>
@@ -728,7 +728,7 @@ export default function ReviewQueue({
                               e.stopPropagation();
                               handleDismiss(item.id);
                             }}
-                            className="px-3 py-1.5 text-xs rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            className="px-3 py-1.5 text-xs rounded border border-border-default hover:bg-surface-hover"
                             aria-label="Dismiss without action"
                           >
                             Dismiss
@@ -739,7 +739,7 @@ export default function ReviewQueue({
                                 e.stopPropagation();
                                 onScrollToItem(item);
                               }}
-                              className="px-3 py-1.5 text-xs rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                              className="px-3 py-1.5 text-xs rounded border border-border-default hover:bg-surface-hover"
                               aria-label="Go to location in document"
                             >
                               Go to

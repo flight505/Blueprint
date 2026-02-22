@@ -244,7 +244,7 @@ export default function ApiKeySettings() {
     <div className="space-y-6">
       <div>
         <p className="text-sm font-medium mb-1">API Keys</p>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+        <p className="text-xs text-fg-muted mb-4">
           {isEncryptionAvailable
             ? 'Keys are stored securely using OS-level encryption.'
             : 'Warning: Encryption not available on this system.'}
@@ -295,7 +295,7 @@ function ApiKeyInput({
   onDelete,
 }: ApiKeyInputProps) {
   return (
-    <div className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+    <div className="p-4 rounded-lg border border-border-default bg-surface-raised">
       <div className="flex items-center justify-between mb-2">
         <label className="text-sm font-medium">{config.label}</label>
         {state.hasKey && !state.isEditing && (
@@ -313,12 +313,12 @@ function ApiKeyInput({
               value={state.inputValue}
               onChange={(e) => onInputChange(e.target.value)}
               placeholder={config.placeholder}
-              className={`w-full px-3 py-2 rounded-lg border bg-gray-50 dark:bg-gray-900 text-sm ${
+              className={`w-full px-3 py-2 rounded-lg border bg-input text-sm ${
                 state.validationStatus === 'valid'
                   ? 'border-green-500 focus:ring-green-500'
                   : state.validationStatus === 'invalid'
                   ? 'border-red-500 focus:ring-red-500'
-                  : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
+                  : 'border-border-default focus:ring-accent'
               } focus:ring-2 focus:border-transparent`}
               aria-label={`Enter ${config.label} API key`}
               aria-describedby={`${config.type}-help`}
@@ -341,7 +341,7 @@ function ApiKeyInput({
             <button
               onClick={onValidate}
               disabled={state.isValidating || !state.inputValue.trim()}
-              className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 text-sm rounded-lg border border-border-default hover:bg-surface-hover disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Validate API key"
             >
               {state.isValidating ? 'Validating...' : 'Validate'}
@@ -357,7 +357,7 @@ function ApiKeyInput({
             <button
               onClick={onCancel}
               disabled={state.isValidating}
-              className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="px-3 py-1.5 text-sm rounded-lg border border-border-default hover:bg-surface-hover"
               aria-label="Cancel editing"
             >
               Cancel
@@ -366,13 +366,13 @@ function ApiKeyInput({
         </div>
       ) : (
         <div className="space-y-2">
-          <p id={`${config.type}-help`} className="text-xs text-gray-500 dark:text-gray-400">
+          <p id={`${config.type}-help`} className="text-xs text-fg-muted">
             {config.helpText}
           </p>
           <div className="flex gap-2">
             <button
               onClick={onEdit}
-              className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="px-3 py-1.5 text-sm rounded-lg border border-border-default hover:bg-surface-hover"
               aria-label={state.hasKey ? `Update ${config.label} API key` : `Add ${config.label} API key`}
             >
               {state.hasKey ? 'Update Key' : 'Add Key'}

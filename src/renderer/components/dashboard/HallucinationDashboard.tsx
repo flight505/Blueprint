@@ -54,14 +54,14 @@ function ProgressBar({
 
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+      <div className="flex-1 h-2 bg-surface-raised rounded-full overflow-hidden">
         <div
           className={`h-full ${colorClasses[color]} transition-all duration-300`}
           style={{ width: `${Math.min(percentage, 100)}%` }}
         />
       </div>
       {showLabel && (
-        <span className="text-xs text-gray-600 dark:text-gray-400 w-10 text-right">
+        <span className="text-xs text-fg-muted w-10 text-right">
           {percentage}%
         </span>
       )}
@@ -88,17 +88,17 @@ function MetricCard({
   const trendIcons = {
     up: { symbol: '\u2191', color: 'text-green-500' },
     down: { symbol: '\u2193', color: 'text-red-500' },
-    stable: { symbol: '\u2192', color: 'text-gray-500' },
+    stable: { symbol: '\u2192', color: 'text-fg-muted' },
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+    <div className="bg-surface-raised rounded-lg border border-border-default p-4">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</span>
+        <span className="text-sm font-medium text-fg-muted">{title}</span>
         {icon && <span className="text-lg">{icon}</span>}
       </div>
       <div className="mt-2 flex items-baseline gap-2">
-        <span className="text-2xl font-bold text-gray-900 dark:text-white">{value}</span>
+        <span className="text-2xl font-bold text-fg">{value}</span>
         {trend && (
           <span className={trendIcons[trend].color}>
             {trendIcons[trend].symbol}
@@ -106,7 +106,7 @@ function MetricCard({
         )}
       </div>
       {subtitle && (
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{subtitle}</p>
+        <p className="mt-1 text-xs text-fg-muted">{subtitle}</p>
       )}
     </div>
   );
@@ -119,7 +119,7 @@ function TrendChart({ data, height = 100 }: { data: TrendDataPoint[]; height?: n
   if (data.length < 2) {
     return (
       <div
-        className="flex items-center justify-center text-gray-400 dark:text-gray-600 text-sm"
+        className="flex items-center justify-center text-fg-muted text-sm"
         style={{ height }}
       >
         Not enough data for trend chart
@@ -175,7 +175,7 @@ function TrendChart({ data, height = 100 }: { data: TrendDataPoint[]; height?: n
               x={padding - 5}
               y={y + 4}
               textAnchor="end"
-              className="text-[8px] fill-gray-400"
+              className="text-[8px] fill-fg-muted"
             >
               {v}
             </text>
@@ -238,10 +238,10 @@ function DocumentRow({ doc, onAnalyze }: { doc: DocumentMetrics; onAnalyze?: (pa
     doc.verificationRate >= 0.8 ? 'green' : doc.verificationRate >= 0.6 ? 'yellow' : 'red';
 
   return (
-    <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+    <tr className="hover:bg-surface-hover">
       <td className="px-3 py-2 whitespace-nowrap">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[150px]">
+          <span className="text-sm font-medium text-fg truncate max-w-[150px]">
             {doc.documentName}
           </span>
         </div>
@@ -264,7 +264,7 @@ function DocumentRow({ doc, onAnalyze }: { doc: DocumentMetrics; onAnalyze?: (pa
       <td className="px-3 py-2 whitespace-nowrap text-right">
         <button
           onClick={() => onAnalyze?.(doc.documentPath)}
-          className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+          className="text-xs text-accent hover:underline"
           aria-label={`Re-analyze ${doc.documentName}`}
         >
           Re-analyze
@@ -382,7 +382,7 @@ export function HallucinationDashboard({ projectPath }: HallucinationDashboardPr
   if (!projectPath) {
     return (
       <div className="flex-1 flex items-center justify-center p-4">
-        <div className="text-center text-gray-500 dark:text-gray-400">
+        <div className="text-center text-fg-muted">
           <p className="text-sm font-medium mb-1">No project selected</p>
           <p className="text-xs">Open a project to view hallucination metrics</p>
         </div>
@@ -394,7 +394,7 @@ export function HallucinationDashboard({ projectPath }: HallucinationDashboardPr
   if (isLoading && !metrics) {
     return (
       <div className="flex-1 flex items-center justify-center p-4">
-        <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+        <div className="flex items-center gap-2 text-fg-muted">
           <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
           <span className="text-sm">Loading metrics...</span>
         </div>
@@ -409,7 +409,7 @@ export function HallucinationDashboard({ projectPath }: HallucinationDashboardPr
         <p className="text-sm text-red-500">{error}</p>
         <button
           onClick={loadMetrics}
-          className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+          className="text-sm text-accent hover:underline"
         >
           Retry
         </button>
@@ -421,7 +421,7 @@ export function HallucinationDashboard({ projectPath }: HallucinationDashboardPr
   if (!metrics || metrics.totalDocuments === 0) {
     return (
       <div className="flex-1 flex items-center justify-center p-4">
-        <div className="text-center text-gray-500 dark:text-gray-400">
+        <div className="text-center text-fg-muted">
           <p className="text-sm font-medium mb-1">No documents analyzed yet</p>
           <p className="text-xs">Open documents and analyze them to see metrics</p>
         </div>
@@ -433,14 +433,14 @@ export function HallucinationDashboard({ projectPath }: HallucinationDashboardPr
     <div className="flex-1 overflow-y-auto p-4 space-y-6">
       {/* Header with export buttons */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h2 className="text-lg font-semibold text-fg">
           Hallucination Dashboard
         </h2>
         <div className="flex items-center gap-2">
           <button
             onClick={() => handleExport('json')}
             disabled={isExporting}
-            className="px-3 py-1.5 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 transition-colors"
+            className="px-3 py-1.5 text-xs font-medium bg-surface-raised text-fg-secondary rounded hover:bg-surface-hover disabled:opacity-50 transition-colors"
             aria-label="Export as JSON"
           >
             Export JSON
@@ -448,7 +448,7 @@ export function HallucinationDashboard({ projectPath }: HallucinationDashboardPr
           <button
             onClick={() => handleExport('csv')}
             disabled={isExporting}
-            className="px-3 py-1.5 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 transition-colors"
+            className="px-3 py-1.5 text-xs font-medium bg-surface-raised text-fg-secondary rounded hover:bg-surface-hover disabled:opacity-50 transition-colors"
             aria-label="Export as CSV"
           >
             Export CSV
@@ -456,7 +456,7 @@ export function HallucinationDashboard({ projectPath }: HallucinationDashboardPr
           <button
             onClick={loadMetrics}
             disabled={isLoading}
-            className="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50"
+            className="p-1.5 text-fg-muted hover:text-fg disabled:opacity-50"
             aria-label="Refresh metrics"
           >
             {/* Refresh icon */}
@@ -503,46 +503,46 @@ export function HallucinationDashboard({ projectPath }: HallucinationDashboardPr
 
       {/* Trend chart */}
       {trendData && trendData.dataPoints.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+        <div className="bg-surface-raised rounded-lg border border-border-default p-4">
+          <h3 className="text-sm font-medium text-fg-secondary mb-3">
             Quality Score Trend
           </h3>
           <TrendChart data={trendData.dataPoints} height={120} />
-          <div className="mt-2 flex items-center justify-center gap-6 text-xs text-gray-500 dark:text-gray-400">
+          <div className="mt-2 flex items-center justify-center gap-6 text-xs text-fg-muted">
             <span>7-day average: {Math.round(trendData.movingAverages.qualityScore)}</span>
           </div>
         </div>
       )}
 
       {/* Documents table */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+      <div className="bg-surface-raised rounded-lg border border-border-default overflow-hidden">
+        <div className="px-4 py-3 border-b border-border-default">
+          <h3 className="text-sm font-medium text-fg-secondary">
             Document Details
           </h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-gray-700/50">
+            <thead className="bg-surface-raised">
               <tr>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-fg-muted uppercase tracking-wider">
                   Document
                 </th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-fg-muted uppercase tracking-wider">
                   Confidence
                 </th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-fg-muted uppercase tracking-wider">
                   Verification
                 </th>
-                <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-3 py-2 text-center text-xs font-medium text-fg-muted uppercase tracking-wider">
                   Score
                 </th>
-                <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-3 py-2 text-right text-xs font-medium text-fg-muted uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="divide-y divide-border-default">
               {metrics.documents.map((doc) => (
                 <DocumentRow
                   key={doc.documentPath}
@@ -556,7 +556,7 @@ export function HallucinationDashboard({ projectPath }: HallucinationDashboardPr
       </div>
 
       {/* Last updated timestamp */}
-      <div className="text-center text-xs text-gray-400 dark:text-gray-600">
+      <div className="text-center text-xs text-fg-muted">
         Last analyzed: {new Date(metrics.lastAnalyzedAt).toLocaleString()}
       </div>
     </div>
