@@ -300,9 +300,10 @@ body {
   -webkit-app-region: no-drag;
 }
 
-/* Custom focus styles — thin ring that follows border-radius */
-*:focus-visible {
-  outline: 1px solid rgba(167, 139, 250, 0.5);
+/* Custom focus styles — thin ring that follows border-radius.
+   :where() gives zero specificity so any Tailwind class (outline-none) overrides it. */
+:where(*:focus-visible) {
+  outline: 1px solid rgba(167, 139, 250, 0.4);
   outline-offset: 0px;
 }
 

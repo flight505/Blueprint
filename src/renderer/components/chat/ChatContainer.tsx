@@ -130,7 +130,7 @@ export function ChatContainer({
 
       {/* Input area */}
       <div className="px-3 py-3">
-        <div className="rounded-xl border border-white/[0.06] bg-white/[0.04] focus-within:border-purple-400/30 transition-colors duration-150">
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.04] focus-within:border-purple-400/30 focus-within:shadow-[0_0_0_1px_rgba(167,139,250,0.2),0_0_12px_rgba(167,139,250,0.12)] transition-all duration-150">
           {/* Textarea */}
           <textarea
             ref={textareaRef}
@@ -140,7 +140,7 @@ export function ChatContainer({
             placeholder={placeholder}
             disabled={isLoading}
             rows={1}
-            className="w-full px-3.5 pt-3 pb-1 bg-transparent text-gray-100 resize-none disabled:opacity-50 disabled:cursor-not-allowed placeholder-gray-500 text-sm outline-none focus-visible:outline-none"
+            className="w-full px-3.5 pt-3 pb-1 bg-transparent text-gray-100 resize-none disabled:opacity-50 disabled:cursor-not-allowed placeholder-gray-500 text-sm outline-none"
             aria-label="Message input"
           />
           {/* Action bar */}
