@@ -140,7 +140,7 @@ export function ChatContainer({
             placeholder={placeholder}
             disabled={isLoading}
             rows={1}
-            className="w-full px-3.5 pt-3 pb-1 bg-transparent text-gray-100 resize-none disabled:opacity-50 disabled:cursor-not-allowed placeholder-gray-500 text-sm outline-none"
+            className="w-full px-3.5 pt-3 pb-1 bg-transparent text-gray-100 resize-none disabled:opacity-50 disabled:cursor-not-allowed placeholder-gray-500 text-sm outline-none focus-visible:outline-none"
             aria-label="Message input"
           />
           {/* Action bar */}
@@ -151,7 +151,7 @@ export function ChatContainer({
             <button
               onClick={handleSend}
               disabled={!inputValue.trim() || isLoading}
-              className="flex items-center justify-center w-7 h-7 rounded-full bg-white/[0.10] border border-white/[0.06] text-gray-300 hover:bg-white/[0.18] hover:text-gray-100 disabled:opacity-30 disabled:pointer-events-none transition-all duration-150 shrink-0"
+              className="flex items-center justify-center w-7 h-7 rounded-full bg-white/[0.10] border border-white/[0.06] text-gray-300 hover:bg-white/[0.18] hover:text-gray-100 disabled:opacity-30 disabled:pointer-events-none transition-all duration-150 shrink-0 focus-visible:outline-none"
               aria-label="Send message"
             >
               {isLoading ? (
