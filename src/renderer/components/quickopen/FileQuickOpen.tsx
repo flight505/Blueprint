@@ -172,7 +172,7 @@ export default function FileQuickOpen({
     <AnimatedOverlay
       isOpen={isOpen}
       onClose={onClose}
-      className="w-[800px] max-w-[90vw] bg-gray-800 border border-gray-700 rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[70vh]"
+      className="w-[800px] max-w-[90vw] bg-gray-800 border border-white/[0.06] rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[70vh]"
       position="top"
     >
       <div role="combobox" aria-expanded="true" aria-haspopup="listbox" className="flex flex-col h-full">
@@ -189,7 +189,7 @@ export default function FileQuickOpen({
             onKeyDown={handleKeyDown}
             placeholder={projectPath ? "Type to search files..." : "Open a project folder first"}
             disabled={!projectPath}
-            className="w-full px-3 py-2 bg-gray-700 text-gray-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 placeholder-gray-400"
+            className="w-full px-3 py-2 bg-white/[0.04] text-gray-100 rounded-lg text-sm border border-white/[0.06] focus:outline-none focus:ring-1 focus:ring-purple-400/40 focus:border-purple-400/30 disabled:opacity-50 placeholder-gray-500 transition-colors duration-150"
             aria-label="Search files"
             aria-controls="file-list"
             aria-autocomplete="list"

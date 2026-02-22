@@ -130,7 +130,7 @@ export function ChatContainer({
 
       {/* Input area */}
       <div className="px-3 py-3">
-        <div className="rounded-xl border border-white/[0.08] bg-white/[0.04]">
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.04] focus-within:border-purple-400/30 transition-colors duration-150">
           {/* Textarea */}
           <textarea
             ref={textareaRef}
@@ -151,13 +151,13 @@ export function ChatContainer({
             <button
               onClick={handleSend}
               disabled={!inputValue.trim() || isLoading}
-              className="flex items-center justify-center w-7 h-7 rounded-full bg-white/[0.10] border border-white/[0.08] text-gray-300 hover:bg-white/[0.18] hover:text-gray-100 disabled:opacity-30 disabled:pointer-events-none transition-all duration-150 shrink-0"
+              className="flex items-center justify-center w-7 h-7 rounded-full bg-white/[0.10] border border-white/[0.06] text-gray-300 hover:bg-white/[0.18] hover:text-gray-100 disabled:opacity-30 disabled:pointer-events-none transition-all duration-150 shrink-0"
               aria-label="Send message"
             >
               {isLoading ? (
                 <Loader2 size={14} className="animate-spin" />
               ) : (
-                <ArrowRight size={14} strokeWidth={2.5} />
+                <ArrowRight size={14} strokeWidth={1.5} />
               )}
             </button>
           </div>

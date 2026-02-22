@@ -300,10 +300,10 @@ body {
   -webkit-app-region: no-drag;
 }
 
-/* Custom focus styles */
+/* Custom focus styles — thin ring that follows border-radius */
 *:focus-visible {
-  outline: 2px solid theme('colors.blue.500');
-  outline-offset: 2px;
+  outline: 1px solid rgba(167, 139, 250, 0.5);
+  outline-offset: 0px;
 }
 
 /* Text selection highlighting - distinct color for editor selections */
@@ -378,8 +378,8 @@ body {
 /* High contrast focus indicators for accessibility */
 @media (prefers-contrast: high) {
   *:focus-visible {
-    outline: 3px solid currentColor;
-    outline-offset: 3px;
+    outline: 2px solid currentColor;
+    outline-offset: 1px;
   }
 }
 

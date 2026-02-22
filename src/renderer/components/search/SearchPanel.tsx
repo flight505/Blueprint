@@ -261,7 +261,7 @@ export function SearchPanel({ projectPath, onFileSelect }: SearchPanelProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search in project..."
-            className="w-full px-3 py-2 pr-10 rounded-lg border border-white/[0.06] bg-white/[0.06] text-gray-100 focus:ring-2 focus:ring-purple-400/50 focus:border-purple-400/30 text-sm placeholder-gray-500 transition-all duration-150"
+            className="w-full px-3 py-2 pr-10 rounded-lg border border-white/[0.06] bg-white/[0.04] text-gray-100 focus:ring-1 focus:ring-purple-400/40 focus:border-purple-400/30 text-sm placeholder-gray-500 transition-colors duration-150"
             aria-label="Search query"
           />
           {isSearching && (

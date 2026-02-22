@@ -133,7 +133,7 @@ export default function CommandPalette({
     <AnimatedOverlay
       isOpen={isOpen}
       onClose={onClose}
-      className="w-[600px] max-w-[90vw] bg-white/[0.07] backdrop-blur-xl rounded-lg shadow-2xl overflow-hidden border border-white/[0.10]"
+      className="w-[600px] max-w-[90vw] bg-white/[0.07] backdrop-blur-xl rounded-lg shadow-2xl overflow-hidden border border-white/[0.06]"
       position="top"
     >
       <div role="combobox" aria-expanded="true" aria-haspopup="listbox">
@@ -149,7 +149,7 @@ export default function CommandPalette({
             }}
             onKeyDown={handleKeyDown}
             placeholder="Type a command or search..."
-            className="w-full px-3 py-2 bg-white/[0.06] text-gray-100 rounded-lg text-sm border border-white/[0.06] focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-purple-400/30 placeholder-gray-500 transition-all duration-150"
+            className="w-full px-3 py-2 bg-white/[0.04] text-gray-100 rounded-lg text-sm border border-white/[0.06] focus:outline-none focus:ring-1 focus:ring-purple-400/40 focus:border-purple-400/30 placeholder-gray-500 transition-colors duration-150"
             aria-label="Search commands"
             aria-controls="command-list"
             aria-autocomplete="list"

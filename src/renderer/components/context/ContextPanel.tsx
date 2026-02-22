@@ -230,7 +230,7 @@ export default function ContextPanel({
             if (e.key === 'Escape') clearSearch();
           }}
           placeholder="Search context..."
-          className="w-full pl-8 pr-8 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full pl-8 pr-8 py-2 text-sm rounded-lg border border-white/[0.06] bg-white/[0.04] text-gray-100 focus:ring-1 focus:ring-purple-400/40 focus:border-purple-400/30 placeholder-gray-500 transition-colors duration-150"
           aria-label="Search context documents"
         />
         <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true">
